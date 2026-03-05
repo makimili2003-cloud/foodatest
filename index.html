@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@3.3.0/dist/model-viewer.min.js"></script>
+  <title>FoodAR</title>
+</head>
+
+<body style="margin:0; overflow:hidden;">
+
+<model-viewer
+  id="mv"
+  ar
+  ar-modes="scene-viewer webxr quick-look"
+  camera-controls
+  auto-rotate
+  style="width:100vw;height:100vh;">
+
+  <button slot="ar-button" style="
+    position:absolute;
+    bottom:40px;
+    left:50%;
+    transform:translateX(-50%);
+    padding:16px 20px;
+    font-size:16px;
+    border-radius:12px;
+    border:none;
+    background:#000;
+    color:#fff;">
+    View in AR
+  </button>
+
+</model-viewer>
+
+<script>
+  const mv = document.getElementById('mv');
+
+  const host = window.location.hostname.toLowerCase();
+
+  // Debug — privremeno vidi šta browser vidi
+  console.log("HOST:", host);
+
+  let sub = "";
+
+  if (host.endsWith("foodar.org")) {
+    sub = host.replace(".foodar.org", "");
+  }
+
+  const map = {
+    "hleb": { glb: "hlebandroid.glb", usdz: "hleb.usdz" },
+    "pizza": { glb: "pizza.glb", usdz: "pizza.usdz" },
+    "dorucak": { glb: "dorucak.glb", usdz: "dorucak.usdz" },
+    "lotus": { glb: "lotus.glb", usdz: "lotus.usdz" },
+    "bananahleb": { glb: "bananahleb.glb", usdz: "bananahleb.usdz" },
+    "kajganaavokado": { glb: "kajganaavokado.glb", usdz: "kajganaavokado.usdz" }
+  };
+
+  if (map[sub]) {
+    mv.setAttribute("src", map[sub].glb);
+    mv.setAttribute("ios-src", map[sub].usdz);
+  } else {
+    mv.setAttribute("src", "hleb.glb"); // fallback da bar nešto pokaže
+    mv.setAttribute("ios-src", "hleb.usdz");
+  }
+  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+  if (isIOS && !isSafari) {
+    alert("Za AR na iPhone-u otvorite u Safari browseru.");
+  }
+</script>
+
+</body>
+</html>
