@@ -44,7 +44,7 @@
     * { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
     body {
-      margin: 0; background: var(--bg); color: var(--ink);
+      margin: 0; background: var(--bg); position: relative; color: var(--ink);
       font: 16px/1.6 Inter, system-ui, -apple-system, sans-serif;
       -webkit-font-smoothing: antialiased;
     }
@@ -145,7 +145,7 @@
     @media (max-width: 760px) { .compare { grid-template-columns: 1fr; } }
 
     /* Steps */
-    #kako-radi { background: var(--bg-2); }
+    #kako-radi { background: rgba(243, 236, 226, .55); }
     .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; counter-reset: s; }
     .step { position: relative; background: var(--card); border-radius: var(--radius); padding: 32px 28px 28px; border: 1px solid var(--line); }
     .step::before {
@@ -207,7 +207,7 @@
     @media (max-width: 900px) { .benefits { grid-template-columns: 1fr; gap: 32px; } .included { position: static; } }
 
     /* FAQ */
-    #pitanja { background: var(--bg-2); }
+    #pitanja { background: rgba(243, 236, 226, .55); }
     .faq { max-width: 800px; display: grid; gap: 12px; }
     details { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 0 22px; }
     summary { cursor: pointer; list-style: none; padding: 20px 0; font-weight: 600; font-size: 17px; display: flex; justify-content: space-between; gap: 16px; }
@@ -242,7 +242,7 @@
     footer .wrap { display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: center; }
     footer .logo { color: #fff; font-size: 20px; }
 
-    .reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .6s ease; }
+    .reveal { opacity: 0; transform: translateY(28px); transition: opacity 1s cubic-bezier(.16,1,.3,1), transform 1s cubic-bezier(.16,1,.3,1); }
     .reveal.in { opacity: 1; transform: none; }
     .reveal { transition-delay: var(--d, 0s); }
 
@@ -251,40 +251,38 @@
     #progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 60; transform-origin: 0 50%; transform: scaleX(0);
       background: linear-gradient(90deg, var(--accent), #f39a3d, var(--accent)); }
 
-    /* Hero pozadina: plutajuće mrlje boje */
-    .hero { position: relative; isolation: isolate; overflow: hidden; }
-    .blob { position: absolute; z-index: -1; border-radius: 50%; filter: blur(70px); opacity: .6; animation: float 16s ease-in-out infinite; pointer-events: none; }
-    .b1 { width: 460px; height: 460px; background: #ffc9b5; top: -140px; right: -100px; }
-    .b2 { width: 360px; height: 360px; background: #ffe2a8; bottom: -160px; left: -120px; animation-delay: -6s; }
-    .b3 { width: 280px; height: 280px; background: #cfe8d3; top: 35%; left: 40%; animation-delay: -11s; opacity: .45; }
-    @keyframes float {
-      0%, 100% { transform: translate(0, 0) scale(1); }
-      33% { transform: translate(40px, -50px) scale(1.1); }
-      66% { transform: translate(-30px, 30px) scale(.92); }
+    /* Živa pozadina cele stranice: plutajuće mrlje boje + tačkasta mreža koja klizi */
+    .hero { position: relative; }
+    .bg { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+    .bg::after {
+      content: ""; position: absolute; inset: -260px;
+      background-image: radial-gradient(rgba(31, 26, 23, .08) 1.2px, transparent 1.3px);
+      background-size: 26px 26px;
+      -webkit-mask-image: radial-gradient(ellipse at 50% 40%, #000 20%, transparent 75%);
+              mask-image: radial-gradient(ellipse at 50% 40%, #000 20%, transparent 75%);
+      animation: drift 45s linear infinite;
     }
+    @keyframes drift { to { transform: translate(260px, 260px); } }
+    .blob { position: absolute; border-radius: 50%; filter: blur(80px); opacity: .55; will-change: transform; }
+    .b1 { width: 48vmax; height: 48vmax; background: #ffc4ae; top: -18vmax; right: -14vmax; animation: roam1 26s ease-in-out infinite; }
+    .b2 { width: 40vmax; height: 40vmax; background: #ffdf9e; bottom: -16vmax; left: -14vmax; animation: roam2 32s ease-in-out infinite; }
+    .b3 { width: 30vmax; height: 30vmax; background: #c9e6cf; top: 30%; left: 30%; animation: roam3 38s ease-in-out infinite; opacity: .4; }
+    .b4 { width: 26vmax; height: 26vmax; background: #ffb3a1; top: 55%; right: 10%; animation: roam2 30s ease-in-out infinite reverse; opacity: .35; }
+    @keyframes roam1 { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(-14vw, 12vh) scale(1.15); } 66% { transform: translate(-4vw, 30vh) scale(.9); } }
+    @keyframes roam2 { 0%,100% { transform: translate(0,0) scale(1); } 40% { transform: translate(18vw, -14vh) scale(1.2); } 70% { transform: translate(8vw, -32vh) scale(.95); } }
+    @keyframes roam3 { 0%,100% { transform: translate(0,0) scale(1); } 25% { transform: translate(20vw, -10vh) scale(1.1); } 50% { transform: translate(-6vw, 18vh) scale(.85); } 75% { transform: translate(-22vw, -6vh) scale(1.05); } }
+    @media (max-width: 700px) { .blob { filter: blur(50px); } }
 
     /* Naslov: reči ulaze jedna po jedna */
     .split .w { display: inline-block; opacity: 0; transform: translateY(45%) rotate(4deg); filter: blur(6px);
-      animation: wordIn .9s cubic-bezier(.2, .8, .2, 1) forwards; animation-delay: calc(var(--i) * 70ms + .1s); }
+      animation: wordIn 1.4s cubic-bezier(.16, 1, .3, 1) forwards; animation-delay: calc(var(--i) * 160ms + .2s); }
     @keyframes wordIn { to { opacity: 1; transform: none; filter: blur(0); } }
     .hero h1 em.w { background: linear-gradient(90deg, var(--accent), #f08a3c, var(--accent)); background-size: 200% 100%;
-      -webkit-background-clip: text; background-clip: text; color: transparent; animation: wordIn .9s cubic-bezier(.2,.8,.2,1) forwards, shimmer 5s linear infinite 1.2s; }
+      -webkit-background-clip: text; background-clip: text; color: transparent; animation: wordIn 1.4s cubic-bezier(.16,1,.3,1) forwards, shimmer 6s linear infinite 2.5s; }
     @keyframes shimmer { to { background-position: -200% 0; } }
-    .fade-up { opacity: 0; transform: translateY(24px); animation: fadeUp .9s cubic-bezier(.2, .8, .2, 1) forwards; animation-delay: var(--d, 0s); }
+    .fade-up { opacity: 0; transform: translateY(24px); animation: fadeUp 1.3s cubic-bezier(.16, 1, .3, 1) forwards; animation-delay: var(--d, 0s); }
     @keyframes fadeUp { to { opacity: 1; transform: none; } }
     .stage.fade-up { transform: translateY(40px) scale(.96); }
-
-    /* AR "kamera" okvir na sceni */
-    .corner { position: absolute; width: 26px; height: 26px; border: 3px solid var(--accent); opacity: .8; pointer-events: none; animation: corner 3s ease-in-out infinite; }
-    .corner.tl { top: 64px; left: 22px; border-right: 0; border-bottom: 0; border-radius: 8px 0 0 0; }
-    .corner.tr { top: 64px; right: 22px; border-left: 0; border-bottom: 0; border-radius: 0 8px 0 0; }
-    .corner.bl { bottom: 120px; left: 22px; border-right: 0; border-top: 0; border-radius: 0 0 0 8px; }
-    .corner.br { bottom: 120px; right: 22px; border-left: 0; border-top: 0; border-radius: 0 0 8px 0; }
-    @keyframes corner { 50% { transform: scale(.85); opacity: .45; } }
-    .scanline { position: absolute; left: 10%; right: 10%; height: 2px; top: 70px; pointer-events: none;
-      background: linear-gradient(90deg, transparent, var(--accent), transparent); box-shadow: 0 0 18px 2px rgba(217,71,43,.45);
-      animation: scan 4s ease-in-out infinite; opacity: .7; }
-    @keyframes scan { 0% { top: 70px; opacity: 0; } 10% { opacity: .7; } 50% { top: calc(100% - 130px); } 90% { opacity: .7; } 100% { top: 70px; opacity: 0; } }
 
     .chip { animation: bob 4.5s ease-in-out infinite; }
     .chip-size { animation-delay: -2s; }
@@ -377,6 +375,9 @@
 </head>
 <body>
 <div id="progress"></div>
+<div class="bg" aria-hidden="true">
+  <span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span><span class="blob b4"></span>
+</div>
 
 <header id="top">
   <div class="wrap nav">
@@ -394,24 +395,23 @@
 <main>
   <!-- HERO -->
   <section class="hero">
-    <span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span>
     <div class="wrap hero-grid">
       <div>
-        <span class="eyebrow fade-up" style="--d:0s">3D i AR meni za restorane</span>
+        <span class="eyebrow fade-up" style="--d:.1s">3D i AR meni za restorane</span>
         <h1 class="split">Gosti vide jelo <em>pre</em> nego što ga poruče.</h1>
-        <p class="lead fade-up" style="--d:.55s">Svako jelo sa vašeg menija snimamo u 3D. Gost skenira QR kod pored artikla i vidi jelo na svom stolu, u stvarnoj veličini i sa pravim izgledom. Tačno ono što će dobiti.</p>
-        <div class="hero-ctas fade-up" style="--d:.7s">
+        <p class="lead fade-up" style="--d:1.5s">Svako jelo sa vašeg menija snimamo u 3D. Gost skenira QR kod pored artikla i vidi jelo na svom stolu, u stvarnoj veličini i sa pravim izgledom. Tačno ono što će dobiti.</p>
+        <div class="hero-ctas fade-up" style="--d:1.8s">
           <a class="btn btn-primary pulse magnet" href="#kontakt">Želim AR meni</a>
           <a class="btn btn-ghost magnet" href="#demo">Isprobaj demo</a>
         </div>
-        <ul class="ticks fade-up" style="--d:.85s">
+        <ul class="ticks fade-up" style="--d:2.05s">
           <li>Bez instaliranja aplikacije</li>
           <li>iPhone i Android</li>
           <li>Stvarna veličina 1:1</li>
         </ul>
       </div>
 
-      <div class="stage fade-up" style="--d:.35s">
+      <div class="stage fade-up" style="--d:.7s">
         <model-viewer id="heroMv"
           src="pizza.glb" ios-src="pizza.usdz"
           alt="3D model pice na drvenoj lopati"
@@ -421,8 +421,6 @@
           environment-image="neutral" shadow-intensity="1.1" shadow-softness=".8" exposure="1.05">
           <button slot="ar-button" style="display:none"></button>
         </model-viewer>
-        <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
-        <span class="scanline"></span>
         <span class="chip chip-name">Pica Margarita</span>
         <span class="chip chip-size">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 7h18M3 7v4M21 7v4M7 7v2M11 7v2M15 7v2"/><path d="M5 17h14"/></svg>
@@ -715,7 +713,7 @@
   // ---------- Hero: kamera "doleti" do pice ----------
   const heroMv = document.getElementById('heroMv');
   heroMv.addEventListener('load', () => {
-    setTimeout(() => { heroMv.cameraOrbit = '20deg 62deg auto'; }, reduceMotion ? 0 : 500);
+    setTimeout(() => { heroMv.cameraOrbit = '20deg 62deg auto'; }, reduceMotion ? 0 : 900);
   });
   document.getElementById('heroAr').addEventListener('click', () => {
     if (heroMv.canActivateAR) heroMv.activateAR();
@@ -812,8 +810,16 @@
       form.reset();
       msg.className = 'form-msg ok'; msg.textContent = OK_TEXT;
     } catch (err) {
-      msg.className = 'form-msg err';
-      msg.innerHTML = 'Slanje nije uspelo. Pišite nam direktno na <a href="mailto:' + EMAIL + '">' + EMAIL + '</a>.';
+      // Oba servisa su odbila (npr. FormSubmit još nije aktiviran, a Netlify Forms nije uključen).
+      // Gost ipak šalje upit: otvaramo mu email sa već popunjenom porukom.
+      (err.errors || [err]).forEach(x => console.warn('Slanje forme:', x && x.message));
+      const labels = { ime: 'Ime', restoran: 'Restoran', telefon: 'Telefon', email: 'Email', grad: 'Grad', broj_jela: 'Broj jela', poruka: 'Poruka' };
+      const body = Object.entries(fields).filter(([, v]) => v).map(([k, v]) => `${labels[k] || k}: ${v}`).join('\n');
+      const mailto = `mailto:${EMAIL}?subject=${encodeURIComponent('Upit za FoodAR – ' + (fields.restoran || fields.ime))}&body=${encodeURIComponent(body)}`;
+      msg.className = 'form-msg ok';
+      msg.innerHTML = 'Još samo jedan korak: otvorili smo vaš email sa popunjenim upitom, samo pritisnite <b>Pošalji</b>. ' +
+        'Ako se nije otvorio, <a href="' + mailto + '">kliknite ovde</a>.';
+      location.href = mailto;
     } finally {
       btn.disabled = false; btn.textContent = 'Pošalji upit';
     }
@@ -832,7 +838,7 @@
 
   // stepenasto pojavljivanje elemenata iste grupe
   document.querySelectorAll('.cards, .steps, .blist, .faq').forEach(g =>
-    [...g.querySelectorAll(':scope > .reveal')].forEach((el, i) => el.style.setProperty('--d', (i * 0.1) + 's')));
+    [...g.querySelectorAll(':scope > .reveal')].forEach((el, i) => el.style.setProperty('--d', (i * 0.18) + 's')));
   document.querySelectorAll('.included li').forEach((li, i) => li.style.setProperty('--i', i));
   const io = new IntersectionObserver(es => es.forEach(e => {
     if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
