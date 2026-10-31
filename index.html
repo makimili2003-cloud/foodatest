@@ -3,107 +3,645 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>FoodAR</title>
+  <script>
+    // QR linkovi (npr. pizza.foodar.org ili ?jelo=pizza) idu pravo na AR prikaz jela
+    (function () {
+      var h = location.hostname.toLowerCase();
+      var s = h.slice(-11) === '.foodar.org' ? h.slice(0, -11) : '';
+      if ((s && s !== 'www') || new URLSearchParams(location.search).get('jelo')) {
+        location.replace('/ar.html' + location.search + location.hash);
+      }
+    })();
+  </script>
+  <title>FoodAR – 3D i AR meni za restorane</title>
+  <meta name="description" content="Gosti vide jelo u stvarnoj veličini na svom stolu pre nego što ga poruče. QR kod na meniju, bez aplikacije. 3D i AR meni za restorane." />
+  <meta property="og:title" content="FoodAR – gosti vide jelo pre nego što ga poruče" />
+  <meta property="og:description" content="3D i AR meni za restorane: pravi izgled i stvarna veličina jela, direktno na stolu gosta." />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#1f1a17" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='30' fill='%23d9472b'/><text x='32' y='42' font-size='28' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'>AR</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
   <style>
-    html, body { margin: 0; height: 100%; overflow: hidden; background: #fff; font-family: system-ui, sans-serif; }
-    model-viewer { width: 100vw; height: 100vh; height: 100dvh; }
-    /* Ceo ekran je dugme: jedan dodir bilo gde pokreće AR */
-    #tap {
-      position: fixed; inset: 0; z-index: 10; border: 0; padding: 0;
-      background: rgba(0,0,0,.35); color: #fff; cursor: pointer;
-      display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
-      padding-bottom: calc(48px + env(safe-area-inset-bottom));
-      -webkit-tap-highlight-color: transparent;
+    :root {
+      --bg: #fbf7f1;
+      --bg-2: #f3ece2;
+      --card: #ffffff;
+      --ink: #1f1a17;
+      --ink-2: #5b524b;
+      --line: #e6ddd1;
+      --accent: #d9472b;
+      --accent-ink: #ffffff;
+      --accent-soft: #fbe3dc;
+      --green: #2f6b3f;
+      --dark: #1f1a17;
+      --radius: 20px;
+      --shadow: 0 20px 50px -20px rgba(60, 35, 20, .25);
     }
-    #tap span {
-      background: #000; padding: 18px 28px; border-radius: 14px;
-      font-size: 18px; font-weight: 600;
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0; background: var(--bg); color: var(--ink);
+      font: 16px/1.6 Inter, system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
     }
-    #tap small { margin-top: 10px; font-size: 13px; opacity: .85; }
-    #tap[hidden] { display: none; }
-    #loading { position: fixed; top: 16px; left: 0; right: 0; text-align: center; font-size: 14px; color: #333; z-index: 11; }
-    /* Sakrij ugrađeno dugme, koristimo svoje */
-    model-viewer::part(default-ar-button) { display: none; }
+    h1, h2, h3 { font-family: Fraunces, Georgia, serif; line-height: 1.12; margin: 0; letter-spacing: -.01em; }
+    p { margin: 0; }
+    a { color: inherit; }
+    .wrap { width: min(1160px, 100% - 32px); margin: 0 auto; }
+    section { padding: 96px 0; }
+    .eyebrow { display: inline-block; font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
+    .section-head { max-width: 640px; margin-bottom: 48px; }
+    .section-head h2 { font-size: clamp(30px, 4.4vw, 46px); }
+    .section-head p { margin-top: 16px; color: var(--ink-2); font-size: 18px; }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+      padding: 15px 24px; border-radius: 999px; border: 0; cursor: pointer;
+      font: 600 16px/1 Inter, sans-serif; text-decoration: none; transition: transform .15s, background .15s, box-shadow .15s;
+    }
+    .btn:active { transform: scale(.98); }
+    .btn-primary { background: var(--accent); color: var(--accent-ink); box-shadow: 0 10px 24px -10px rgba(217, 71, 43, .7); }
+    .btn-primary:hover { background: #c43d23; }
+    .btn-ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--ink); }
+    .btn-ghost:hover { background: var(--ink); color: #fff; }
+    .btn svg { width: 20px; height: 20px; flex: none; }
+
+    /* Nav */
+    header {
+      position: sticky; top: 0; z-index: 50; backdrop-filter: saturate(1.4) blur(12px); -webkit-backdrop-filter: saturate(1.4) blur(12px);
+      background: rgba(251, 247, 241, .85); border-bottom: 1px solid transparent; transition: border-color .2s;
+    }
+    header.scrolled { border-color: var(--line); }
+    .nav { display: flex; align-items: center; justify-content: space-between; height: 68px; }
+    .logo { display: flex; align-items: center; gap: 10px; font: 700 22px Fraunces, serif; text-decoration: none; }
+    .logo i { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--accent); color: #fff; font: 700 12px Inter, sans-serif; font-style: normal; }
+    .nav-links { display: flex; align-items: center; gap: 28px; }
+    .nav-links a:not(.btn) { text-decoration: none; color: var(--ink-2); font-weight: 500; font-size: 15px; }
+    .nav-links a:not(.btn):hover { color: var(--ink); }
+    .nav .btn { padding: 11px 18px; font-size: 15px; }
+    @media (max-width: 820px) { .nav-links a:not(.btn) { display: none; } }
+
+    /* Hero */
+    .hero { padding: 56px 0 80px; }
+    .hero-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 48px; align-items: center; }
+    .hero h1 { font-size: clamp(40px, 6.2vw, 72px); }
+    .hero h1 em { font-style: italic; color: var(--accent); }
+    .hero .lead { margin-top: 22px; font-size: clamp(17px, 2vw, 20px); color: var(--ink-2); max-width: 540px; }
+    .hero-ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+    .ticks { display: flex; flex-wrap: wrap; gap: 10px 22px; margin-top: 32px; padding: 0; list-style: none; color: var(--ink-2); font-size: 15px; }
+    .ticks li { display: flex; align-items: center; gap: 8px; }
+    .ticks li::before { content: ""; width: 18px; height: 18px; border-radius: 50%; background: var(--green) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5 9-10'/%3E%3C/svg%3E") center/11px no-repeat; }
+
+    .stage {
+      position: relative; border-radius: 28px; overflow: hidden; aspect-ratio: 1 / 1.02;
+      background: radial-gradient(120% 90% at 50% 20%, #fff 0%, var(--bg-2) 70%);
+      border: 1px solid var(--line); box-shadow: var(--shadow);
+    }
+    .stage model-viewer { width: 100%; height: 100%; --poster-color: transparent; }
+    .chip {
+      position: absolute; display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255, 255, 255, .92); border: 1px solid var(--line); border-radius: 999px;
+      padding: 8px 14px; font-size: 14px; font-weight: 600; box-shadow: 0 6px 16px -8px rgba(0,0,0,.2);
+    }
+    .chip svg { width: 16px; height: 16px; color: var(--accent); }
+    .stage .chip-size { top: 18px; left: 18px; }
+    .stage .chip-name { top: 18px; right: 18px; }
+    .stage .ar-btn { position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%); white-space: nowrap; }
+    .stage .hint { position: absolute; left: 0; right: 0; bottom: 84px; text-align: center; font-size: 13px; color: var(--ink-2); pointer-events: none; }
+
+    @media (max-width: 900px) {
+      .hero { padding-top: 28px; }
+      .hero-grid { grid-template-columns: 1fr; gap: 36px; }
+      .stage { aspect-ratio: 1 / 1.05; }
+    }
+
+    /* Strip */
+    .strip { background: var(--dark); color: #f4ede4; padding: 26px 0; }
+    .strip .wrap { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px 44px; font-weight: 500; }
+    .strip span { display: flex; align-items: center; gap: 10px; }
+    .strip span::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+
+    /* Problem / cards */
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 28px; }
+    .card .ic { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); margin-bottom: 20px; }
+    .card .ic svg { width: 24px; height: 24px; }
+    .card h3 { font-size: 22px; margin-bottom: 10px; }
+    .card p { color: var(--ink-2); }
+    @media (max-width: 860px) { .cards { grid-template-columns: 1fr; } }
+
+    .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
+    .compare > div { border-radius: var(--radius); padding: 28px; }
+    .compare .bad { background: var(--bg-2); }
+    .compare .good { background: var(--dark); color: #f4ede4; }
+    .compare h3 { font-size: 20px; margin-bottom: 14px; }
+    .compare ul { margin: 0; padding-left: 20px; }
+    .compare li { margin: 6px 0; }
+    .compare .bad li { color: var(--ink-2); }
+    @media (max-width: 760px) { .compare { grid-template-columns: 1fr; } }
+
+    /* Steps */
+    #kako-radi { background: var(--bg-2); }
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; counter-reset: s; }
+    .step { position: relative; background: var(--card); border-radius: var(--radius); padding: 32px 28px 28px; border: 1px solid var(--line); }
+    .step::before {
+      counter-increment: s; content: counter(s);
+      display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%;
+      background: var(--accent); color: #fff; font: 700 18px Inter, sans-serif; margin-bottom: 22px;
+    }
+    .step h3 { font-size: 22px; margin-bottom: 10px; }
+    .step p { color: var(--ink-2); }
+    @media (max-width: 860px) { .steps { grid-template-columns: 1fr; } }
+
+    /* Demo */
+    .demo { display: grid; grid-template-columns: 1.3fr 1fr; gap: 28px; align-items: stretch; }
+    .demo .stage { aspect-ratio: auto; min-height: 480px; }
+    .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+    .tab {
+      border: 1.5px solid var(--line); background: var(--card); color: var(--ink);
+      padding: 10px 16px; border-radius: 999px; font: 600 15px Inter, sans-serif; cursor: pointer; transition: all .15s;
+    }
+    .tab:hover { border-color: var(--ink); }
+    .tab[aria-selected="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
+    .panel { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 28px; display: flex; flex-direction: column; }
+    .panel h3 { font-size: 30px; }
+    .panel .desc { color: var(--ink-2); margin-top: 8px; }
+    .dims { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 24px 0; }
+    .dims div { background: var(--bg); border-radius: 14px; padding: 14px 12px; text-align: center; }
+    .dims b { display: block; font: 700 24px Fraunces, serif; }
+    .dims small { color: var(--ink-2); font-size: 13px; }
+    .qr-box { display: flex; gap: 18px; align-items: center; margin-top: auto; padding-top: 20px; border-top: 1px solid var(--line); }
+    .qr-box .qr { width: 112px; height: 112px; flex: none; background: #fff; padding: 8px; border-radius: 12px; border: 1px solid var(--line); }
+    .qr-box .qr svg { width: 100%; height: 100%; display: block; }
+    .qr-box p { font-size: 15px; color: var(--ink-2); }
+    .qr-box b { color: var(--ink); }
+    .panel .btn { margin-top: 8px; }
+    .only-mobile { display: none; }
+    @media (max-width: 900px) {
+      .demo { grid-template-columns: 1fr; }
+      .demo .stage { min-height: 0; aspect-ratio: 1 / 1; }
+    }
+    @media (hover: none) and (pointer: coarse) {
+      .qr-box { display: none; }
+      .only-mobile { display: inline-flex; }
+    }
+
+    /* Benefits */
+    .benefits { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: start; }
+    .blist { display: grid; gap: 16px; }
+    .bitem { display: flex; gap: 16px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 20px; }
+    .bitem .ic { flex: none; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: #e3efe6; color: var(--green); }
+    .bitem .ic svg { width: 20px; height: 20px; }
+    .bitem h3 { font: 600 17px Inter, sans-serif; margin-bottom: 4px; }
+    .bitem p { color: var(--ink-2); font-size: 15px; }
+    .included { background: var(--dark); color: #f4ede4; border-radius: 24px; padding: 36px; position: sticky; top: 96px; }
+    .included h3 { font-size: 28px; margin-bottom: 8px; }
+    .included > p { color: #c9bfb4; }
+    .included ul { list-style: none; padding: 0; margin: 24px 0 28px; display: grid; gap: 14px; }
+    .included li { display: flex; gap: 12px; }
+    .included li::before { content: "✓"; color: var(--accent); font-weight: 700; }
+    @media (max-width: 900px) { .benefits { grid-template-columns: 1fr; gap: 32px; } .included { position: static; } }
+
+    /* FAQ */
+    #pitanja { background: var(--bg-2); }
+    .faq { max-width: 800px; display: grid; gap: 12px; }
+    details { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 0 22px; }
+    summary { cursor: pointer; list-style: none; padding: 20px 0; font-weight: 600; font-size: 17px; display: flex; justify-content: space-between; gap: 16px; }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: "+"; font-size: 24px; line-height: 1; color: var(--accent); transition: transform .2s; }
+    details[open] summary::after { transform: rotate(45deg); }
+    details p { padding: 0 0 20px; color: var(--ink-2); }
+
+    /* Contact */
+    .contact { display: grid; grid-template-columns: 1fr 1.1fr; gap: 56px; align-items: start; }
+    .contact h2 { font-size: clamp(32px, 4.6vw, 50px); }
+    .contact .lead { margin-top: 18px; color: var(--ink-2); font-size: 18px; }
+    form { background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 32px; box-shadow: var(--shadow); display: grid; gap: 16px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    label { display: grid; gap: 6px; font-size: 14px; font-weight: 600; }
+    input, textarea, select {
+      width: 100%; font: 400 16px Inter, sans-serif; color: var(--ink);
+      background: var(--bg); border: 1.5px solid var(--line); border-radius: 12px; padding: 13px 14px; outline: none; transition: border-color .15s, background .15s;
+    }
+    input:focus, textarea:focus, select:focus { border-color: var(--ink); background: #fff; }
+    textarea { min-height: 120px; resize: vertical; }
+    form .btn { width: 100%; margin-top: 4px; }
+    .form-note { font-size: 13px; color: var(--ink-2); text-align: center; }
+    .form-msg { display: none; padding: 14px 16px; border-radius: 12px; font-weight: 500; }
+    .form-msg.ok { display: block; background: #e3efe6; color: var(--green); }
+    .form-msg.err { display: block; background: var(--accent-soft); color: #9c2f19; }
+    .hidden { display: none; }
+    @media (max-width: 900px) { .contact { grid-template-columns: 1fr; gap: 32px; } }
+    @media (max-width: 520px) { .row { grid-template-columns: 1fr; } form { padding: 22px; } section { padding: 72px 0; } }
+
+    footer { background: var(--dark); color: #c9bfb4; padding: 40px 0; font-size: 14px; }
+    footer .wrap { display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: center; }
+    footer .logo { color: #fff; font-size: 20px; }
+
+    .reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .6s ease; }
+    .reveal.in { opacity: 1; transform: none; }
+    @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } html { scroll-behavior: auto; } }
   </style>
 </head>
 <body>
 
-<model-viewer
-  id="mv"
-  ar
-  ar-modes="webxr scene-viewer quick-look"
-  ar-placement="floor"
-  xr-environment
-  camera-controls
-  auto-rotate
-  environment-image="neutral"
-  shadow-intensity="1"
-  exposure="1">
-</model-viewer>
+<header id="top">
+  <div class="wrap nav">
+    <a class="logo" href="#top"><i>AR</i>FoodAR</a>
+    <nav class="nav-links">
+      <a href="#kako-radi">Kako radi</a>
+      <a href="#demo">Demo</a>
+      <a href="#za-restorane">Za restorane</a>
+      <a href="#pitanja">Pitanja</a>
+      <a class="btn btn-primary" href="#kontakt">Kontakt</a>
+    </nav>
+  </div>
+</header>
 
-<div id="loading">Učitavanje modela…</div>
-<button id="tap" hidden>
-  <span>Dodirni ekran za AR</span>
-  <small>Usmeri kameru ka stolu</small>
-</button>
+<main>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <span class="eyebrow">3D i AR meni za restorane</span>
+        <h1>Gosti vide jelo <em>pre</em> nego što ga poruče.</h1>
+        <p class="lead">Svako jelo sa vašeg menija snimamo u 3D. Gost skenira QR kod pored artikla i vidi jelo na svom stolu, u stvarnoj veličini i sa pravim izgledom. Tačno ono što će dobiti.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#kontakt">Želim AR meni</a>
+          <a class="btn btn-ghost" href="#demo">Isprobaj demo</a>
+        </div>
+        <ul class="ticks">
+          <li>Bez instaliranja aplikacije</li>
+          <li>iPhone i Android</li>
+          <li>Stvarna veličina 1:1</li>
+        </ul>
+      </div>
+
+      <div class="stage">
+        <model-viewer id="heroMv"
+          src="pizza.glb" ios-src="pizza.usdz"
+          alt="3D model pice na drvenoj lopati"
+          ar ar-modes="webxr scene-viewer quick-look" ar-scale="fixed" ar-placement="floor" xr-environment
+          camera-controls auto-rotate auto-rotate-delay="0" rotation-per-second="18deg"
+          camera-orbit="20deg 62deg auto" interaction-prompt="none" disable-zoom
+          environment-image="neutral" shadow-intensity="1.1" shadow-softness=".8" exposure="1.05">
+          <button slot="ar-button" style="display:none"></button>
+        </model-viewer>
+        <span class="chip chip-name">Pica Margarita</span>
+        <span class="chip chip-size">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 7h18M3 7v4M21 7v4M7 7v2M11 7v2M15 7v2"/><path d="M5 17h14"/></svg>
+          <span id="heroSize">stvarna veličina</span>
+        </span>
+        <span class="hint">Prevuci prstom da okreneš jelo</span>
+        <button class="btn btn-primary ar-btn" id="heroAr" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M12 22V12M21 7l-9 5-9-5"/></svg>
+          <span id="heroArLabel">Pogledaj na svom stolu</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <div class="strip">
+    <div class="wrap">
+      <span>QR kod pored svakog artikla</span>
+      <span>Pravi 3D snimak jela</span>
+      <span>Radi u browseru telefona</span>
+      <span>Mi radimo sve za vas</span>
+    </div>
+  </div>
+
+  <!-- PROBLEM -->
+  <section>
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="eyebrow">Zašto 3D</span>
+        <h2>Fotografija na meniju ne pokazuje veličinu. 3D pokazuje.</h2>
+        <p>Gosti često ne znaju koliko je jelo veliko, šta je tačno na tanjiru i da li je za jednu ili dve osobe. Sa FoodAR-om to vide sami, pre porudžbine.</p>
+      </div>
+      <div class="cards">
+        <div class="card reveal">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3H3v18"/><path d="M7 3v3M11 3v3M15 3v3M19 3v3M3 7h3M3 11h3M3 15h3M3 19h3"/></svg></div>
+          <h3>Tačna veličina</h3>
+          <p>Jelo se pojavljuje na stolu gosta u razmeri 1:1. Odmah vidi koliko je porcija velika i da li će se najesti.</p>
+        </div>
+        <div class="card reveal">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></div>
+          <h3>Pravi izgled</h3>
+          <p>Ne crtež i ne stok fotografija, već 3D snimak vašeg stvarnog jela, sa svih strana. Gost može da ga okreće i zumira.</p>
+        </div>
+        <div class="card reveal">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+          <h3>Bez iznenađenja</h3>
+          <p>Gost dobija tačno ono što je video. Manje razočaranja, manje vraćenih jela i više zadovoljnih gostiju.</p>
+        </div>
+      </div>
+      <div class="compare reveal">
+        <div class="bad">
+          <h3>Klasičan meni</h3>
+          <ul>
+            <li>Samo naziv i spisak sastojaka</li>
+            <li>Gost ne zna veličinu porcije</li>
+            <li>Konobar stalno objašnjava isto</li>
+            <li>Gosti biraju samo ono što već znaju</li>
+          </ul>
+        </div>
+        <div class="good">
+          <h3>Meni sa FoodAR-om</h3>
+          <ul>
+            <li>Jelo u 3D, sa svih strana</li>
+            <li>Stvarna veličina na stolu</li>
+            <li>Gost se sam informiše, brže odlučuje</li>
+            <li>Lakše probaju nova jela i specijalitete</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- KAKO RADI -->
+  <section id="kako-radi">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="eyebrow">Kako radi</span>
+        <h2>Tri koraka do AR menija</h2>
+        <p>Vi nastavljate da radite kao i do sada. Sve tehničko radimo mi.</p>
+      </div>
+      <div class="steps">
+        <div class="step reveal">
+          <h3>Snimamo vaša jela</h3>
+          <p>Dolazimo u restoran i 3D skeniramo jela onako kako ih vaša kuhinja servira. Zatim ih obrađujemo da izgledaju verno i da se brzo učitavaju na telefonu.</p>
+        </div>
+        <div class="step reveal">
+          <h3>QR kod na meniju</h3>
+          <p>Svako jelo dobija svoj QR kod i link. Kodove stavljamo pored artikala na vašem postojećem meniju, pa ne morate da štampate novi.</p>
+        </div>
+        <div class="step reveal">
+          <h3>Gost skenira i vidi</h3>
+          <p>Gost kamerom telefona skenira kod i jelo se pojavljuje na njegovom stolu. Ne treba aplikacija, nalog ni registracija.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEMO -->
+  <section id="demo">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="eyebrow">Demo uživo</span>
+        <h2>Probajte kao vaš gost</h2>
+        <p>Izaberite jelo, okrenite ga prstom ili mišem. Na telefonu ga postavite na sto, a sa računara skenirajte QR kod.</p>
+      </div>
+      <div class="tabs" role="tablist" id="tabs"></div>
+      <div class="demo">
+        <div class="stage">
+          <model-viewer id="demoMv" loading="lazy"
+            alt="3D model jela"
+            ar ar-modes="webxr scene-viewer quick-look" ar-scale="fixed" ar-placement="floor" xr-environment
+            camera-controls auto-rotate rotation-per-second="14deg" camera-orbit="25deg 60deg auto"
+            interaction-prompt="none" environment-image="neutral" shadow-intensity="1.1" shadow-softness=".8" exposure="1.05">
+            <button slot="ar-button" style="display:none"></button>
+          </model-viewer>
+        </div>
+        <div class="panel">
+          <h3 id="dishName">–</h3>
+          <p class="desc" id="dishDesc"></p>
+          <div class="dims" aria-label="Stvarne dimenzije">
+            <div><b id="dW">–</b><small>širina (cm)</small></div>
+            <div><b id="dD">–</b><small>dubina (cm)</small></div>
+            <div><b id="dH">–</b><small>visina (cm)</small></div>
+          </div>
+          <button class="btn btn-primary only-mobile" id="demoAr" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M12 22V12M21 7l-9 5-9-5"/></svg>
+            Postavi na sto (AR)
+          </button>
+          <div class="qr-box">
+            <div class="qr" id="qr"></div>
+            <p><b>Skenirajte telefonom</b><br />Ovako izgleda kod na vašem meniju. Jelo će se otvoriti na vašem stolu.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ZA RESTORANE -->
+  <section id="za-restorane">
+    <div class="wrap benefits">
+      <div>
+        <div class="section-head reveal" style="margin-bottom:32px">
+          <span class="eyebrow">Za restorane</span>
+          <h2>Šta vaš restoran dobija</h2>
+        </div>
+        <div class="blist">
+          <div class="bitem reveal">
+            <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg></div>
+            <div><h3>Lakše prodajete skuplja i nova jela</h3><p>Kad gost vidi specijalitet, lakše ga poruči. Jela koja ne zna više nisu rizik.</p></div>
+          </div>
+          <div class="bitem reveal">
+            <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+            <div><h3>Konobari štede vreme</h3><p>Manje pitanja tipa „koliko je velika porcija?“. Gost se informiše sam dok čeka.</p></div>
+          </div>
+          <div class="bitem reveal">
+            <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9z"/></svg></div>
+            <div><h3>Zadovoljniji gosti</h3><p>Očekivanja se poklapaju sa onim što stigne na sto. Manje reklamacija i bolje recenzije.</p></div>
+          </div>
+          <div class="bitem reveal">
+            <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z"/></svg></div>
+            <div><h3>Utisak koji se pamti i deli</h3><p>Jelo na stolu u AR-u je nešto što gosti snimaju i pokazuju prijateljima. Besplatna reklama za vaš restoran.</p></div>
+          </div>
+          <div class="bitem reveal">
+            <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 17h4v4"/></svg></div>
+            <div><h3>Radi uz vaš postojeći meni</h3><p>Ne menjate meni, kasu ni sistem porudžbina. Dodaju se samo mali QR kodovi.</p></div>
+          </div>
+        </div>
+      </div>
+      <aside class="included reveal">
+        <h3>Sve je uključeno</h3>
+        <p>Vi nam pokažete jela, a mi isporučujemo gotov AR meni.</p>
+        <ul>
+          <li>3D skeniranje jela u vašem restoranu</li>
+          <li>Obrada modela za verni izgled i brzo učitavanje</li>
+          <li>Hosting i poseban link za svako jelo</li>
+          <li>QR kodovi spremni za štampu ili nalepnice</li>
+          <li>Radi na iPhone (Safari) i Android (Chrome) telefonima</li>
+          <li>Dodavanje novih jela kada promenite meni</li>
+        </ul>
+        <a class="btn btn-primary" href="#kontakt">Zatražite ponudu</a>
+      </aside>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="pitanja">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="eyebrow">Česta pitanja</span>
+        <h2>Pitanja koja restorani postavljaju</h2>
+      </div>
+      <div class="faq">
+        <details class="reveal"><summary>Da li gost mora da instalira aplikaciju?</summary><p>Ne. Gost skenira QR kod običnom kamerom telefona i jelo se otvara u browseru. Nema aplikacije, naloga ni registracije.</p></details>
+        <details class="reveal"><summary>Na kojim telefonima radi?</summary><p>3D prikaz radi na svakom modernom telefonu. Postavljanje jela na sto (AR) radi na iPhone uređajima u Safariju i na Android telefonima koji podržavaju Google Play Services for AR, a to je većina telefona iz poslednjih nekoliko godina.</p></details>
+        <details class="reveal"><summary>Da li je jelo zaista u stvarnoj veličini?</summary><p>Da. Jela skeniramo sa stvarnim dimenzijama, pa se u AR-u prikazuju u razmeri 1:1, tačno onoliko velika koliko stižu na sto.</p></details>
+        <details class="reveal"><summary>Šta ako promenim izgled jela ili dodam novo?</summary><p>Novo ili izmenjeno jelo ponovo snimimo i zamenimo. Link i QR kod ostaju isti, pa ne morate ništa da štampate ponovo.</p></details>
+        <details class="reveal"><summary>Da li moram da menjam meni ili sistem za porudžbine?</summary><p>Ne. FoodAR radi uz vaš postojeći meni. Pored artikala se dodaju samo QR kodovi, kao nalepnice ili u sledećem izdanju menija.</p></details>
+        <details class="reveal"><summary>Koliko košta?</summary><p>Cena zavisi od broja jela i obima posla. Pošaljite nam upit preko forme ispod i dobićete ponudu prilagođenu vašem restoranu.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <!-- KONTAKT -->
+  <section id="kontakt">
+    <div class="wrap contact">
+      <div class="reveal">
+        <span class="eyebrow">Kontakt</span>
+        <h2>Pokažite gostima jela pre nego što ih poruče.</h2>
+        <p class="lead">Ostavite podatke i javićemo vam se. Dogovorićemo besplatnu demonstraciju u vašem restoranu i napraviti ponudu za vaš meni.</p>
+        <ul class="ticks" style="flex-direction:column;gap:12px">
+          <li>Besplatna demonstracija uživo</li>
+          <li>Ponuda prilagođena broju jela</li>
+          <li>Bez obaveze</li>
+        </ul>
+      </div>
+
+      <form name="kontakt" method="POST" action="/?poslato=1#kontakt" data-netlify="true" netlify-honeypot="bot-field" id="contactForm" class="reveal">
+        <input type="hidden" name="form-name" value="kontakt" />
+        <p class="hidden"><label>Ne popunjavati: <input name="bot-field" /></label></p>
+        <div class="row">
+          <label>Vaše ime<input name="ime" required autocomplete="name" /></label>
+          <label>Naziv restorana<input name="restoran" required autocomplete="organization" /></label>
+        </div>
+        <div class="row">
+          <label>Telefon<input name="telefon" type="tel" autocomplete="tel" /></label>
+          <label>Email<input name="email" type="email" required autocomplete="email" /></label>
+        </div>
+        <div class="row">
+          <label>Grad<input name="grad" autocomplete="address-level2" /></label>
+          <label>Broj jela na meniju
+            <select name="broj_jela">
+              <option value="">Izaberite</option>
+              <option>do 10</option>
+              <option>10–30</option>
+              <option>30–60</option>
+              <option>više od 60</option>
+            </select>
+          </label>
+        </div>
+        <label>Poruka<textarea name="poruka" placeholder="Npr. želimo da probamo sa 5 najpopularnijih jela…"></textarea></label>
+        <div class="form-msg" id="formMsg" role="status"></div>
+        <button class="btn btn-primary" type="submit" id="submitBtn">Pošalji upit</button>
+        <p class="form-note">Odgovaramo u najkraćem roku. Vaše podatke koristimo samo da bismo vas kontaktirali.</p>
+      </form>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <a class="logo" href="#top"><i>AR</i>FoodAR</a>
+    <span>3D i AR meni za restorane · foodar.org</span>
+    <span>© <span id="year"></span> FoodAR</span>
+  </div>
+</footer>
 
 <script>
-  const mv = document.getElementById('mv');
-  const tap = document.getElementById('tap');
-  const loading = document.getElementById('loading');
+  // ---------- Jela za demo (glb/usdz fajlovi su u ovom folderu) ----------
+  // Ovde dodaj nova jela; "sub" je poddomen tog jela (npr. pizza.foodar.org)
+  const DISHES = [
+    { sub: 'pizza',      name: 'Pica Margarita', desc: 'Napolitanska pica na drvenoj lopati za serviranje.', glb: 'pizza.glb',       usdz: 'pizza.usdz' },
+    { sub: 'dorucak',    name: 'Doručak',        desc: 'Francuski tost, kobasica, kajgana i bobičasto voće.', glb: 'dorucak.glb',     usdz: 'dorucak.usdz' },
+    { sub: 'hleb',       name: 'Hleb',           desc: 'Domaći hleb iz pekare, ceo vekna.',                 glb: 'hlebandroid.glb', usdz: 'hleb.usdz' },
+    { sub: 'bananahleb', name: 'Banana hleb',    desc: 'Parče banana hleba.',                               glb: 'bananahleb.glb',  usdz: 'bananahleb.usdz' },
+    { sub: 'lotus',      name: 'Lotus kolač',    desc: 'Desert sa Lotus keksom.',                           glb: 'lotus.glb',       usdz: 'lotus.usdz' }
+  ];
 
-  // Koje jelo prikazati: poddomen (pizza.foodar.org) ili ?jelo=pizza
-  const host = window.location.hostname.toLowerCase();
-  const params = new URLSearchParams(location.search);
-  let sub = params.get('jelo') || '';
-  if (!sub && host.endsWith('.foodar.org')) sub = host.replace('.foodar.org', '');
+  const isProd = location.hostname.endsWith('foodar.org');
+  const dishUrl = d => isProd ? `https://${d.sub}.foodar.org/` : `${location.origin}/ar.html?jelo=${d.sub}`;
+  const cm = v => (v * 100).toFixed(v < 0.1 ? 1 : 0).replace('.', ',');
 
-  const map = {
-    "hleb":           { glb: "hlebandroid.glb",    usdz: "hleb.usdz" },
-    "pizza":          { glb: "pizza.glb",          usdz: "pizza.usdz" },
-    "dorucak":        { glb: "dorucak.glb",        usdz: "dorucak.usdz" },
-    "lotus":          { glb: "lotus.glb",          usdz: "lotus.usdz" },
-    "bananahleb":     { glb: "bananahleb.glb",     usdz: "bananahleb.usdz" },
-    "kajganaavokado": { glb: "kajganaavokado.glb", usdz: "kajganaavokado.usdz" },
-    "pasta":          { glb: "pasta.glb",          usdz: "pasta.usdz" }
-  };
-  const item = map[sub] || map["hleb"];
-  mv.src = item.glb;
-  mv.iosSrc = item.usdz;
+  // ---------- Hero ----------
+  const heroMv = document.getElementById('heroMv');
+  heroMv.addEventListener('load', () => {
+    const s = heroMv.getDimensions();
+    document.getElementById('heroSize').textContent = `${cm(s.x)} × ${cm(s.z)} cm`;
+  });
+  document.getElementById('heroAr').addEventListener('click', () => {
+    if (heroMv.canActivateAR) heroMv.activateAR();
+    else document.getElementById('demo').scrollIntoView();
+  });
 
-  const ua = navigator.userAgent;
-  const isIOS = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  const isMobile = isIOS || /Android/i.test(ua);
-  if (isIOS && /CriOS|FxiOS|EdgiOS|Instagram|FBAN|FBAV/i.test(ua)) {
-    alert("Za AR na iPhone-u otvorite stranicu u Safari browseru.");
-  }
+  // ---------- Demo ----------
+  const demoMv = document.getElementById('demoMv');
+  const tabs = document.getElementById('tabs');
+  const qrEl = document.getElementById('qr');
 
-  function launchAR() {
-    if (mv.canActivateAR) {
-      mv.activateAR();
+  function select(i) {
+    const d = DISHES[i];
+    [...tabs.children].forEach((t, j) => t.setAttribute('aria-selected', String(i === j)));
+    document.getElementById('dishName').textContent = d.name;
+    document.getElementById('dishDesc').textContent = d.desc;
+    ['dW', 'dD', 'dH'].forEach(id => document.getElementById(id).textContent = '…');
+    demoMv.src = d.glb;
+    demoMv.iosSrc = d.usdz;
+    demoMv.alt = '3D model: ' + d.name;
+    if (window.qrcode) {
+      const q = qrcode(0, 'M'); q.addData(dishUrl(d)); q.make();
+      qrEl.innerHTML = q.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
     }
   }
+  DISHES.forEach((d, i) => {
+    const b = document.createElement('button');
+    b.className = 'tab'; b.type = 'button'; b.role = 'tab'; b.textContent = d.name;
+    b.addEventListener('click', () => select(i));
+    tabs.appendChild(b);
+  });
+  demoMv.addEventListener('load', () => {
+    const s = demoMv.getDimensions();
+    document.getElementById('dW').textContent = cm(s.x);
+    document.getElementById('dD').textContent = cm(s.z);
+    document.getElementById('dH').textContent = cm(s.y);
+  });
+  document.getElementById('demoAr').addEventListener('click', () => {
+    if (demoMv.canActivateAR) demoMv.activateAR();
+    else alert('Vaš telefon ne podržava AR, ali jelo možete da okrećete i zumirate prstima.');
+  });
+  // počni sa doručkom (pica je već gore)
+  select(1);
 
-  mv.addEventListener('load', () => {
-    loading.hidden = true;
-    if (!isMobile) return;          // na računaru samo 3D prikaz
-    // Pokušaj odmah (radi gde browser dozvoljava); u suprotnom ostaje veliki taster
-    try { launchAR(); } catch (e) {}
-    tap.hidden = !mv.canActivateAR;
+  // ---------- Kontakt forma (Netlify Forms) ----------
+  const form = document.getElementById('contactForm');
+  const msg = document.getElementById('formMsg');
+  if (new URLSearchParams(location.search).get('poslato')) {
+    msg.className = 'form-msg ok'; msg.textContent = 'Hvala! Primili smo vaš upit i javićemo vam se uskoro.';
+  }
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true; btn.textContent = 'Šaljem…';
+    try {
+      const r = await fetch('/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams(new FormData(form)).toString()
+      });
+      if (!r.ok) throw new Error(r.status);
+      form.reset();
+      msg.className = 'form-msg ok'; msg.textContent = 'Hvala! Primili smo vaš upit i javićemo vam se uskoro.';
+    } catch (err) {
+      msg.className = 'form-msg err'; msg.textContent = 'Slanje nije uspelo. Pokušajte ponovo za minut.';
+    } finally {
+      btn.disabled = false; btn.textContent = 'Pošalji upit';
+    }
   });
 
-  // Dodir bilo gde na ekranu -> AR
-  tap.addEventListener('click', launchAR);
-
-  // Kada korisnik izađe iz AR-a, ponovo ponudi taster
-  mv.addEventListener('ar-status', (e) => {
-    if (e.detail.status === 'session-started') tap.hidden = true;
-    if (e.detail.status === 'not-presenting' || e.detail.status === 'failed') tap.hidden = !mv.canActivateAR;
-  });
-
-  mv.addEventListener('error', () => { loading.textContent = 'Greška pri učitavanju modela.'; });
+  // ---------- Sitnice ----------
+  document.getElementById('year').textContent = new Date().getFullYear();
+  const header = document.querySelector('header');
+  addEventListener('scroll', () => header.classList.toggle('scrolled', scrollY > 8), { passive: true });
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .12 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 </script>
-
 </body>
 </html>
