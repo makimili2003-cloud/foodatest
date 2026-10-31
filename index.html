@@ -12,9 +12,13 @@
 <model-viewer
   id="mv"
   ar
-  ar-modes="scene-viewer webxr quick-look"
+  ar-modes="webxr scene-viewer quick-look"
+  ar-placement="floor"
   camera-controls
   auto-rotate
+  environment-image="neutral"
+  shadow-intensity="1"
+  exposure="1"
   style="width:100vw;height:100vh;">
 
   <button slot="ar-button" style="
@@ -60,7 +64,7 @@
     mv.setAttribute("src", map[sub].glb);
     mv.setAttribute("ios-src", map[sub].usdz);
   } else {
-    mv.setAttribute("src", "hleb.glb"); // fallback da bar nešto pokaže
+    mv.setAttribute("src", "hlebandroid.glb"); // fallback da bar nešto pokaže
     mv.setAttribute("ios-src", "hleb.usdz");
   }
   const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
