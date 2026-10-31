@@ -121,7 +121,7 @@
 
     /* Strip */
     .strip { background: var(--dark); color: #f4ede4; padding: 26px 0; }
-    .strip .wrap { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px 44px; font-weight: 500; }
+    
     .strip span { display: flex; align-items: center; gap: 10px; }
     .strip span::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
 
@@ -244,10 +244,139 @@
 
     .reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .6s ease; }
     .reveal.in { opacity: 1; transform: none; }
-    @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } html { scroll-behavior: auto; } }
+    .reveal { transition-delay: var(--d, 0s); }
+
+    /* ================= ANIMACIJE ================= */
+    /* Traka napretka skrolovanja */
+    #progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 60; transform-origin: 0 50%; transform: scaleX(0);
+      background: linear-gradient(90deg, var(--accent), #f39a3d, var(--accent)); }
+
+    /* Hero pozadina: plutajuće mrlje boje */
+    .hero { position: relative; isolation: isolate; overflow: hidden; }
+    .blob { position: absolute; z-index: -1; border-radius: 50%; filter: blur(70px); opacity: .6; animation: float 16s ease-in-out infinite; pointer-events: none; }
+    .b1 { width: 460px; height: 460px; background: #ffc9b5; top: -140px; right: -100px; }
+    .b2 { width: 360px; height: 360px; background: #ffe2a8; bottom: -160px; left: -120px; animation-delay: -6s; }
+    .b3 { width: 280px; height: 280px; background: #cfe8d3; top: 35%; left: 40%; animation-delay: -11s; opacity: .45; }
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(40px, -50px) scale(1.1); }
+      66% { transform: translate(-30px, 30px) scale(.92); }
+    }
+
+    /* Naslov: reči ulaze jedna po jedna */
+    .split .w { display: inline-block; opacity: 0; transform: translateY(45%) rotate(4deg); filter: blur(6px);
+      animation: wordIn .9s cubic-bezier(.2, .8, .2, 1) forwards; animation-delay: calc(var(--i) * 70ms + .1s); }
+    @keyframes wordIn { to { opacity: 1; transform: none; filter: blur(0); } }
+    .hero h1 em.w { background: linear-gradient(90deg, var(--accent), #f08a3c, var(--accent)); background-size: 200% 100%;
+      -webkit-background-clip: text; background-clip: text; color: transparent; animation: wordIn .9s cubic-bezier(.2,.8,.2,1) forwards, shimmer 5s linear infinite 1.2s; }
+    @keyframes shimmer { to { background-position: -200% 0; } }
+    .fade-up { opacity: 0; transform: translateY(24px); animation: fadeUp .9s cubic-bezier(.2, .8, .2, 1) forwards; animation-delay: var(--d, 0s); }
+    @keyframes fadeUp { to { opacity: 1; transform: none; } }
+    .stage.fade-up { transform: translateY(40px) scale(.96); }
+
+    /* AR "kamera" okvir na sceni */
+    .corner { position: absolute; width: 26px; height: 26px; border: 3px solid var(--accent); opacity: .8; pointer-events: none; animation: corner 3s ease-in-out infinite; }
+    .corner.tl { top: 64px; left: 22px; border-right: 0; border-bottom: 0; border-radius: 8px 0 0 0; }
+    .corner.tr { top: 64px; right: 22px; border-left: 0; border-bottom: 0; border-radius: 0 8px 0 0; }
+    .corner.bl { bottom: 120px; left: 22px; border-right: 0; border-top: 0; border-radius: 0 0 0 8px; }
+    .corner.br { bottom: 120px; right: 22px; border-left: 0; border-top: 0; border-radius: 0 0 8px 0; }
+    @keyframes corner { 50% { transform: scale(.85); opacity: .45; } }
+    .scanline { position: absolute; left: 10%; right: 10%; height: 2px; top: 70px; pointer-events: none;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent); box-shadow: 0 0 18px 2px rgba(217,71,43,.45);
+      animation: scan 4s ease-in-out infinite; opacity: .7; }
+    @keyframes scan { 0% { top: 70px; opacity: 0; } 10% { opacity: .7; } 50% { top: calc(100% - 130px); } 90% { opacity: .7; } 100% { top: 70px; opacity: 0; } }
+
+    .chip { animation: bob 4.5s ease-in-out infinite; }
+    .chip-size { animation-delay: -2s; }
+    @keyframes bob { 50% { transform: translateY(-6px); } }
+
+    /* Dugmad: odsjaj i puls */
+    .btn-primary { position: relative; overflow: hidden; isolation: isolate; }
+    .btn-primary::after { content: ""; position: absolute; inset: 0; z-index: -1;
+      background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,.4) 50%, transparent 70%);
+      transform: translateX(-130%); transition: transform .8s ease; }
+    .btn-primary:hover::after { transform: translateX(130%); }
+    .pulse { animation: pulse 2.2s ease-out infinite; }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(217,71,43,.55); } 70%, 100% { box-shadow: 0 0 0 18px rgba(217,71,43,0); } }
+    .btn { will-change: transform; }
+
+    /* Beskonačna traka */
+    .strip { overflow: hidden; padding: 22px 0; }
+    .marquee { display: flex; width: max-content; animation: marquee 32s linear infinite; }
+    .marquee:hover { animation-play-state: paused; }
+    .marquee span { padding: 0 28px; white-space: nowrap; font-size: 17px; }
+    @keyframes marquee { to { transform: translateX(-50%); } }
+
+    /* Kartice: podizanje, nagib i svetlo koje prati miš */
+    .card, .step, .bitem { position: relative; overflow: hidden; transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s, border-color .35s, opacity .6s; }
+    .card::before, .step::after, .bitem::before {
+      content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .3s;
+      background: radial-gradient(300px circle at var(--mx, 50%) var(--my, 50%), rgba(217,71,43,.10), transparent 60%);
+    }
+    .card:hover, .step:hover, .bitem:hover { box-shadow: 0 24px 50px -24px rgba(60,35,20,.35); border-color: #e2c9b8; }
+    .card:hover::before, .step:hover::after, .bitem:hover::before { opacity: 1; }
+    .card:hover .ic, .bitem:hover .ic { transform: rotate(-8deg) scale(1.08); }
+    .card .ic, .bitem .ic { transition: transform .35s cubic-bezier(.2,.8,.2,1); }
+
+    /* Brojevi koraka iskoče */
+    .step::before { transform: scale(0); transition: transform .6s cubic-bezier(.3,1.6,.5,1) calc(var(--d, 0s) + .2s); }
+    .step.in::before { transform: scale(1); }
+    .step:hover::before { animation: ring 1.2s ease-out infinite; }
+    @keyframes ring { 0% { box-shadow: 0 0 0 0 rgba(217,71,43,.5); } 100% { box-shadow: 0 0 0 14px rgba(217,71,43,0); } }
+
+    /* Demo: klizni indikator taba i pretapanje modela */
+    .tabs { position: relative; }
+    .tab { position: relative; z-index: 1; background: transparent; transition: color .3s, border-color .3s; }
+    .tab[aria-selected="true"] { background: transparent; color: #fff; border-color: transparent; }
+    .tab-pill { position: absolute; z-index: 0; border-radius: 999px; background: var(--ink); transition: all .45s cubic-bezier(.3,1.3,.5,1); }
+    .tab:not([aria-selected="true"]) { background: rgba(255,255,255,.7); }
+    #demoMv { transition: opacity .45s ease, transform .6s cubic-bezier(.2,.8,.2,1); }
+    #demoMv.switching { opacity: 0; transform: scale(.92) rotate(-4deg); }
+    .loader { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; opacity: 0; transition: opacity .3s; }
+    .loader.on { opacity: 1; }
+    .loader i { width: 44px; height: 44px; border-radius: 50%; border: 3px solid var(--line); border-top-color: var(--accent); animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #dishName, #dishDesc { transition: opacity .3s, transform .3s; }
+    .swap { opacity: 0; transform: translateY(8px); }
+
+    .feat { list-style: none; padding: 0; margin: 24px 0; display: grid; gap: 10px; }
+    .feat li { display: flex; align-items: center; gap: 14px; background: var(--bg); border-radius: 14px; padding: 12px 14px; color: var(--ink-2); font-size: 15px;
+      transition: transform .3s cubic-bezier(.2,.8,.2,1), background .3s; }
+    .feat li:hover { transform: translateX(6px); background: var(--accent-soft); }
+    .feat b { flex: none; min-width: 58px; font: 700 22px Fraunces, serif; color: var(--accent); }
+
+    /* Tamna kartica: svetlo prati miš */
+    .included { overflow: hidden; }
+    .included::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+      background: radial-gradient(420px circle at var(--mx, 70%) var(--my, 0%), rgba(217,71,43,.28), transparent 60%); }
+    .included > * { position: relative; }
+    .included li { opacity: 0; transform: translateX(-12px); transition: opacity .5s, transform .5s; transition-delay: calc(var(--i) * 90ms + .3s); }
+    .included.in li { opacity: 1; transform: none; }
+
+    /* FAQ glatko otvaranje */
+    details p { animation: fadeUp .45s ease; }
+    details { transition: border-color .3s, box-shadow .3s; }
+    details:hover, details[open] { border-color: #e2c9b8; box-shadow: 0 12px 30px -20px rgba(60,35,20,.35); }
+
+    /* Forma */
+    input, textarea, select { transition: border-color .2s, background .2s, box-shadow .2s, transform .2s; }
+    input:focus, textarea:focus, select:focus { box-shadow: 0 0 0 4px rgba(217,71,43,.12); border-color: var(--accent); }
+    .form-msg.ok { animation: fadeUp .5s ease; }
+
+    /* Logo se blago okreće */
+    .logo i { transition: transform .6s cubic-bezier(.3,1.5,.5,1); }
+    .logo:hover i { transform: rotate(360deg); }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .reveal, .fade-up, .split .w, .included li { opacity: 1 !important; transform: none !important; filter: none !important; }
+      .step::before { transform: none; }
+      html { scroll-behavior: auto; }
+    }
   </style>
 </head>
 <body>
+<div id="progress"></div>
 
 <header id="top">
   <div class="wrap nav">
@@ -265,39 +394,42 @@
 <main>
   <!-- HERO -->
   <section class="hero">
+    <span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span>
     <div class="wrap hero-grid">
       <div>
-        <span class="eyebrow">3D i AR meni za restorane</span>
-        <h1>Gosti vide jelo <em>pre</em> nego što ga poruče.</h1>
-        <p class="lead">Svako jelo sa vašeg menija snimamo u 3D. Gost skenira QR kod pored artikla i vidi jelo na svom stolu, u stvarnoj veličini i sa pravim izgledom. Tačno ono što će dobiti.</p>
-        <div class="hero-ctas">
-          <a class="btn btn-primary" href="#kontakt">Želim AR meni</a>
-          <a class="btn btn-ghost" href="#demo">Isprobaj demo</a>
+        <span class="eyebrow fade-up" style="--d:0s">3D i AR meni za restorane</span>
+        <h1 class="split">Gosti vide jelo <em>pre</em> nego što ga poruče.</h1>
+        <p class="lead fade-up" style="--d:.55s">Svako jelo sa vašeg menija snimamo u 3D. Gost skenira QR kod pored artikla i vidi jelo na svom stolu, u stvarnoj veličini i sa pravim izgledom. Tačno ono što će dobiti.</p>
+        <div class="hero-ctas fade-up" style="--d:.7s">
+          <a class="btn btn-primary pulse magnet" href="#kontakt">Želim AR meni</a>
+          <a class="btn btn-ghost magnet" href="#demo">Isprobaj demo</a>
         </div>
-        <ul class="ticks">
+        <ul class="ticks fade-up" style="--d:.85s">
           <li>Bez instaliranja aplikacije</li>
           <li>iPhone i Android</li>
           <li>Stvarna veličina 1:1</li>
         </ul>
       </div>
 
-      <div class="stage">
+      <div class="stage fade-up" style="--d:.35s">
         <model-viewer id="heroMv"
           src="pizza.glb" ios-src="pizza.usdz"
           alt="3D model pice na drvenoj lopati"
           ar ar-modes="webxr scene-viewer quick-look" ar-scale="fixed" ar-placement="floor" xr-environment
           camera-controls auto-rotate auto-rotate-delay="0" rotation-per-second="18deg"
-          camera-orbit="20deg 62deg auto" interaction-prompt="none" disable-zoom
+          camera-orbit="-70deg 85deg 160%" interpolation-decay="120" interaction-prompt="none" disable-zoom
           environment-image="neutral" shadow-intensity="1.1" shadow-softness=".8" exposure="1.05">
           <button slot="ar-button" style="display:none"></button>
         </model-viewer>
+        <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+        <span class="scanline"></span>
         <span class="chip chip-name">Pica Margarita</span>
         <span class="chip chip-size">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 7h18M3 7v4M21 7v4M7 7v2M11 7v2M15 7v2"/><path d="M5 17h14"/></svg>
-          <span id="heroSize">stvarna veličina</span>
+          <span>Stvarna veličina 1:1</span>
         </span>
         <span class="hint">Prevuci prstom da okreneš jelo</span>
-        <button class="btn btn-primary ar-btn" id="heroAr" type="button">
+        <button class="btn btn-primary ar-btn pulse" id="heroAr" type="button">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M12 22V12M21 7l-9 5-9-5"/></svg>
           <span id="heroArLabel">Pogledaj na svom stolu</span>
         </button>
@@ -305,12 +437,10 @@
     </div>
   </section>
 
-  <div class="strip">
-    <div class="wrap">
-      <span>QR kod pored svakog artikla</span>
-      <span>Pravi 3D snimak jela</span>
-      <span>Radi u browseru telefona</span>
-      <span>Mi radimo sve za vas</span>
+  <div class="strip" aria-label="QR kod pored svakog artikla, pravi 3D snimak jela, radi u browseru telefona, mi radimo sve za vas">
+    <div class="marquee" aria-hidden="true">
+      <span>QR kod pored svakog artikla</span><span>Pravi 3D snimak jela</span><span>Stvarna veličina 1:1</span><span>Radi u browseru telefona</span><span>Bez aplikacije</span><span>Mi radimo sve za vas</span>
+      <span>QR kod pored svakog artikla</span><span>Pravi 3D snimak jela</span><span>Stvarna veličina 1:1</span><span>Radi u browseru telefona</span><span>Bez aplikacije</span><span>Mi radimo sve za vas</span>
     </div>
   </div>
 
@@ -398,6 +528,7 @@
       <div class="tabs" role="tablist" id="tabs"></div>
       <div class="demo">
         <div class="stage">
+          <div class="loader" id="loader"><i></i></div>
           <model-viewer id="demoMv" loading="lazy"
             alt="3D model jela"
             ar ar-modes="webxr scene-viewer quick-look" ar-scale="fixed" ar-placement="floor" xr-environment
@@ -409,11 +540,11 @@
         <div class="panel">
           <h3 id="dishName">–</h3>
           <p class="desc" id="dishDesc"></p>
-          <div class="dims" aria-label="Stvarne dimenzije">
-            <div><b id="dW">–</b><small>širina (cm)</small></div>
-            <div><b id="dD">–</b><small>dubina (cm)</small></div>
-            <div><b id="dH">–</b><small>visina (cm)</small></div>
-          </div>
+          <ul class="feat">
+            <li><b>1:1</b>Stvarna veličina na vašem stolu</li>
+            <li><b>360°</b>Okrenite jelo i pogledajte ga sa svih strana</li>
+            <li><b>0</b>Aplikacija za instaliranje</li>
+          </ul>
           <button class="btn btn-primary only-mobile" id="demoAr" type="button">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M12 22V12M21 7l-9 5-9-5"/></svg>
             Postavi na sto (AR)
@@ -559,13 +690,32 @@
 
   const isProd = location.hostname.endsWith('foodar.org');
   const dishUrl = d => isProd ? `https://${d.sub}.foodar.org/` : `${location.origin}/ar.html?jelo=${d.sub}`;
-  const cm = v => (v * 100).toFixed(v < 0.1 ? 1 : 0).replace('.', ',');
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const finePointer = matchMedia('(hover: hover) and (pointer: fine)').matches;
 
-  // ---------- Hero ----------
+  // ---------- Naslov: podeli na reči za animaciju ----------
+  (function splitWords(el) {
+    let i = 0;
+    const walk = node => [...node.childNodes].forEach(n => {
+      if (n.nodeType === 3) {
+        const frag = document.createDocumentFragment();
+        n.textContent.split(/(\s+)/).forEach(part => {
+          if (!part) return;
+          if (/^\s+$/.test(part)) { frag.appendChild(document.createTextNode(part)); return; }
+          const w = document.createElement('span'); w.className = 'w'; w.style.setProperty('--i', i++); w.textContent = part; frag.appendChild(w);
+        });
+        n.replaceWith(frag);
+      } else if (n.nodeType === 1) {
+        n.classList.add('w'); n.style.setProperty('--i', i++);
+      }
+    });
+    walk(el);
+  })(document.querySelector('.split'));
+
+  // ---------- Hero: kamera "doleti" do pice ----------
   const heroMv = document.getElementById('heroMv');
   heroMv.addEventListener('load', () => {
-    const s = heroMv.getDimensions();
-    document.getElementById('heroSize').textContent = `${cm(s.x)} × ${cm(s.z)} cm`;
+    setTimeout(() => { heroMv.cameraOrbit = '20deg 62deg auto'; }, reduceMotion ? 0 : 500);
   });
   document.getElementById('heroAr').addEventListener('click', () => {
     if (heroMv.canActivateAR) heroMv.activateAR();
@@ -576,16 +726,34 @@
   const demoMv = document.getElementById('demoMv');
   const tabs = document.getElementById('tabs');
   const qrEl = document.getElementById('qr');
+  const loader = document.getElementById('loader');
+  const nameEl = document.getElementById('dishName');
+  const descEl = document.getElementById('dishDesc');
+  const pill = document.createElement('span'); pill.className = 'tab-pill'; tabs.appendChild(pill);
+  let current = -1;
+
+  function movePill() {
+    const t = tabs.querySelector('[aria-selected="true"]'); if (!t) return;
+    Object.assign(pill.style, { left: t.offsetLeft + 'px', top: t.offsetTop + 'px', width: t.offsetWidth + 'px', height: t.offsetHeight + 'px' });
+  }
 
   function select(i) {
+    if (i === current) return;
+    current = i;
     const d = DISHES[i];
-    [...tabs.children].forEach((t, j) => t.setAttribute('aria-selected', String(i === j)));
-    document.getElementById('dishName').textContent = d.name;
-    document.getElementById('dishDesc').textContent = d.desc;
-    ['dW', 'dD', 'dH'].forEach(id => document.getElementById(id).textContent = '…');
-    demoMv.src = d.glb;
-    demoMv.iosSrc = d.usdz;
-    demoMv.alt = '3D model: ' + d.name;
+    [...tabs.querySelectorAll('.tab')].forEach((t, j) => t.setAttribute('aria-selected', String(i === j)));
+    movePill();
+    nameEl.classList.add('swap'); descEl.classList.add('swap');
+    setTimeout(() => {
+      nameEl.textContent = d.name; descEl.textContent = d.desc;
+      nameEl.classList.remove('swap'); descEl.classList.remove('swap');
+    }, 250);
+    demoMv.classList.add('switching');
+    loader.classList.add('on');
+    setTimeout(() => {
+      demoMv.src = d.glb; demoMv.iosSrc = d.usdz; demoMv.alt = '3D model: ' + d.name;
+      demoMv.cameraOrbit = '-40deg 75deg 140%'; demoMv.jumpCameraToGoal();
+    }, reduceMotion ? 0 : 300);
     if (window.qrcode) {
       const q = qrcode(0, 'M'); q.addData(dishUrl(d)); q.make();
       qrEl.innerHTML = q.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
@@ -593,55 +761,113 @@
   }
   DISHES.forEach((d, i) => {
     const b = document.createElement('button');
-    b.className = 'tab'; b.type = 'button'; b.role = 'tab'; b.textContent = d.name;
+    b.className = 'tab'; b.type = 'button'; b.setAttribute('role', 'tab'); b.textContent = d.name;
     b.addEventListener('click', () => select(i));
     tabs.appendChild(b);
   });
   demoMv.addEventListener('load', () => {
-    const s = demoMv.getDimensions();
-    document.getElementById('dW').textContent = cm(s.x);
-    document.getElementById('dD').textContent = cm(s.z);
-    document.getElementById('dH').textContent = cm(s.y);
+    loader.classList.remove('on');
+    demoMv.classList.remove('switching');
+    setTimeout(() => { demoMv.cameraOrbit = '25deg 60deg auto'; }, 150);
   });
+  addEventListener('resize', movePill);
+  document.fonts && document.fonts.ready.then(movePill);
   document.getElementById('demoAr').addEventListener('click', () => {
     if (demoMv.canActivateAR) demoMv.activateAR();
     else alert('Vaš telefon ne podržava AR, ali jelo možete da okrećete i zumirate prstima.');
   });
-  // počni sa doručkom (pica je već gore)
-  select(1);
+  select(1); // počni sa doručkom (pica je već gore)
 
-  // ---------- Kontakt forma (Netlify Forms) ----------
+  // ---------- Kontakt forma: email (FormSubmit) + kopija u Netlify Forms ----------
+  const EMAIL = 'makimili2003@gmail.com';
   const form = document.getElementById('contactForm');
   const msg = document.getElementById('formMsg');
-  if (new URLSearchParams(location.search).get('poslato')) {
-    msg.className = 'form-msg ok'; msg.textContent = 'Hvala! Primili smo vaš upit i javićemo vam se uskoro.';
-  }
+  const OK_TEXT = 'Hvala! Primili smo vaš upit i javićemo vam se uskoro.';
+  if (new URLSearchParams(location.search).get('poslato')) { msg.className = 'form-msg ok'; msg.textContent = OK_TEXT; }
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const fd = new FormData(form);
+    if (fd.get('bot-field')) return;
     const btn = document.getElementById('submitBtn');
     btn.disabled = true; btn.textContent = 'Šaljem…';
+    const fields = Object.fromEntries([...fd].filter(([k]) => k !== 'bot-field' && k !== 'form-name'));
+    const toEmail = fetch('https://formsubmit.co/ajax/' + EMAIL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        ...fields,
+        _subject: 'Novi upit sa FoodAR sajta – ' + (fields.restoran || fields.ime),
+        _replyto: fields.email,
+        _template: 'table',
+        _captcha: 'false'
+      })
+    }).then(r => r.json()).then(j => { if (String(j.success) !== 'true') throw new Error(j.message); });
+    const toNetlify = fetch('/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams(fd).toString()
+    }).then(r => { if (!r.ok) throw new Error(r.status); });
     try {
-      const r = await fetch('/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams(new FormData(form)).toString()
-      });
-      if (!r.ok) throw new Error(r.status);
+      await Promise.any([toEmail, toNetlify]);
       form.reset();
-      msg.className = 'form-msg ok'; msg.textContent = 'Hvala! Primili smo vaš upit i javićemo vam se uskoro.';
+      msg.className = 'form-msg ok'; msg.textContent = OK_TEXT;
     } catch (err) {
-      msg.className = 'form-msg err'; msg.textContent = 'Slanje nije uspelo. Pokušajte ponovo za minut.';
+      msg.className = 'form-msg err';
+      msg.innerHTML = 'Slanje nije uspelo. Pišite nam direktno na <a href="mailto:' + EMAIL + '">' + EMAIL + '</a>.';
     } finally {
       btn.disabled = false; btn.textContent = 'Pošalji upit';
     }
   });
 
-  // ---------- Sitnice ----------
+  // ---------- Animacije pri skrolovanju ----------
   document.getElementById('year').textContent = new Date().getFullYear();
   const header = document.querySelector('header');
-  addEventListener('scroll', () => header.classList.toggle('scrolled', scrollY > 8), { passive: true });
-  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .12 });
+  const progress = document.getElementById('progress');
+  const onScroll = () => {
+    header.classList.toggle('scrolled', scrollY > 8);
+    const max = document.documentElement.scrollHeight - innerHeight;
+    progress.style.transform = `scaleX(${max > 0 ? scrollY / max : 0})`;
+  };
+  addEventListener('scroll', onScroll, { passive: true }); onScroll();
+
+  // stepenasto pojavljivanje elemenata iste grupe
+  document.querySelectorAll('.cards, .steps, .blist, .faq').forEach(g =>
+    [...g.querySelectorAll(':scope > .reveal')].forEach((el, i) => el.style.setProperty('--d', (i * 0.1) + 's')));
+  document.querySelectorAll('.included li').forEach((li, i) => li.style.setProperty('--i', i));
+  const io = new IntersectionObserver(es => es.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+  }), { threshold: .12, rootMargin: '0px 0px -40px 0px' });
   document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  // ---------- Efekti mišem (samo na računaru) ----------
+  if (finePointer && !reduceMotion) {
+    // svetlo i nagib kartica
+    document.querySelectorAll('.card, .step, .bitem, .included').forEach(el => {
+      const tilt = !el.classList.contains('included');
+      el.addEventListener('pointermove', e => {
+        const r = el.getBoundingClientRect();
+        const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+        el.style.setProperty('--mx', x * 100 + '%'); el.style.setProperty('--my', y * 100 + '%');
+        if (tilt) el.style.transform = `perspective(900px) rotateX(${(.5 - y) * 6}deg) rotateY(${(x - .5) * 8}deg) translateY(-4px)`;
+      });
+      el.addEventListener('pointerleave', () => { if (tilt) el.style.transform = ''; });
+    });
+    // "magnetna" dugmad
+    document.querySelectorAll('.magnet, .nav .btn').forEach(b => {
+      b.addEventListener('pointermove', e => {
+        const r = b.getBoundingClientRect();
+        b.style.transform = `translate(${(e.clientX - r.left - r.width / 2) * .25}px, ${(e.clientY - r.top - r.height / 2) * .35}px)`;
+      });
+      b.addEventListener('pointerleave', () => { b.style.transform = ''; });
+    });
+    // blagi paralaks hero scene
+    const stage = document.querySelector('.hero .stage');
+    document.querySelector('.hero').addEventListener('pointermove', e => {
+      const x = e.clientX / innerWidth - .5, y = e.clientY / innerHeight - .5;
+      document.querySelectorAll('.blob').forEach((b, i) => b.style.translate = `${x * (i + 1) * 30}px ${y * (i + 1) * 30}px`);
+      stage.style.translate = `${x * -10}px ${y * -10}px`;
+    });
+  }
 </script>
 </body>
 </html>
