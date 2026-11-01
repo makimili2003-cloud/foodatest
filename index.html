@@ -91,7 +91,7 @@
     .nav-ig svg { width: 20px; height: 20px; }
 
     /* Hero */
-    .hero { padding: 56px 0 80px; }
+    .hero { padding: 56px 0 16px; }
     .hero-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 48px; align-items: center; }
     .hero h1 { font-size: clamp(40px, 6.2vw, 72px); }
     .hero h1 em { font-style: italic; color: var(--accent); }
@@ -125,10 +125,7 @@
     }
 
     /* Strip */
-    .strip { background: var(--dark); color: #f4ede4; padding: 26px 0; }
     
-    .strip span { display: flex; align-items: center; gap: 10px; }
-    .strip span::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
 
     /* Problem / cards */
     .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
@@ -363,12 +360,6 @@
     @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(217,71,43,.55); } 70%, 100% { box-shadow: 0 0 0 18px rgba(217,71,43,0); } }
     .btn { will-change: transform; }
 
-    /* Beskonačna traka */
-    .strip { overflow: hidden; padding: 22px 0; }
-    .marquee { display: flex; width: max-content; animation: marquee 32s linear infinite; }
-    .marquee:hover { animation-play-state: paused; }
-    .marquee span { padding: 0 28px; white-space: nowrap; font-size: 17px; }
-    @keyframes marquee { to { transform: translateX(-50%); } }
 
     /* Kartice: podizanje, nagib i svetlo koje prati miš */
     .card, .step, .bitem { position: relative; overflow: hidden; transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s, border-color .35s, opacity .6s; }
@@ -502,12 +493,6 @@
     </div>
   </section>
 
-  <div class="strip" aria-label="QR kod pored svakog artikla, pravi 3D snimak jela, radi u browseru telefona, mi radimo sve za vas">
-    <div class="marquee" aria-hidden="true">
-      <span>QR kod pored svakog artikla</span><span>Pravi 3D snimak jela</span><span>Stvarna veličina 1:1</span><span>Radi u browseru telefona</span><span>Bez aplikacije</span><span>Mi radimo sve za vas</span>
-      <span>QR kod pored svakog artikla</span><span>Pravi 3D snimak jela</span><span>Stvarna veličina 1:1</span><span>Radi u browseru telefona</span><span>Bez aplikacije</span><span>Mi radimo sve za vas</span>
-    </div>
-  </div>
 
   <!-- PROBLEM -->
   <section>
@@ -521,7 +506,7 @@
         <div class="card reveal">
           <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3H3v18"/><path d="M7 3v3M11 3v3M15 3v3M19 3v3M3 7h3M3 11h3M3 15h3M3 19h3"/></svg></div>
           <h3>Tačna veličina</h3>
-          <p>Jelo se pojavljuje na stolu gosta u razmeri 1:1. Odmah vidi koliko je porcija velika i da li će se najesti.</p>
+          <p>Jelo se pojavljuje na stolu gosta u razmeri 1:1. Odmah vidi koliko je porcija velika i da li će biti dovoljna.</p>
         </div>
         <div class="card reveal">
           <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></div>
