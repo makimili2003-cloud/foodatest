@@ -69,5 +69,13 @@
     "glb": "modeli/daska.glb",
     "realSize": true,
     "demo": true
+  },
+  {
+    "sub": "strips",
+    "name": "Strips",
+    "desc": "Strips combo",
+    "glb": "modeli/strips.glb",
+    "realSize": true,
+    "demo": true
   }
 ]
