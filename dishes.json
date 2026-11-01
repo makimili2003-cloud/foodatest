@@ -68,6 +68,6 @@
     "desc": "",
     "glb": "modeli/daska.glb",
     "realSize": true,
-    "demo": false
+    "demo": true
   }
 ]
