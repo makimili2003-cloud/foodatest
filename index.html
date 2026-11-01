@@ -851,7 +851,7 @@
     heroTimer = setTimeout(() => heroSelect((heroIdx + 1) % HERO.length, false), delay);
   }
   function heroSelect(i, byUser) {
-    if (byUser && heroAuto) { HERO.auto = false; heroPicker.querySelectorAll('.hero-pick').forEach(b => b.classList.remove('auto')); }
+    // klik na jelo ne gasi smenjivanje: izabrano jelo ostaje svoje vreme (HERO_DUR), pa ide sledeće
     if (i === heroIdx) return;
     const first = heroIdx === -1;
     heroIdx = i; const d = HERO[i];
