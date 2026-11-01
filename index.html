@@ -1095,12 +1095,10 @@
       });
       b.addEventListener('pointerleave', () => { b.style.transform = ''; });
     });
-    // blagi paralaks hero scene
-    const stage = document.querySelector('.hero .stage');
+    // blagi paralaks pozadine (prozor sa 3D jelom ostaje miran)
     document.querySelector('.hero').addEventListener('pointermove', e => {
       const x = e.clientX / innerWidth - .5, y = e.clientY / innerHeight - .5;
       document.querySelectorAll('.blob').forEach((b, i) => b.style.translate = `${x * (i + 1) * 30}px ${y * (i + 1) * 30}px`);
-      stage.style.translate = `${x * -10}px ${y * -10}px`;
     });
   }
 </script>
