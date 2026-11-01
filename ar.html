@@ -59,20 +59,19 @@
   let sub = params.get('jelo') || '';
   if (!sub && host.endsWith('.foodar.org')) sub = host.replace('.foodar.org', '');
 
-  const map = {
-    // realSize: model je snimljen u stvarnoj veličini -> u AR-u se ne može uvećati/smanjiti
-    "hleb":           { glb: "hlebandroid.glb",    usdz: "hleb.usdz",       realSize: true },
-    "pizza":          { glb: "pizza.glb",          usdz: "pizza.usdz",      realSize: true },
-    "dorucak":        { glb: "dorucak.glb",        usdz: "dorucak.usdz",    realSize: true },
-    "lotus":          { glb: "lotus.glb",          usdz: "lotus.usdz",      realSize: true },
-    "bananahleb":     { glb: "bananahleb.glb",     usdz: "bananahleb.usdz", realSize: true },
-    "kajganaavokado": { glb: "kajganaavokado.glb", usdz: "kajganaavokado.usdz" },
-    "pasta":          { glb: "pasta.glb",          usdz: "pasta.usdz" }
-  };
-  const item = map[sub] || map["hleb"];
-  mv.src = item.glb;
-  mv.iosSrc = item.usdz;
-  if (item.realSize) mv.arScale = 'fixed';
+  // Spisak jela je u dishes.json (ažurira ga admin panel)
+  fetch('dishes.json', { cache: 'no-cache' }).then(r => r.json()).then(list => {
+    const item = list.find(d => d.sub === sub);
+    if (!item) {
+      loading.innerHTML = 'Jelo nije pronađeno. <a href="https://foodar.org">foodar.org</a>';
+      return;
+    }
+    document.title = item.name + ' – FoodAR';
+    mv.alt = '3D model: ' + item.name;
+    mv.src = item.glb;
+    if (item.usdz) mv.iosSrc = item.usdz;   // bez usdz-a model-viewer sam pravi model za iPhone
+    if (item.realSize) mv.arScale = 'fixed';
+  }).catch(() => { loading.textContent = 'Greška pri učitavanju. Osvežite stranicu.'; });
 
   const ua = navigator.userAgent;
   const isIOS = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);

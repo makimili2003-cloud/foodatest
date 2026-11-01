@@ -1,0 +1,2 @@
+# Admin panel radi samo lokalno na tvom računaru, ne objavljuje se na sajtu
+/admin/*  /404.html  404!
