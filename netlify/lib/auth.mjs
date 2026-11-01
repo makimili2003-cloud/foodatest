@@ -18,8 +18,10 @@ export function checkPassword(given) {
   return crypto.timingSafeEqual(a, b);
 }
 
-export function signToken(days = 30) {
-  const payload = Buffer.from(JSON.stringify({ exp: Date.now() + days * 864e5 })).toString('base64url');
+// Prijava važi SESSION_MINUTES (podrazumevano 10) od poslednje aktivnosti; svaki poziv API-ja je produžava.
+export const SESSION_MS = Math.max(1, Number(process.env.SESSION_MINUTES) || 10) * 60e3;
+export function signToken(ttlMs = SESSION_MS) {
+  const payload = Buffer.from(JSON.stringify({ exp: Date.now() + ttlMs })).toString('base64url');
   const mac = crypto.createHmac('sha256', key()).update(payload).digest('base64url');
   return `${payload}.${mac}`;
 }

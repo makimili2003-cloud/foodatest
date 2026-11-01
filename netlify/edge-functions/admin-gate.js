@@ -39,17 +39,20 @@ const LOGIN_PAGE = `<!DOCTYPE html>
   input:focus { border-color: #d9472b; background: #fff; }
   button { width: 100%; margin-top: 12px; border: 0; border-radius: 999px; padding: 14px; background: #d9472b; color: #fff; font: 600 16px system-ui; cursor: pointer; }
   button:disabled { opacity: .6; }
+  .n { display: none; margin: -6px 0 16px; background: #fff1d1; color: #8a5a00; border-radius: 10px; padding: 9px 11px; font-size: 14px; }
   .e { margin-top: 12px; color: #a3301a; background: #fbe3dc; border-radius: 10px; padding: 9px 11px; font-size: 14px; display: none; }
 </style></head>
 <body>
 <form id="f" autocomplete="on">
   <i>AR</i><h1>FoodAR admin</h1><p>Unesi lozinku za pristup panelu.</p>
+  <div class="n" id="n">Odjavljen si posle 10 minuta neaktivnosti. Prijavi se ponovo.</div>
   <input type="text" name="username" value="admin" autocomplete="username" hidden />
   <input type="password" id="p" placeholder="Lozinka" autocomplete="current-password" required autofocus />
   <button id="b">Prijavi se</button>
   <div class="e" id="e"></div>
 </form>
 <script>
+  if (/[?&]neaktivnost=1/.test(location.search)) document.getElementById('n').style.display = 'block';
   document.getElementById('f').onsubmit = async function (ev) {
     ev.preventDefault();
     var b = document.getElementById('b'), e = document.getElementById('e');
@@ -59,7 +62,7 @@ const LOGIN_PAGE = `<!DOCTYPE html>
       var j = await r.json().catch(function () { return {}; });
       if (!r.ok) throw new Error(j.error || 'Greška pri prijavi.');
       try { localStorage.setItem('foodar-admin-token', j.token); } catch (x) {}
-      location.reload();
+      location.href = location.pathname;
     } catch (x) {
       e.textContent = x.message; e.style.display = 'block'; b.disabled = false; b.textContent = 'Prijavi se';
     }

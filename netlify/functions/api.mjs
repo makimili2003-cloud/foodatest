@@ -1,7 +1,7 @@
 // FoodAR admin API (Netlify Function). Sve rute osim /api/login traže prijavu.
 import crypto from 'node:crypto';
 import { adminStore } from '../lib/store.mjs';
-import { checkPassword, passwordConfigured, signToken, verifyToken } from '../lib/auth.mjs';
+import { checkPassword, passwordConfigured, signToken, verifyToken, SESSION_MS } from '../lib/auth.mjs';
 import * as gh from '../lib/github.mjs';
 import * as netlify from '../lib/netlify-api.mjs';
 import * as subs from '../lib/subs.mjs';
@@ -21,7 +21,23 @@ const json = (data, status = 200) => new Response(JSON.stringify(data), {
 });
 class HttpError extends Error { constructor(status, msg) { super(msg); this.status = status; } }
 
+const AUTHED = new WeakSet();
+const sessionCookie = token => `${COOKIE}=${token}; Path=/; Max-Age=${Math.round(SESSION_MS / 1000)}; HttpOnly; Secure; SameSite=Strict`;
+
+// Svaki prijavljen zahtev produžava prijavu (klizna sesija): posle SESSION_MINUTES bez aktivnosti traži se lozinka.
 export default async (req, context) => {
+  const res = await handle(req, context);
+  if (AUTHED.has(req) && res.status !== 401) {
+    const t = signToken();
+    const out = new Response(res.body, res);
+    out.headers.append('Set-Cookie', sessionCookie(t));
+    out.headers.set('X-Session-Token', t);
+    return out;
+  }
+  return res;
+};
+
+async function handle(req, context) {
   netlify.setSiteId(context?.site?.id);
   const url = new URL(req.url);
   const path = url.pathname.replace(/^\/api/, '').replace(/\/+$/, '') || '/';
@@ -58,11 +74,11 @@ export default async (req, context) => {
         throw new HttpError(401, 'Pogrešna lozinka.');
       }
       await store.delete(lockKey);
-      const token = signToken(30);
+      const token = signToken();
       // Kolačić štiti i same admin stranice (proverava ga netlify/edge-functions/admin-gate.js)
       return new Response(JSON.stringify({ token }), { headers: {
         'Content-Type': 'application/json', 'Cache-Control': 'no-store',
-        'Set-Cookie': `${COOKIE}=${token}; Path=/; Max-Age=${30 * 86400}; HttpOnly; Secure; SameSite=Strict`
+        'Set-Cookie': sessionCookie(token)
       } });
     }
     if (path === '/logout' && method === 'POST') {
@@ -72,6 +88,9 @@ export default async (req, context) => {
     const bearer = (req.headers.get('authorization') || '').replace(/^Bearer\s+/i, '');
     const cookie = (req.headers.get('cookie') || '').split(/;\s*/).find(c => c.startsWith(COOKIE + '='))?.slice(COOKIE.length + 1);
     if (!verifyToken(bearer) && !verifyToken(cookie)) throw new HttpError(401, 'Prijavi se ponovo.');
+    AUTHED.add(req);
+
+    if (path === '/ping' && method === 'POST') return json({ ok: true, sessionMinutes: SESSION_MS / 60e3 });
 
     // ---------- status ----------
     if (path === '/dijagnostika' && method === 'GET') {
@@ -79,7 +98,7 @@ export default async (req, context) => {
     }
     if (path === '/status' && method === 'GET') {
       const noviUpiti = (await upiti.list()).filter(u => u.status === 'novo').length;
-      return json({ noviUpiti, domain: DOMAIN, repo: process.env.GITHUB_REPO || 'makimili2003-cloud/foodatest', github: Boolean(process.env.GITHUB_TOKEN), netlify: netlify.netlifyConfigured() });
+      return json({ noviUpiti, sessionMinutes: SESSION_MS / 60e3, domain: DOMAIN, repo: process.env.GITHUB_REPO || 'makimili2003-cloud/foodatest', github: Boolean(process.env.GITHUB_TOKEN), netlify: netlify.netlifyConfigured() });
     }
 
     // ---------- jela ----------
@@ -195,6 +214,6 @@ export default async (req, context) => {
     if (status >= 500 || !e.status) console.error('admin api:', e.message);
     return json({ error: e.message || 'Greška' }, status);
   }
-};
+}
 
 export const config = { path: '/api/*' };
