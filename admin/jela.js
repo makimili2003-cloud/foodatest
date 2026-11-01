@@ -273,20 +273,28 @@ function renderList() {
       <div>
         <h3>${esc(d.name)}</h3>
         <a href="${d.url}" target="_blank" rel="noopener">${d.url.replace('https://', '').replace(/\/$/, '')}</a>
-        <div class="tags">${domTag(d.sub)}<span class="tag ${d.realSize ? 'on' : ''}">${d.realSize ? 'stvarna veličina' : 'slobodna veličina'}</span><span class="tag ${d.demo ? 'on' : ''}">${d.demo ? 'u demou' : 'nije u demou'}</span></div>
+        <div class="tags">${d.hidden ? '<span class="tag wait">sklonjeno iz ponude</span>' : ''}${domTag(d.sub)}<span class="tag ${d.realSize ? 'on' : ''}">${d.realSize ? 'stvarna veličina' : 'slobodna veličina'}</span><span class="tag ${d.demo ? 'on' : ''}">${d.demo ? 'u demou' : 'nije u demou'}</span></div>
       </div>
       <div class="btns">
         ${domState(d.sub).k === 'missing' ? `<button class="btn btn-primary btn-sm" data-dom="${d.sub}">Poveži domen</button>` : ''}
         <button class="btn btn-ghost btn-sm" data-png="${d.sub}">QR PNG</button>
         <button class="btn btn-ghost btn-sm" data-svg="${d.sub}">QR SVG</button>
         <button class="btn btn-ghost btn-sm" data-demo="${d.sub}">${d.demo ? 'Skloni iz demoa' : 'Stavi u demo'}</button>
+        <button class="btn btn-ghost btn-sm" data-hide="${d.sub}">${d.hidden ? 'Vrati u ponudu' : 'Skloni iz ponude'}</button>
         <button class="btn btn-danger btn-sm" data-del="${d.sub}">Obriši</button>
       </div>
     </div>`).join('');
 }
 $('list').onclick = async e => {
   const t = e.target.closest('button'); if (!t) return;
-  const { del, demo, png, svg, dom } = t.dataset;
+  const { del, demo, png, svg, dom, hide } = t.dataset;
+  if (hide) {
+    const d = DISHES.find(x => x.sub === hide);
+    if (!d.hidden && !confirm(`Skloniti „${d.name}“ iz ponude?\n\nQR kod i dalje radi: gost vidi poruku „Ovo jelo trenutno nije u ponudi“. Jelo možeš vratiti kad god hoćeš.`)) return;
+    t.disabled = true;
+    try { await api('PATCH', '/api/dishes/' + hide, { hidden: !d.hidden, ...(d.hidden ? {} : { demo: false }) }); await loadList(); } catch (err) { alert(err.message); t.disabled = false; }
+    return;
+  }
   if (dom) {
     t.disabled = true; t.textContent = 'Povezujem…';
     try { await api('POST', '/api/domeni/' + dom); DOMRESULT = { status: 'ok', added: [`${dom}.${STATUS.domain}`], existing: 0 }; }
@@ -297,7 +305,9 @@ $('list').onclick = async e => {
   if (svg) return download(svgUrl(dishUrl(svg)), `foodar-qr-${svg}.svg`);
   if (del) {
     const d = DISHES.find(x => x.sub === del);
-    if (!confirm(`Obrisati „${d.name}“? QR kod za ${del}.${STATUS.domain} prestaje da radi.`)) return;
+    const typed = prompt(`TRAJNO brisanje „${d.name}“.\n\nQR kod ${del}.${STATUS.domain} će prestati da radi (i na već odštampanim menijima). Ako jelo samo privremeno nije u ponudi, koristi „Skloni iz ponude“.\n\nZa potvrdu upiši adresu jela: ${del}`);
+    if (typed === null) return;
+    if (typed.trim().toLowerCase() !== del) { alert('Adresa nije tačno upisana. Jelo nije obrisano.'); return; }
     t.disabled = true;
     try { await api('DELETE', '/api/dishes/' + del); await loadList(); } catch (err) { alert(err.message); t.disabled = false; }
   }
