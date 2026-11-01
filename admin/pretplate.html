@@ -28,6 +28,8 @@
     .hnav { display: flex; gap: 4px; margin-left: auto; }
     .hnav a { color: #d8cfc6; text-decoration: none; padding: 8px 14px; border-radius: 999px; font-weight: 600; font-size: 14px; }
     .hnav a.on { background: rgba(255,255,255,.12); color: #fff; }
+    .hnav a { display: inline-flex; align-items: center; gap: 5px; }
+    .nbadge { background: var(--accent); color: #fff; border-radius: 99px; font-size: 11px; font-weight: 700; padding: 1px 7px; }
 
     main { max-width: 1240px; margin: 0 auto; padding: 26px 20px 80px; }
     .top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px; margin-bottom: 22px; }
@@ -256,6 +258,7 @@
     <nav class="hnav">
       <a href="/admin/">Jela</a>
       <a href="/admin/pretplate.html" class="on">Pretplate</a>
+      <a href="/admin/upiti.html">Upiti</a>
       <a href="#" id="logoutBtn">Odjava</a>
     </nav>
   </div>
@@ -664,9 +667,9 @@ function closeModal() { $('modal').classList.remove('on'); if (!OPEN) $('scrim')
 function planOpts(sel) {
   return Object.entries(DB.plans).map(([n, p]) => `<button type="button" data-plan="${esc(n)}" class="${n === sel ? 'on' : ''}"><b>${esc(n)}</b><span class="num">${din(p.mesecno)}/mes</span></button>`).join('');
 }
-function openSubForm(s) {
+function openSubForm(s, prefill = {}) {
   const edit = !!s;
-  s = s || { plan: Object.keys(DB.plans)[1] || Object.keys(DB.plans)[0], interval: 'mesecno', startDate: TODAY };
+  s = s || { plan: Object.keys(DB.plans)[1] || Object.keys(DB.plans)[0], interval: 'mesecno', startDate: TODAY, ...prefill };
   openModal(edit ? 'Izmeni pretplatu' : 'Nova pretplata', `
     <div class="row2">
       <label class="f">Restoran<input id="fRest" value="${esc(s.restoran || '')}" placeholder="npr. Restoran Lipa" /></label>
@@ -786,7 +789,16 @@ const localToday = () => { const d = new Date(); return new Date(d.getTime() - d
 $('logoutBtn').onclick = e => { e.preventDefault(); logout(); };
 let tt; function toast(t) { $('toast').textContent = t; $('toast').classList.add('on'); clearTimeout(tt); tt = setTimeout(() => $('toast').classList.remove('on'), 2400); }
 let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => DB.subs && render(), 150); });
-ensureLogin().then(load).catch(e => toast(e.message));
+ensureLogin().then(load).then(() => {
+  // "Napravi pretplatu" iz upita: popuni formu podacima klijenta
+  const q = new URLSearchParams(location.search);
+  if (q.get('novi')) {
+    const pre = {}; for (const k of ['restoran', 'kontakt', 'email', 'telefon', 'grad']) if (q.get(k)) pre[k] = q.get(k);
+    if (q.get('paket') && DB.plans[q.get('paket')]) pre.plan = q.get('paket');
+    history.replaceState(null, '', location.pathname);
+    openSubForm(null, pre);
+  }
+}).catch(e => toast(e.message));
 </script>
 </body>
 </html>

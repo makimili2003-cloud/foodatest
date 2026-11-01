@@ -11,6 +11,11 @@ Cela admin stranica je zaključana lozinkom: bez nje se vidi samo ekran za prija
 
   Posle pregleda klikneš **Objavi**: model ide na GitHub, Netlify objavi sajt i dodaje poddomen (`ime.foodar.org`).
   Preuzmeš QR kod (PNG ili SVG za štampu).
+- **Upiti:** svaki upit sa kontakt forme sajta se čuva u panelu (stranica **Upiti**) i stiže mejlom na
+  **ar@foodar.org**, sa kopijom na milan@foodar.org i mateja@foodar.org. U panelu upit dodeliš (AR, Milan, Mateja),
+  menjaš mu status (Novo, U obradi, Završeno, Arhiva), dodaješ interne beleške i **odgovaraš klijentu mejlom** na adresu
+  koju je upisao u formi, sa ar@, milan@ ili mateja@ adrese (šabloni: demonstracija, ponuda, poziv).
+  „Napravi pretplatu“ prenosi podatke klijenta u novu pretplatu.
 - **Pretplate:** klijenti, uplate, ko kasni, koliko novca očekuješ ovog meseca, grafikon prihoda, izvoz CSV i rezervna kopija.
   Podaci se čuvaju u **Netlify Blobs** (privatno skladište sajta), **ne** na GitHub-u.
 
@@ -26,6 +31,9 @@ Posle dodavanja ili izmene promenljive: **Deploys → Trigger deploy → Deploy 
 | `ADMIN_PASSWORD` | **da** | Lozinka za admin panel. **Ovde je menjaš.** Neka bude duga (npr. 4 nasumične reči). |
 | `GITHUB_TOKEN` | da, za objavu jela | GitHub token sa dozvolom *Contents: Read and write* za repo `foodatest` |
 | `NETLIFY_TOKEN` | ne | Za automatsko dodavanje poddomena (`ime.foodar.org`) |
+| `GMAIL_AR_PASS` | za mejlove | App password naloga **ar@foodar.org**: obaveštenja o upitima i odgovori sa ar@ |
+| `GMAIL_MILAN_PASS` | ne | App password naloga **milan@foodar.org**, da Milan odgovara sa svoje adrese |
+| `GMAIL_MATEJA_PASS` | ne | App password naloga **mateja@foodar.org**, da Mateja odgovara sa svoje adrese |
 | `WEBHOOK_SECRET` | ne | Za buduće automatsko upisivanje online uplata |
 | `SESSION_SECRET` | ne | Dodatna tajna za prijavu; kad je promeniš, svi uređaji se odjave |
 
@@ -36,6 +44,18 @@ Posle dodavanja ili izmene promenljive: **Deploys → Trigger deploy → Deploy 
 
 Posle 8 pogrešnih pokušaja prijava se zaključava na 15 minuta (zaštita od pogađanja). Prijava traje 30 dana po uređaju.
 Odjava: link **Odjava** gore desno.
+
+### Mejlovi (Google Workspace App password)
+Za svaki nalog sa kog šaljete (ar@, milan@, mateja@):
+1. Prijavi se na taj nalog i uključi **2-Step Verification**: <https://myaccount.google.com/signinoptions/twosv>
+   (ako u Workspace-u nije dozvoljeno, administrator to uključuje u admin.google.com → Security → 2-Step Verification).
+2. Otvori <https://myaccount.google.com/apppasswords>, upiši ime npr. `FoodAR admin` → **Create**.
+3. Kopiraj lozinku od 16 slova u Netlify kao `GMAIL_AR_PASS` (odnosno `GMAIL_MILAN_PASS`, `GMAIL_MATEJA_PASS`),
+   pa **Trigger deploy**.
+
+Poslati odgovori se vide u „Poslato“ tog Gmail naloga, a kad klijent odgovori, poruka stiže u njegov inbox.
+Dok `GMAIL_AR_PASS` nije podešen, upiti se i dalje čuvaju u panelu, a mejl na ar@foodar.org ide preko FormSubmit-a
+(prvi put stiže mejl „Activate Form“ na ar@, klikni da potvrdiš).
 
 ### GitHub token
 1. <https://github.com/settings/personal-access-tokens/new>
@@ -59,6 +79,7 @@ Bez njega, poddomen novog jela dodaješ ručno: **Domain management → Add doma
   po zahtevu), objava na GitHub, pretplate.
 - `netlify/functions/uplata.mjs`: `POST /integracije/uplata` za buduće online plaćanje (zaglavlje `X-Webhook-Secret`).
   Pretplatu napravi ili produži, a isti `paymentId` ne upisuje dva puta.
-- `netlify/lib/`: zajednička logika (prijava, GitHub, Netlify domeni, pretplate, skladište).
+- `netlify/lib/`: zajednička logika (prijava, GitHub, Netlify domeni, pretplate, upiti, mejl, skladište).
+- Upiti: `POST /api/upit` (javno, najviše 5 upita na 10 minuta po IP adresi, zamka za botove) → Netlify Blobs ključ `upiti`; mejl preko Gmail SMTP-a (`netlify/lib/mail.mjs`).
 - Pretplate: Netlify Blobs, skladište `foodar-admin`, ključ `pretplate`. Dnevna rezervna kopija ide pod `rezervne-kopije/`
   (čuva se poslednjih 30), a dugme **Rezervna kopija** u panelu preuzima sve kao JSON.

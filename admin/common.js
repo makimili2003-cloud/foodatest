@@ -72,7 +72,16 @@ export async function api(method, url, body, opts = {}) {
 /** Proveri prijavu pre prikaza stranice. */
 export async function ensureLogin() {
   if (!token) await showLogin();
-  return api('GET', '/api/status');
+  const status = await api('GET', '/api/status');
+  updateBadge(status.noviUpiti);
+  return status;
+}
+
+/** Broj novih upita pored "Upiti" u meniju. */
+export function updateBadge(n) {
+  const a = document.querySelector('.hnav a[href="/admin/upiti.html"]'); if (!a) return;
+  a.querySelector('.nbadge')?.remove();
+  if (n > 0) a.insertAdjacentHTML('beforeend', `<span class="nbadge">${n}</span>`);
 }
 
 export async function logout() {
