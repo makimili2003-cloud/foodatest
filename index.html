@@ -83,7 +83,12 @@
     .nav-links a:not(.btn) { text-decoration: none; color: var(--ink-2); font-weight: 500; font-size: 15px; }
     .nav-links a:not(.btn):hover { color: var(--ink); }
     .nav .btn { padding: 11px 18px; font-size: 15px; }
-    @media (max-width: 820px) { .nav-links a:not(.btn) { display: none; } }
+    @media (max-width: 820px) { .nav-links a:not(.btn):not(.nav-ig) { display: none; } .nav-links { gap: 14px; } }
+    .nav-links a.nav-ig { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; color: var(--ink);
+      border: 1.5px solid var(--line); transition: color .25s, border-color .25s, transform .3s cubic-bezier(.3,1.5,.5,1), background .25s; }
+    .nav-links a.nav-ig:hover { color: #fff; border-color: transparent; transform: rotate(-8deg) scale(1.08);
+      background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fd5949 45%, #d6249f 60%, #285aeb 90%); }
+    .nav-ig svg { width: 20px; height: 20px; }
 
     /* Hero */
     .hero { padding: 56px 0 80px; }
@@ -448,6 +453,7 @@
       <a href="#za-restorane">Za restorane</a>
       <a href="#cene">Cene</a>
       <a href="#pitanja">Pitanja</a>
+      <a class="nav-ig" href="https://www.instagram.com/foodarbg/" target="_blank" rel="noopener" aria-label="Instagram @foodarbg" title="@foodarbg na Instagramu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".6" fill="currentColor"/></svg></a>
       <a class="btn btn-primary" href="#kontakt">Kontakt</a>
     </nav>
   </div>
