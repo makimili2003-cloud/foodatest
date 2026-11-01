@@ -275,6 +275,33 @@
     .reveal.in { opacity: 1; transform: none; }
     .reveal { transition-delay: var(--d, 0s); }
 
+    /* ================= VIDEO SEKCIJA ================= */
+    .vid-sec { padding-top: 40px; }
+    .vid-grid { display: grid; grid-template-columns: 1fr minmax(0, 420px); gap: 64px; align-items: center; }
+    .vid-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; counter-reset: v; }
+    .vid-steps li { position: relative; overflow: hidden; display: grid; grid-template-columns: 44px 1fr; column-gap: 14px; align-items: center;
+      background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 16px 18px; transition: border-color .4s, box-shadow .4s, transform .4s, opacity .6s; }
+    .vid-steps li::before { counter-increment: v; content: counter(v); grid-row: span 2; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%;
+      background: var(--bg-2); color: var(--ink-2); font: 700 17px Inter, sans-serif; transition: background .4s, color .4s; }
+    .vid-steps b { font-size: 17px; }
+    .vid-steps span { color: var(--ink-2); font-size: 14.5px; }
+    .vid-steps i { position: absolute; left: 0; bottom: 0; height: 3px; width: 0; background: var(--accent); }
+    .vid-steps li.on { border-color: #e9c3b6; box-shadow: 0 18px 40px -24px rgba(217,71,43,.45); transform: translateX(6px); }
+    .vid-steps li.on::before { background: var(--accent); color: #fff; }
+    .vid-frame { position: relative; border-radius: 32px; overflow: hidden; aspect-ratio: 9 / 16; justify-self: center; width: min(100%, calc(min(640px, 78vh) * 9 / 16));
+      background: #1f1a17; border: 1px solid var(--line); box-shadow: 0 40px 80px -36px rgba(60,35,20,.5); }
+    .vid-frame video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .vid-chip { left: 16px; top: 16px; animation: none; background: rgba(255,255,255,.92); }
+    .vid-chip .rec { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); animation: recblink 1.4s ease-in-out infinite; }
+    @keyframes recblink { 50% { opacity: .25; } }
+    .vid-play { position: absolute; inset: 0; margin: auto; width: 76px; height: 76px; border-radius: 50%; border: 0; background: rgba(255,255,255,.92); color: var(--accent);
+      font-size: 28px; cursor: pointer; box-shadow: 0 12px 30px -10px rgba(0,0,0,.5); }
+    @media (max-width: 900px) {
+      .vid-grid { grid-template-columns: 1fr; gap: 28px; }
+      .vid-frame { aspect-ratio: 4 / 5; width: 100%; border-radius: 26px; }
+      .vid-steps li.on { transform: none; }
+    }
+
     /* ================= CENOVNIK ================= */
     .billing { display: inline-flex; align-items: center; gap: 14px; margin: 0 auto 44px; font-weight: 600; font-size: 15px; }
     .billing-wrap { text-align: center; }
@@ -604,6 +631,31 @@
           <h3>Gost skenira i vidi</h3>
           <p>Gost kamerom telefona skenira kod i jelo se pojavljuje na njegovom stolu. Ne treba aplikacija, nalog ni registracija.</p>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VIDEO: kako izgleda za stolom -->
+  <section id="za-stolom" class="vid-sec">
+    <div class="wrap vid-grid">
+      <div class="vid-text">
+        <div class="section-head reveal" style="margin-bottom:28px">
+          <span class="eyebrow">U restoranu</span>
+          <h2>Ovako to izgleda za stolom</h2>
+          <p>Bez aplikacije i bez čekanja: gost skenira kod pored jela i za par sekundi ga vidi ispred sebe.</p>
+        </div>
+        <ol class="vid-steps" id="vidSteps">
+          <li class="reveal"><b>Skenira QR kod</b><span>Kamerom telefona, pored jela na meniju.</span><i></i></li>
+          <li class="reveal"><b>Jelo je na stolu</b><span>U stvarnoj veličini, sa svih strana, tačno onako kako se servira.</span><i></i></li>
+          <li class="reveal"><b>Zna šta dobija</b><span>Poručuje sigurno, bez iznenađenja.</span><i></i></li>
+        </ol>
+        <a class="btn btn-primary magnet" href="#kontakt" style="margin-top:26px">Želim ovo u svom restoranu</a>
+      </div>
+      <div class="vid-frame reveal">
+        <video id="promoVid" muted loop playsinline preload="none" poster="media/foodar-9x16.jpg"
+          aria-label="Gost u restoranu skenira QR kod na meniju i vidi picu u AR-u na svom stolu"></video>
+        <button class="vid-play" id="vidPlay" type="button" aria-label="Pusti video" hidden>▶</button>
+        <span class="chip vid-chip"><i class="rec"></i>FoodAR u akciji</span>
       </div>
     </div>
   </section>
@@ -976,6 +1028,40 @@
     if (DISHES.length) select(start >= 0 ? start : 0);
   }).catch(() => { document.getElementById('demo').hidden = true; });
 
+  // ---------- Video "Ovako to izgleda za stolom" ----------
+  (function () {
+    const v = document.getElementById('promoVid'); if (!v) return;
+    const narrow = matchMedia('(max-width: 900px)').matches;
+    // telefon: 4:5 verzija (manje visoka); računar: uspravna 9:16 (webm ako browser podržava)
+    const srcs = narrow ? [['media/foodar-4x5.mp4', 'video/mp4']] : [['media/foodar-9x16.webm', 'video/webm'], ['media/foodar-9x16.mp4', 'video/mp4']];
+    v.poster = narrow ? 'media/foodar-4x5.jpg' : 'media/foodar-9x16.jpg';
+    srcs.forEach(([src, type]) => { const s = document.createElement('source'); s.src = src; s.type = type; v.appendChild(s); });
+    const steps = [...document.querySelectorAll('#vidSteps li')];
+    const marks = [0, 2.8, 11]; // sekunde: skeniranje, jelo na stolu, zadovoljan gost
+    const playBtn = document.getElementById('vidPlay');
+    let shown = false;
+    steps[0].classList.add('on');
+    function sync() {
+      const t = v.currentTime, d = v.duration || 14.6;
+      let k = 0; for (let i = 0; i < marks.length; i++) if (t >= marks[i]) k = i;
+      steps.forEach((li, i) => {
+        li.classList.toggle('on', i === k);
+        const end = marks[i + 1] ?? d, bar = li.querySelector('i');
+        bar.style.width = i === k ? Math.min(100, (t - marks[i]) / (end - marks[i]) * 100) + '%' : (i < k ? '0' : '0');
+      });
+      if (!v.paused) requestAnimationFrame(sync);
+    }
+    v.addEventListener('play', () => { playBtn.hidden = true; requestAnimationFrame(sync); });
+    v.addEventListener('seeked', sync);
+    playBtn.addEventListener('click', () => { v.play(); v.controls = false; });
+    if (reduceMotion) { v.preload = 'metadata'; playBtn.hidden = false; steps[0].classList.add('on'); return; }
+    // pusti samo dok je video na ekranu (štedi internet i bateriju)
+    new IntersectionObserver(es => es.forEach(e => {
+      if (e.isIntersecting) { if (!shown) { shown = true; v.preload = 'auto'; v.load(); } v.play().catch(() => { playBtn.hidden = false; }); }
+      else v.pause();
+    }), { threshold: .35 }).observe(v);
+  })();
+
   // ---------- Kontakt forma ----------
   // Upit se čuva u admin panelu (foodar.org/admin → Upiti) i šalje mejlom na ar@foodar.org
   // (kopija milan@ i mateja@). Ako slanje sa servera nije podešeno, mejl ide preko FormSubmit-a.
@@ -1104,7 +1190,7 @@
   addEventListener('scroll', onScroll, { passive: true }); onScroll();
 
   // stepenasto pojavljivanje elemenata iste grupe
-  document.querySelectorAll('.cards, .steps, .blist, .faq').forEach(g =>
+  document.querySelectorAll('.cards, .steps, .blist, .faq, .vid-steps').forEach(g =>
     [...g.querySelectorAll(':scope > .reveal')].forEach((el, i) => el.style.setProperty('--d', (i * 0.18) + 's')));
   document.querySelectorAll('.included li').forEach((li, i) => li.style.setProperty('--i', i));
   const io = new IntersectionObserver(es => es.forEach(e => {
