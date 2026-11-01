@@ -33,7 +33,7 @@
     "glb": "bananahleb.glb",
     "usdz": "bananahleb.usdz",
     "realSize": true,
-    "demo": true
+    "demo": false
   },
   {
     "sub": "lotus",
