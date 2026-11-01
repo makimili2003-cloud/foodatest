@@ -983,6 +983,13 @@
     if (!msgBox.value) msgBox.value = `Zanima me paket ${a.dataset.plan} (${yearly ? 'godišnje' : 'mesečno'} plaćanje).`;
   });
 
+  // ---------- Klik na logo FoodAR -> skroz na vrh ----------
+  document.querySelectorAll('a.logo').forEach(l => l.addEventListener('click', e => {
+    e.preventDefault();
+    scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+    history.replaceState(null, '', location.pathname + location.search);
+  }));
+
   // ---------- Animacije pri skrolovanju ----------
   document.getElementById('year').textContent = new Date().getFullYear();
   const header = document.querySelector('header');
