@@ -11,18 +11,19 @@
 
   function abs(u) { try { return new URL(u, location.href).href; } catch (e) { return u; } }
 
-  // Google Scene Viewer preko intent linka (Android)
-  function sceneViewer(opts) {
-    var file = abs(opts.glb);
-    var params = 'file=' + encodeURIComponent(file) + '&mode=ar_preferred' +
+  // Google Scene Viewer intent link (Android). Mora da ga otvori PRAVI tap korisnika na <a> – aplikacije
+  // kao Instagram ignorišu intent linkove koje stranica otvori sama iz koda.
+  function sceneViewerHref(opts) {
+    var params = 'file=' + encodeURIComponent(abs(opts.glb)) + '&mode=ar_preferred' +
       (opts.title ? '&title=' + encodeURIComponent(opts.title) : '') +
       (opts.fixedScale ? '&resizable=false' : '');
-    var fallback = location.href.split('#')[0];
-    var intent = 'intent://arvr.google.com/scene-viewer/1.0?' + params +
+    return 'intent://arvr.google.com/scene-viewer/1.0?' + params +
       '#Intent;scheme=https;package=com.google.android.googlequicksearchbox;action=android.intent.action.VIEW;' +
-      'S.browser_fallback_url=' + encodeURIComponent(fallback) + ';end;';
-    var a = document.createElement('a'); a.href = intent; a.rel = 'noopener';
-    document.body.appendChild(a); a.click(); a.remove();
+      'S.browser_fallback_url=' + encodeURIComponent(location.href.split('#')[0]) + ';end;';
+  }
+  function chromeHref(url) {
+    return 'intent://' + url.replace(/^https?:\/\//, '') + '#Intent;scheme=' + (location.protocol === 'http:' ? 'http' : 'https') +
+      ';package=com.android.chrome;S.browser_fallback_url=' + encodeURIComponent(url) + ';end;';
   }
 
   function css() {
@@ -37,25 +38,38 @@
       '.arh ol{margin:0 0 18px;padding-left:20px;color:#1f1a17;font-size:15px;line-height:1.7}' +
       '.arh .b{display:flex;align-items:center;justify-content:center;width:100%;border:0;border-radius:999px;padding:15px;font:600 16px system-ui;cursor:pointer;text-decoration:none;margin-top:10px}' +
       '.arh .p{background:#d9472b;color:#fff}.arh .g{background:#f3ece2;color:#1f1a17}.arh .t{background:none;color:#6a6058;font-weight:500}' +
+      '.arh ol{margin:14px 0 6px}' +
+      '.arh-arrow{position:fixed;top:calc(8px + env(safe-area-inset-top));right:12px;background:#d9472b;color:#fff;font:700 15px system-ui;padding:9px 14px;border-radius:999px;box-shadow:0 10px 24px -8px rgba(0,0,0,.5);animation:arhBounce 1s ease-in-out infinite}' +
+      '.arh-arrow span{letter-spacing:1px}@keyframes arhBounce{50%{transform:translate(3px,-5px)}}' +
       '.arh .dots{display:inline-block;background:#f3ece2;border-radius:6px;padding:0 6px;font-weight:700;letter-spacing:1px}';
     document.head.appendChild(st);
   }
 
-  // Aplikacija (Instagram…): uputstvo + otvaranje u pravom browseru (iPhone: Safari, Android: Chrome)
-  function browserHelp() {
+  // Aplikacija (Instagram…): pravi linkovi na koje korisnik tapne + uputstvo za meni gore desno
+  function browserHelp(arHref) {
     css();
     var url = location.href.split('#')[0];
     var B = IOS ? 'Safariju' : 'Chrome-u';
-    var openHref = IOS ? 'x-safari-' + url
-      : 'intent://' + url.replace(/^https?:\/\//, '') + '#Intent;scheme=' + (location.protocol === 'http:' ? 'http' : 'https') + ';package=com.android.chrome;S.browser_fallback_url=' + encodeURIComponent(url) + ';end;';
+    var dots = IOS ? '•••' : '⋮';
     var w = document.createElement('div'); w.className = 'arh';
-    w.innerHTML = '<div class="arh-box" role="dialog" aria-modal="true">' +
-      '<h3>Otvorite u ' + B + ' za AR</h3>' +
-      '<p>' + APP + ' ne dozvoljava prikaz jela na stolu (AR). U ' + B + ' radi odmah:</p>' +
-      '<a class="b p" id="arhOpen" href="' + openHref + '">Otvori u ' + B + '</a>' +
-      '<ol style="margin-top:16px"><li>Ako se ne otvori: tapnite <span class="dots">' + (IOS ? '•••' : '⋮') + '</span> gore desno</li><li>Izaberite <b>„Open in external browser“</b> / <b>„Otvori u ' + B + '“</b></li><li>Tapnite ponovo <b>„Pogledaj na svom stolu“</b></li></ol>' +
-      '<button class="b g" id="arhCopy" type="button">Kopiraj link</button>' +
+    var html = '<div class="arh-arrow" aria-hidden="true">Ovde <span>' + dots + '</span> ↗</div>' +
+      '<div class="arh-box" role="dialog" aria-modal="true">';
+    if (arHref) {
+      html += '<h3>Prikaz jela na stolu</h3>' +
+        '<p>Tapnite dugme da se jelo otvori u AR-u. Ako se ništa ne desi, ' + APP + ' to ne dozvoljava, pa otvorite stranicu u ' + B + ':</p>' +
+        '<a class="b p" href="' + arHref + '">Prikaži jelo na stolu (AR)</a>' +
+        '<a class="b g" href="' + chromeHref(url) + '">Otvori u Chrome-u</a>';
+    } else {
+      html += '<h3>Otvorite u ' + B + ' za AR</h3>' +
+        '<p>' + APP + ' ne dozvoljava prikaz jela na stolu (AR). Otvorite stranicu u ' + B + ':</p>';
+    }
+    html += '<ol><li>Tapnite <span class="dots">' + dots + '</span> gore desno na ekranu</li>' +
+      '<li>Izaberite <b>„Open in external browser“</b> / <b>„Otvori u ' + B + '“</b></li>' +
+      '<li>Tapnite ponovo <b>„Pogledaj na svom stolu“</b></li></ol>' +
+      '<button class="b ' + (arHref ? 'g' : 'p') + '" id="arhCopy" type="button">Kopiraj link (pa nalepite u ' + (IOS ? 'Safari' : 'Chrome') + ')</button>' +
+      (IOS ? '<a class="b t" href="x-safari-' + url + '">Pokušaj da otvoriš Safari</a>' : '') +
       '<button class="b t" id="arhClose" type="button">Zatvori</button></div>';
+    w.innerHTML = html;
     document.body.appendChild(w);
     w.addEventListener('click', function (e) { if (e.target === w) w.remove(); });
     w.querySelector('#arhClose').onclick = function () { w.remove(); };
@@ -85,20 +99,9 @@
     opts = opts || {};
     var glb = mv.getAttribute('src') || mv.src;
     if (!IN_APP && mv.canActivateAR) { mv.activateAR(); return; }
-    if (ANDROID && glb) {
-      var left = false;
-      var onHide = function () { if (document.hidden) left = true; };
-      var onBlur = function () { left = true; };
-      document.addEventListener('visibilitychange', onHide); window.addEventListener('blur', onBlur);
-      sceneViewer({ glb: glb, title: opts.title, fixedScale: opts.fixedScale });
-      // ako aplikacija blokira AR (stranica ostane vidljiva 2 s), ponudi otvaranje u Chrome-u
-      if (IN_APP) setTimeout(function () {
-        document.removeEventListener('visibilitychange', onHide); window.removeEventListener('blur', onBlur);
-        if (!left && !document.hidden) browserHelp();
-      }, 2000);
-      return;
-    }
-    if (IOS && IN_APP) { browserHelp(); return; }
+    if (IN_APP && ANDROID && glb) { browserHelp(sceneViewerHref({ glb: glb, title: opts.title, fixedScale: opts.fixedScale })); return; }
+    if (IN_APP) { browserHelp(null); return; }
+    if (ANDROID && glb) { location.href = sceneViewerHref({ glb: glb, title: opts.title, fixedScale: opts.fixedScale }); return; }
     if (mv.canActivateAR) { mv.activateAR(); return; }
     noAR();
   }
