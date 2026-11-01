@@ -41,6 +41,9 @@
       '.arh ol{margin:14px 0 6px}' +
       '.arh-arrow{position:fixed;top:calc(8px + env(safe-area-inset-top));right:12px;background:#d9472b;color:#fff;font:700 15px system-ui;padding:9px 14px;border-radius:999px;box-shadow:0 10px 24px -8px rgba(0,0,0,.5);animation:arhBounce 1s ease-in-out infinite}' +
       '.arh-arrow span{letter-spacing:1px}@keyframes arhBounce{50%{transform:translate(3px,-5px)}}' +
+      '#arhBanner{position:fixed;left:10px;right:10px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:900;display:flex;gap:10px;align-items:center;background:#1f1a17;color:#fff;border-radius:16px;padding:12px 12px 12px 16px;font:500 14px/1.4 system-ui,-apple-system,sans-serif;box-shadow:0 14px 34px -10px rgba(0,0,0,.55);animation:arhUp .4s cubic-bezier(.2,.8,.2,1)}' +
+      '#arhBanner span{flex:1;cursor:pointer}#arhBanner .dots{background:#3a332e;color:#fff;border-radius:6px;padding:0 6px;letter-spacing:1px}' +
+      '#arhBanner button{flex:none;border:0;background:#3a332e;color:#fff;width:30px;height:30px;border-radius:50%;font:600 14px system-ui;cursor:pointer}' +
       '.arh .dots{display:inline-block;background:#f3ece2;border-radius:6px;padding:0 6px;font-weight:700;letter-spacing:1px}';
     document.head.appendChild(st);
   }
@@ -62,12 +65,13 @@
     } else {
       html += '<h3>Otvorite u ' + B + ' za AR</h3>' +
         '<p>' + APP + ' ne dozvoljava prikaz jela na stolu (AR). Otvorite stranicu u ' + B + ':</p>';
+      // Instagram ima svoju komandu za otvaranje spoljnog browsera (ne radi na svim verzijama, ali ne škodi)
+      if (APP === 'Instagram') html += '<a class="b p" href="instagram://extbrowser/?url=' + encodeURIComponent(url) + '">Otvori u ' + B + '</a>';
     }
     html += '<ol><li>Tapnite <span class="dots">' + dots + '</span> gore desno na ekranu</li>' +
       '<li>Izaberite <b>„Open in external browser“</b> / <b>„Otvori u ' + B + '“</b></li>' +
       '<li>Tapnite ponovo <b>„Pogledaj na svom stolu“</b></li></ol>' +
-      '<button class="b ' + (arHref ? 'g' : 'p') + '" id="arhCopy" type="button">Kopiraj link (pa nalepite u ' + (IOS ? 'Safari' : 'Chrome') + ')</button>' +
-      (IOS ? '<a class="b t" href="x-safari-' + url + '">Pokušaj da otvoriš Safari</a>' : '') +
+      '<button class="b g" id="arhCopy" type="button">Kopiraj link (pa nalepite u ' + (IOS ? 'Safari' : 'Chrome') + ')</button>' +
       '<button class="b t" id="arhClose" type="button">Zatvori</button></div>';
     w.innerHTML = html;
     document.body.appendChild(w);
@@ -105,6 +109,19 @@
     if (mv.canActivateAR) { mv.activateAR(); return; }
     noAR();
   }
+
+  // iPhone u aplikaciji: odmah po ulasku traka na vrhu, pre nego što gost tapne AR dugme
+  function inAppBanner() {
+    if (!(IN_APP && IOS) || document.getElementById('arhBanner')) return;
+    css();
+    var bar = document.createElement('div'); bar.id = 'arhBanner';
+    bar.innerHTML = '<span>📱 Za prikaz jela na Vašem stolu otvorite u <b>Safariju</b>: tapnite <b class="dots">•••</b> gore desno → <b>„Open in external browser“</b></span>' +
+      '<button type="button" aria-label="Zatvori">✕</button>';
+    document.body.appendChild(bar);
+    bar.querySelector('button').onclick = function () { bar.remove(); };
+    bar.querySelector('span').onclick = function () { browserHelp(null); };
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', inAppBanner); else inAppBanner();
 
   window.FoodAR = { launchAR: launchAR, inApp: IN_APP, android: ANDROID, ios: IOS, canLaunch: function (mv) { return !!(mv && (mv.canActivateAR || ((ANDROID || IOS) && IN_APP))); } };
 })();
