@@ -1,0 +1,16 @@
+# Sajt je statičan (bez build koraka); admin API radi kao Netlify funkcije.
+[build]
+  publish = "."
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# Admin panel se ne pojavljuje u pretrazi i ne kešira se
+[[headers]]
+  for = "/admin/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    Cache-Control = "no-cache"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "same-origin"

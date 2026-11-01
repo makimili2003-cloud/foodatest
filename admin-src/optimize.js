@@ -1,19 +1,19 @@
-// Obrada 3D modela (GLB) da dobro izgleda i brzo se učitava na Androidu i iPhone-u:
+// Obrada 3D modela (GLB) U BROWSERU, da dobro izgleda i brzo se učitava na Androidu i iPhone-u.
+// Izvorni kod; gotov fajl za admin je admin/vendor/optimize.js (vidi admin/README.md kako se pravi).
 //  - teksture najviše 2048x2048 (veće Android/Scene Viewer zamuti ili odbije)
 //  - glatke normale ako ih model nema (bez njih jelo izgleda ravno i "kockasto")
 //  - pojednostavljivanje mreže iznad 100.000 trouglova
 //  - model se centrira i spusti na sto (dno na y = 0)
 //  - opciono: skaliranje na stvarnu širinu u cm
-import { NodeIO } from '@gltf-transform/core';
+import { WebIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
-import { dedup, prune, weld, simplify, textureCompress, getBounds } from '@gltf-transform/functions';
+import { dedup, prune, weld, simplify, getBounds } from '@gltf-transform/functions';
 import { MeshoptSimplifier } from 'meshoptimizer';
-import sharp from 'sharp';
 
 const MAX_TRIANGLES = 100_000;
 const MAX_TEXTURE = 2048;
 
-const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
+const io = new WebIO().registerExtensions(ALL_EXTENSIONS);
 
 function countTriangles(doc) {
   let n = 0;
@@ -38,6 +38,27 @@ function dimensions(doc) {
   const scene = doc.getRoot().getDefaultScene() || doc.getRoot().listScenes()[0];
   const { min, max } = getBounds(scene);
   return { x: max[0] - min[0], y: max[1] - min[1], z: max[2] - min[2], min, max };
+}
+
+// Smanjivanje tekstura u browseru (canvas): najviše MAX_TEXTURE, JPEG ako nema providnosti
+async function resizeTextures(doc, keepAlpha) {
+  for (const tex of doc.getRoot().listTextures()) {
+    const img = tex.getImage(); if (!img) continue;
+    const mime = tex.getMimeType() || 'image/png';
+    const bmp = await createImageBitmap(new Blob([img], { type: mime }));
+    const scale = Math.min(1, MAX_TEXTURE / Math.max(bmp.width, bmp.height));
+    const w = Math.max(1, Math.round(bmp.width * scale)), h = Math.max(1, Math.round(bmp.height * scale));
+    const toJpeg = !keepAlpha;
+    if (scale === 1 && (mime === 'image/jpeg' || !toJpeg)) { bmp.close?.(); continue; }
+    const canvas = typeof OffscreenCanvas !== 'undefined' ? new OffscreenCanvas(w, h) : Object.assign(document.createElement('canvas'), { width: w, height: h });
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(bmp, 0, 0, w, h); bmp.close?.();
+    const type = toJpeg ? 'image/jpeg' : 'image/png';
+    const blob = canvas.convertToBlob ? await canvas.convertToBlob({ type, quality: 0.88 }) : await new Promise(r => canvas.toBlob(r, type, 0.88));
+    tex.setImage(new Uint8Array(await blob.arrayBuffer())).setMimeType(type);
+    const uri = tex.getURI(); if (uri) tex.setURI(uri.replace(/\.(png|jpe?g|webp)$/i, toJpeg ? '.jpg' : '.png'));
+  }
 }
 
 // Glatke normale: susedni trouglovi dele normalu po poziciji temena (i preko UV šavova)
@@ -93,14 +114,16 @@ function placeOnTable(doc, scale) {
 }
 
 /**
- * @param {string} inputPath  putanja do .glb fajla
- * @param {string} outputPath gde se snima obrađen .glb
- * @param {{ realWidthCm?: number }} opts
+ * @param {Uint8Array} input  sadržaj .glb fajla
+ * @param {{ realWidthCm?: number, onStep?: (text: string) => void }} opts
+ * @returns {Promise<{ glb: Uint8Array, report: object }>}
  */
-export async function optimizeGlb(inputPath, outputPath, opts = {}) {
+export async function optimizeGlb(input, opts = {}) {
+  const step = opts.onStep || (() => {});
   let doc;
   try {
-    doc = await io.read(inputPath);
+    step('Čitam model…');
+    doc = await io.readBinary(input);
   } catch (e) {
     throw new Error('Fajl nije ispravan GLB 3D model. Izvezi model kao .glb (glTF Binary).');
   }
@@ -114,26 +137,23 @@ export async function optimizeGlb(inputPath, outputPath, opts = {}) {
     dims: dimensions(doc)
   };
 
+  step('Spajam i čistim mrežu…');
   await doc.transform(dedup(), weld());
 
   if (countTriangles(doc) > MAX_TRIANGLES) {
+    step('Pojednostavljujem mrežu…');
     await MeshoptSimplifier.ready;
     await doc.transform(simplify({ simplifier: MeshoptSimplifier, ratio: MAX_TRIANGLES / countTriangles(doc), error: 0.0005 }));
   }
 
+  step('Računam normale…');
   const normalsAdded = addSmoothNormals(doc);
 
   // Prozirne teksture ostaju PNG, ostale JPEG
+  step('Smanjujem teksture…');
   const usesAlpha = root.listMaterials().some(m => m.getAlphaMode() !== 'OPAQUE');
-  await doc.transform(
-    textureCompress({
-      encoder: sharp,
-      targetFormat: usesAlpha ? undefined : 'jpeg',
-      resize: [MAX_TEXTURE, MAX_TEXTURE],
-      quality: 88
-    }),
-    prune()
-  );
+  await resizeTextures(doc, usesAlpha);
+  await doc.transform(prune());
 
   // Skaliranje na stvarnu širinu (najduža vodoravna strana)
   const d0 = dimensions(doc);
@@ -142,7 +162,8 @@ export async function optimizeGlb(inputPath, outputPath, opts = {}) {
   const scale = realWidthCm > 0 && longest > 0 ? (realWidthCm / 100) / longest : 1;
   placeOnTable(doc, scale);
 
-  await io.write(outputPath, doc);
+  step('Pakujem model…');
+  const glb = await io.writeBinary(doc);
 
   const after = { triangles: countTriangles(doc), textures: textureInfo(doc), dims: dimensions(doc) };
   const cm = v => Math.round(v * 1000) / 10;
@@ -154,12 +175,12 @@ export async function optimizeGlb(inputPath, outputPath, opts = {}) {
   }
   if (!before.hadNormals) warnings.push('Model nije imao normale; dodate su glatke normale (zato je ranije izgledao loše na Androidu).');
 
-  return {
+  return { glb, report: {
     before: { triangles: before.triangles, textures: before.textures.map(t => `${t.width}×${t.height}`), hadNormals: before.hadNormals },
     after: { triangles: after.triangles, textures: after.textures.map(t => `${t.width}×${t.height}`) },
     normalsAdded,
     scale,
     size,
     warnings
-  };
+  } };
 }

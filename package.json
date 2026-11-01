@@ -1,0 +1,19 @@
+{
+  "name": "foodar",
+  "private": true,
+  "type": "module",
+  "description": "FoodAR sajt i admin panel (Netlify)",
+  "dependencies": {
+    "@netlify/blobs": "^11.1.7"
+  },
+  "devDependencies": {
+    "@gltf-transform/core": "^4.5.1",
+    "@gltf-transform/extensions": "^4.5.1",
+    "@gltf-transform/functions": "^4.5.1",
+    "esbuild": "^0.28.2",
+    "meshoptimizer": "^1.3.0"
+  },
+  "scripts": {
+    "build:optimizer": "esbuild admin-src/optimize.js --bundle --format=esm --minify --target=es2020 --external:node:fs --external:node:path --outfile=admin/vendor/optimize.js"
+  }
+}

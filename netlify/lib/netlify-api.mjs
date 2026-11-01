@@ -2,8 +2,12 @@
 // Ako je domen na Netlify DNS-u, Netlify sam napravi DNS zapis i SSL sertifikat.
 const API = 'https://api.netlify.com/api/v1';
 
+// ID sajta: Netlify ga sam prosleđuje funkciji (context.site.id); može i NETLIFY_SITE_ID.
+let SITE_ID = process.env.NETLIFY_SITE_ID || '';
+export function setSiteId(id) { if (id && !process.env.NETLIFY_SITE_ID) SITE_ID = id; }
+
 export function netlifyConfigured() {
-  return Boolean(process.env.NETLIFY_TOKEN && process.env.NETLIFY_SITE_ID);
+  return Boolean(process.env.NETLIFY_TOKEN && SITE_ID);
 }
 
 async function nf(method, path, body) {
@@ -23,7 +27,7 @@ async function nf(method, path, body) {
   return res.json();
 }
 
-const siteId = () => encodeURIComponent(process.env.NETLIFY_SITE_ID);
+const siteId = () => encodeURIComponent(SITE_ID);
 
 /** Dodaje sub.domen; vraća { status: 'added' | 'exists' | 'wildcard' | 'skipped', domain } */
 export async function addSubdomain(sub, domain) {

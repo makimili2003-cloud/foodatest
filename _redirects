@@ -1,2 +1,5 @@
-# Admin panel radi samo lokalno na tvom računaru, ne objavljuje se na sajtu
-/admin/*  /404.html  404!
+# Izvorni kod admin alata i Netlify funkcija ne treba da bude dostupan na sajtu
+/admin-src/*  /404.html  404!
+/netlify/*    /404.html  404!
+/package.json /404.html  404!
+/netlify.toml /404.html  404!
