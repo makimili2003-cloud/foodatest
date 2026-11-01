@@ -36,15 +36,6 @@
     "demo": false
   },
   {
-    "sub": "lotus",
-    "name": "Lotus kolač",
-    "desc": "Desert sa Lotus keksom.",
-    "glb": "lotus.glb",
-    "usdz": "lotus.usdz",
-    "realSize": true,
-    "demo": false
-  },
-  {
     "sub": "kajganaavokado",
     "name": "Kajgana sa avokadom",
     "desc": "Kajgana sa avokadom.",
