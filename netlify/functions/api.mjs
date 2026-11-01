@@ -142,6 +142,14 @@ export default async (req, context) => {
     }
 
     // ---------- domeni jela ----------
+    if (path === '/domeni' && method === 'GET') {
+      try { return json(await netlify.domainStatus(DOMAIN)); }
+      catch (e) { return json({ configured: netlify.netlifyConfigured(), error: e.message }); }
+    }
+    if ((m = path.match(/^\/domeni\/([a-z0-9-]+)$/)) && method === 'POST') {
+      if (!netlify.netlifyConfigured()) throw new HttpError(400, 'NETLIFY_TOKEN nije podešen u Netlify-ju.');
+      return json(await netlify.addSubdomain(m[1], DOMAIN));
+    }
     if (path === '/domeni' && method === 'POST') {
       if (!netlify.netlifyConfigured()) throw new HttpError(400, 'NETLIFY_TOKEN nije podešen u Netlify-ju. Dodaj ga (uputstvo je u panelu) i uradi Trigger deploy.');
       const list = await gh.getDishes();

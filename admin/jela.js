@@ -37,7 +37,7 @@ async function start() {
     `<span class="${STATUS.netlify ? '' : 'off'}">Netlify domeni ${STATUS.netlify ? 'automatski' : 'ručno'}</span>` +
     `<button class="btn btn-ghost btn-sm" id="diagBtn" style="padding:4px 10px;font-size:12px">Proveri GitHub vezu</button>`;
   $('diagBtn').onclick = diagnose;
-  try { DISHES = await api('GET', '/api/dishes'); } catch (e) { $('listStatus').textContent = e.message; }
+  try { [DISHES] = await Promise.all([api('GET', '/api/dishes'), loadDomains()]); } catch (e) { $('listStatus').textContent = e.message; }
   renderList();
 }
 $('logoutBtn').onclick = e => { e.preventDefault(); logout(); };
@@ -211,13 +211,29 @@ function reset() {
 $('restartBtn').onclick = reset; $('againBtn').onclick = reset;
 
 // ---------- sva jela ----------
+let DOM = null, DOMRESULT = null; // stanje domena na Netlify-ju, poslednji rezultat povezivanja
+async function loadDomains() {
+  if (!STATUS.netlify) { DOM = null; return; }
+  try { DOM = await api('GET', '/api/domeni'); } catch (e) { DOM = { error: e.message }; }
+}
 async function loadList() {
   $('listStatus').textContent = 'Učitavam…';
-  try { DISHES = await api('GET', '/api/dishes'); renderList(); }
+  try { [DISHES] = await Promise.all([api('GET', '/api/dishes'), loadDomains()]); renderList(); }
   catch (e) { $('listStatus').innerHTML = `<div class="note err">${esc(e.message)}</div>`; }
 }
+function domState(sub) {
+  const host = `${sub}.${STATUS.domain}`;
+  if (!STATUS.netlify) return { k: 'manual' };
+  if (!DOM || DOM.error) return { k: 'unknown' };
+  const linked = DOM.wildcard || DOM.aliases.includes(host) || DOM.customDomain === host;
+  if (!linked) return { k: 'missing' };
+  const ssl = DOM.ssl?.domains || [];
+  const https = ssl.includes(host) || ssl.includes(`*.${STATUS.domain}`);
+  return { k: 'ok', https, sslKnown: Boolean(DOM.ssl) };
+}
 // ---------- domeni (ime.foodar.org) ----------
-function renderDomCard(result) {
+function renderDomCard() {
+  const result = DOMRESULT;
   const box = $('domCard');
   if (!STATUS.netlify) {
     box.innerHTML = `<h2 style="font-size:18px">Automatski domeni nisu uključeni</h2>
@@ -230,13 +246,22 @@ function renderDomCard(result) {
     return;
   }
   box.innerHTML = `<div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap">
-      <div><h2 style="font-size:18px">Domeni jela</h2><p class="sub" style="margin:0">Novo jelo automatski dobija svoju adresu. Ovde možeš povezati i jela kojima adresa fali.</p></div>
+      <div><h2 style="font-size:18px">Domeni jela</h2><p class="sub" style="margin:0">${DOM?.error ? 'Ne mogu da pročitam stanje sa Netlify-ja: ' + esc(DOM.error) : (() => { const n = DISHES.filter(d => domState(d.sub).k === 'ok').length; return `<b>${n} od ${DISHES.length}</b> jela ima povezanu adresu. Novo jelo automatski dobija svoju adresu.`; })()}</p></div>
       <button class="btn btn-primary btn-sm" id="syncDom">Poveži domene</button></div>
     ${result ? `<div class="note ${result.error ? 'err' : 'ok'}" style="margin-top:12px">${result.error ? esc(result.error) : result.status === 'wildcard' ? 'Sva jela već rade (podešen je *.' + esc(STATUS.domain) + ').' : result.added.length ? 'Dodato: ' + result.added.map(esc).join(', ') + '. HTTPS sertifikat stiže za nekoliko minuta.' : 'Sva jela već imaju svoju adresu (' + result.existing + ').'}</div>` : ''}`;
   $('syncDom').onclick = async () => {
     $('syncDom').disabled = true; $('syncDom').textContent = 'Povezujem…';
-    try { renderDomCard(await api('POST', '/api/domeni')); } catch (e) { renderDomCard({ error: e.message }); }
+    try { DOMRESULT = await api('POST', '/api/domeni'); } catch (e) { DOMRESULT = { error: e.message }; }
+    await loadDomains(); renderList();
   };
+}
+
+function domTag(sub) {
+  const s = domState(sub);
+  if (s.k === 'manual') return '<span class="tag">domen: ručno</span>';
+  if (s.k === 'unknown') return '';
+  if (s.k === 'missing') return '<span class="tag bad">✗ domen nije povezan</span>';
+  return '<span class="tag on">✓ domen povezan</span>' + (s.sslKnown ? (s.https ? '<span class="tag on">🔒 HTTPS spreman</span>' : '<span class="tag wait">HTTPS u pripremi</span>') : '');
 }
 
 function renderList() {
@@ -248,9 +273,10 @@ function renderList() {
       <div>
         <h3>${esc(d.name)}</h3>
         <a href="${d.url}" target="_blank" rel="noopener">${d.url.replace('https://', '').replace(/\/$/, '')}</a>
-        <div class="tags"><span class="tag ${d.realSize ? 'on' : ''}">${d.realSize ? 'stvarna veličina' : 'slobodna veličina'}</span><span class="tag ${d.demo ? 'on' : ''}">${d.demo ? 'u demou' : 'nije u demou'}</span></div>
+        <div class="tags">${domTag(d.sub)}<span class="tag ${d.realSize ? 'on' : ''}">${d.realSize ? 'stvarna veličina' : 'slobodna veličina'}</span><span class="tag ${d.demo ? 'on' : ''}">${d.demo ? 'u demou' : 'nije u demou'}</span></div>
       </div>
       <div class="btns">
+        ${domState(d.sub).k === 'missing' ? `<button class="btn btn-primary btn-sm" data-dom="${d.sub}">Poveži domen</button>` : ''}
         <button class="btn btn-ghost btn-sm" data-png="${d.sub}">QR PNG</button>
         <button class="btn btn-ghost btn-sm" data-svg="${d.sub}">QR SVG</button>
         <button class="btn btn-ghost btn-sm" data-demo="${d.sub}">${d.demo ? 'Skloni iz demoa' : 'Stavi u demo'}</button>
@@ -260,7 +286,13 @@ function renderList() {
 }
 $('list').onclick = async e => {
   const t = e.target.closest('button'); if (!t) return;
-  const { del, demo, png, svg } = t.dataset;
+  const { del, demo, png, svg, dom } = t.dataset;
+  if (dom) {
+    t.disabled = true; t.textContent = 'Povezujem…';
+    try { await api('POST', '/api/domeni/' + dom); DOMRESULT = { status: 'ok', added: [`${dom}.${STATUS.domain}`], existing: 0 }; }
+    catch (err) { DOMRESULT = { error: err.message }; }
+    await loadDomains(); renderList(); return;
+  }
   if (png) return download(qrPngUrl(dishUrl(png)), `foodar-qr-${png}.png`);
   if (svg) return download(svgUrl(dishUrl(svg)), `foodar-qr-${svg}.svg`);
   if (del) {
