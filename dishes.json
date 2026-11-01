@@ -1,9 +1,73 @@
 [
-  { "sub": "pizza",          "name": "Pica Margarita",      "desc": "Napolitanska pica na drvenoj lopati za serviranje.",   "glb": "pizza.glb",          "usdz": "pizza.usdz",          "realSize": true,  "demo": true },
-  { "sub": "dorucak",        "name": "Doručak",             "desc": "Francuski tost, kobasica, kajgana i bobičasto voće.", "glb": "dorucak.glb",        "usdz": "dorucak.usdz",        "realSize": true,  "demo": true },
-  { "sub": "hleb",           "name": "Hleb",                "desc": "Domaći hleb iz pekare, ceo vekna.",                   "glb": "hlebandroid.glb",    "usdz": "hleb.usdz",           "realSize": true,  "demo": true },
-  { "sub": "bananahleb",     "name": "Banana hleb",         "desc": "Parče banana hleba.",                                 "glb": "bananahleb.glb",     "usdz": "bananahleb.usdz",     "realSize": true,  "demo": true },
-  { "sub": "lotus",          "name": "Lotus kolač",         "desc": "Desert sa Lotus keksom.",                             "glb": "lotus.glb",          "usdz": "lotus.usdz",          "realSize": true,  "demo": true },
-  { "sub": "kajganaavokado", "name": "Kajgana sa avokadom", "desc": "Kajgana sa avokadom.",                                "glb": "kajganaavokado.glb", "usdz": "kajganaavokado.usdz", "realSize": false, "demo": false },
-  { "sub": "pasta",          "name": "Pasta",               "desc": "Pasta.",                                              "glb": "pasta.glb",          "usdz": "pasta.usdz",          "realSize": false, "demo": false }
+  {
+    "sub": "pizza",
+    "name": "Pica Margarita",
+    "desc": "Napolitanska pica na drvenoj lopati za serviranje.",
+    "glb": "pizza.glb",
+    "usdz": "pizza.usdz",
+    "realSize": true,
+    "demo": true
+  },
+  {
+    "sub": "dorucak",
+    "name": "Doručak",
+    "desc": "Francuski tost, kobasica, kajgana i bobičasto voće.",
+    "glb": "dorucak.glb",
+    "usdz": "dorucak.usdz",
+    "realSize": true,
+    "demo": true
+  },
+  {
+    "sub": "hleb",
+    "name": "Hleb",
+    "desc": "Domaći hleb iz pekare, ceo vekna.",
+    "glb": "hlebandroid.glb",
+    "usdz": "hleb.usdz",
+    "realSize": true,
+    "demo": true
+  },
+  {
+    "sub": "bananahleb",
+    "name": "Banana hleb",
+    "desc": "Parče banana hleba.",
+    "glb": "bananahleb.glb",
+    "usdz": "bananahleb.usdz",
+    "realSize": true,
+    "demo": true
+  },
+  {
+    "sub": "lotus",
+    "name": "Lotus kolač",
+    "desc": "Desert sa Lotus keksom.",
+    "glb": "lotus.glb",
+    "usdz": "lotus.usdz",
+    "realSize": true,
+    "demo": true
+  },
+  {
+    "sub": "kajganaavokado",
+    "name": "Kajgana sa avokadom",
+    "desc": "Kajgana sa avokadom.",
+    "glb": "kajganaavokado.glb",
+    "usdz": "kajganaavokado.usdz",
+    "realSize": false,
+    "demo": false
+  },
+  {
+    "sub": "pasta",
+    "name": "Pasta",
+    "desc": "Pasta.",
+    "glb": "pasta.glb",
+    "usdz": "pasta.usdz",
+    "realSize": false,
+    "demo": false
+  },
+  {
+    "sub": "daska",
+    "name": "Daska za 4 osobe",
+    "desc": "",
+    "glb": "modeli/daska.glb",
+    "realSize": true,
+    "demo": false
+  }
 ]
