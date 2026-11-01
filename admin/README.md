@@ -35,6 +35,7 @@ Posle dodavanja ili izmene promenljive: **Deploys → Trigger deploy → Deploy 
 | `GMAIL_MILAN_PASS` | ne | App password naloga **milan@foodar.org**. Bez njega Milan šalje preko ar@ naloga (vidi ispod) |
 | `GMAIL_MATEJA_PASS` | ne | App password naloga **mateja@foodar.org**. Bez njega Mateja šalje preko ar@ naloga |
 | `WEBHOOK_SECRET` | ne | Za buduće automatsko upisivanje online uplata |
+| `SESSION_MINUTES` | ne | Posle koliko minuta neaktivnosti se panel sam odjavi (podrazumevano 10) |
 | `SESSION_SECRET` | ne | Dodatna tajna za prijavu; kad je promeniš, svi uređaji se odjave |
 
 ### Kako da promeniš lozinku
@@ -42,8 +43,10 @@ Posle dodavanja ili izmene promenljive: **Deploys → Trigger deploy → Deploy 
 2. **Deploys → Trigger deploy → Deploy site** (1–2 minuta).
 3. Promena lozinke **odjavljuje sve uređaje**, pa se ponovo prijaviš novom lozinkom.
 
-Posle 8 pogrešnih pokušaja prijava se zaključava na 15 minuta (zaštita od pogađanja). Prijava traje 30 dana po uređaju.
-Odjava: link **Odjava** gore desno.
+Posle 8 pogrešnih pokušaja prijava se zaključava na 15 minuta (zaštita od pogađanja).
+**Automatska odjava:** posle **10 minuta bez aktivnosti** panel se sam odjavi (minut ranije pojavi se upozorenje sa dugmetom
+„Ostani prijavljen“). To važi i na serveru: ako zatvoriš tab ili telefon zaspi duže od 10 minuta, traži se lozinka.
+Vreme se menja promenljivom `SESSION_MINUTES`. Ručna odjava: link **Odjava** gore desno.
 
 ### Mejlovi (Google Workspace App password)
 Za svaki nalog sa kog šaljete (ar@, milan@, mateja@):

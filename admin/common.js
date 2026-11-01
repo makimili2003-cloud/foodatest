@@ -60,7 +60,9 @@ export async function api(method, url, body, opts = {}) {
       headers['Content-Type'] = 'application/json'; payload = JSON.stringify(body);
     }
     const r = await fetch(url, { method, headers, body: payload });
-    if (r.status === 401) { await showLogin(attempt ? 'Pogrešna ili istekla prijava.' : ''); continue; }
+    const fresh = r.headers.get('X-Session-Token'); // server produžava prijavu pri svakom pozivu
+    if (fresh) { token = fresh; lastPing = Date.now(); try { localStorage.setItem(TOKEN_KEY, token); } catch (e) {} }
+    if (r.status === 401) { await showLogin(attempt ? 'Pogrešna ili istekla prijava.' : 'Prijava je istekla (10 minuta bez aktivnosti). Prijavi se ponovo.'); continue; }
     if (opts.raw) { if (!r.ok) throw new Error('Greška ' + r.status); return r; }
     const j = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(j.error || ('Greška ' + r.status));
@@ -73,6 +75,7 @@ export async function api(method, url, body, opts = {}) {
 export async function ensureLogin() {
   if (!token) await showLogin();
   const status = await api('GET', '/api/status');
+  startIdleWatch(status.sessionMinutes);
   updateBadge(status.noviUpiti);
   return status;
 }
@@ -84,9 +87,46 @@ export function updateBadge(n) {
   if (n > 0) a.insertAdjacentHTML('beforeend', `<span class="nbadge">${n}</span>`);
 }
 
-export async function logout() {
+export async function logout(reason) {
   try { localStorage.removeItem(TOKEN_KEY); } catch (e) {}
   token = '';
   await fetch('/api/logout', { method: 'POST' }).catch(() => {});
-  location.href = '/admin/';
+  location.href = '/admin/' + (reason ? '?' + reason + '=1' : '');
+}
+
+// ---------- automatska odjava posle 10 minuta neaktivnosti ----------
+// Aktivnost = klik, kucanje, skrolovanje, dodir, pomeranje miša (deli se između otvorenih tabova).
+const ACT_KEY = 'foodar-admin-activity';
+let lastLocal = Date.now(), lastPing = Date.now(), idleStarted = false, warnEl = null;
+const lastActivity = () => { let v = lastLocal; try { v = Math.max(v, Number(localStorage.getItem(ACT_KEY)) || 0); } catch (e) {} return v; };
+function markActive() {
+  const now = Date.now();
+  if (now - lastLocal < 3000) return;
+  lastLocal = now; try { localStorage.setItem(ACT_KEY, String(now)); } catch (e) {}
+  hideWarn();
+}
+function showWarn(sec) {
+  if (!warnEl) {
+    warnEl = document.createElement('div');
+    warnEl.style.cssText = 'position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:200;background:#1f1a17;color:#fff;border-radius:16px;padding:14px 16px;display:flex;gap:14px;align-items:center;box-shadow:0 18px 40px -12px rgba(0,0,0,.5);font:500 14px system-ui,sans-serif;max-width:calc(100% - 24px)';
+    warnEl.innerHTML = '<span id="idleTxt"></span><button style="border:0;border-radius:999px;padding:9px 14px;background:#d9472b;color:#fff;font:600 14px system-ui;cursor:pointer;white-space:nowrap">Ostani prijavljen</button>';
+    warnEl.querySelector('button').onclick = () => { lastLocal = 0; markActive(); api('POST', '/api/ping').catch(() => {}); };
+    document.body.appendChild(warnEl);
+  }
+  warnEl.querySelector('#idleTxt').textContent = `Zbog neaktivnosti odjava za ${sec} s.`;
+}
+function hideWarn() { warnEl?.remove(); warnEl = null; }
+function startIdleWatch(minutes) {
+  if (idleStarted) return; idleStarted = true;
+  const IDLE = (Number(minutes) || 10) * 60e3, WARN = 60e3;
+  for (const ev of ['pointerdown', 'pointermove', 'keydown', 'wheel', 'scroll', 'touchstart']) addEventListener(ev, markActive, { passive: true, capture: true });
+  const check = () => {
+    const idle = Date.now() - lastActivity();
+    if (idle >= IDLE) return logout('neaktivnost');
+    if (idle >= IDLE - WARN) showWarn(Math.ceil((IDLE - idle) / 1000)); else hideWarn();
+    // dok radiš, server-sku prijavu produži najviše jednom u 2 minuta
+    if (idle < 60e3 && Date.now() - lastPing > 2 * 60e3) { lastPing = Date.now(); api('POST', '/api/ping').catch(() => {}); }
+  };
+  setInterval(check, 1000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) check(); });
 }
