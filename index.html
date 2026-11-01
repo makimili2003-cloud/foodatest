@@ -246,6 +246,52 @@
     .reveal.in { opacity: 1; transform: none; }
     .reveal { transition-delay: var(--d, 0s); }
 
+    /* ================= CENOVNIK ================= */
+    .billing { display: inline-flex; align-items: center; gap: 14px; margin: 0 auto 44px; font-weight: 600; font-size: 15px; }
+    .billing-wrap { text-align: center; }
+    .billing .lbl { color: var(--ink-2); transition: color .3s; cursor: pointer; }
+    .billing .lbl.on { color: var(--ink); }
+    .switch { position: relative; width: 56px; height: 30px; border-radius: 99px; border: 0; padding: 0; cursor: pointer;
+      background: var(--line); transition: background .35s; }
+    .switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,.2); transition: transform .45s cubic-bezier(.3,1.5,.5,1); }
+    .switch[aria-checked="true"] { background: var(--accent); }
+    .switch[aria-checked="true"]::after { transform: translateX(26px); }
+    .save { background: var(--accent-soft); color: var(--accent); padding: 5px 11px; border-radius: 99px; font-size: 13px; font-weight: 700; }
+    .plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; align-items: stretch; }
+    .plan { position: relative; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 32px 28px 28px;
+      transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s, border-color .35s, opacity .6s; }
+    .plan::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .3s;
+      background: radial-gradient(320px circle at var(--mx, 50%) var(--my, 50%), rgba(217,71,43,.08), transparent 60%); }
+    .plan:hover { box-shadow: 0 28px 60px -28px rgba(60,35,20,.4); }
+    .plan:hover::before { opacity: 1; }
+    .plan.popular { border: 2px solid var(--accent); background: linear-gradient(180deg, #fff6f2 0%, #fff 45%);
+      box-shadow: 0 30px 70px -30px rgba(217,71,43,.45); }
+    @media (min-width: 901px) { .plan.popular { margin: -14px 0; padding-top: 46px; } }
+    .badge { position: absolute; top: 0; left: 50%; transform: translate(-50%, -50%); white-space: nowrap;
+      background: linear-gradient(90deg, var(--accent), #f08a3c); color: #fff; font-size: 13px; font-weight: 700; padding: 6px 14px; border-radius: 99px;
+      box-shadow: 0 8px 20px -8px rgba(217,71,43,.7); }
+    .plan h3 { font-size: 24px; }
+    .plan .for { color: var(--ink-2); font-size: 14px; margin-top: 4px; }
+    .price { display: flex; align-items: baseline; gap: 8px; margin-top: 22px; }
+    .price b { font: 700 48px/1 Fraunces, serif; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+    .price span { color: var(--ink-2); font-size: 15px; }
+    .billed { min-height: 42px; margin-top: 8px; font-size: 13px; color: var(--ink-2); transition: opacity .3s; }
+    .billed em { font-style: normal; color: var(--green); font-weight: 600; }
+    .plan ul { list-style: none; padding: 0; margin: 18px 0 28px; display: grid; gap: 12px; flex: 1; align-content: start; }
+    .plan li { display: flex; gap: 11px; align-items: flex-start; font-size: 15px; }
+    .plan li::before { content: ""; flex: none; width: 20px; height: 20px; margin-top: 1px; border-radius: 50%;
+      background: var(--accent-soft) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d9472b' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5 9-10'/%3E%3C/svg%3E") center/11px no-repeat; }
+    .plan li.no { color: #b3a89d; }
+    .plan li.no::before { background: var(--bg-2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b3a89d' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M7 7l10 10M17 7L7 17'/%3E%3C/svg%3E") center/10px no-repeat; }
+    .plan .btn { width: 100%; }
+    .plan .btn-ghost { border-color: var(--line); }
+    .plan .btn-ghost:hover { border-color: var(--ink); }
+    .price-note { text-align: center; color: var(--ink-2); font-size: 14px; margin-top: 30px; }
+    .bump { animation: bump .5s cubic-bezier(.3,1.5,.5,1); }
+    @keyframes bump { 40% { transform: translateY(-6px) scale(1.06); color: var(--accent); } }
+    @media (max-width: 900px) { .plans { grid-template-columns: 1fr; gap: 26px; max-width: 460px; margin: 0 auto; } }
+
     /* ================= ANIMACIJE ================= */
     /* Traka napretka skrolovanja */
     #progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 60; transform-origin: 0 50%; transform: scaleX(0);
@@ -387,6 +433,7 @@
       <a href="#kako-radi">Kako radi</a>
       <a href="#demo">Demo</a>
       <a href="#za-restorane">Za restorane</a>
+      <a href="#cene">Cene</a>
       <a href="#pitanja">Pitanja</a>
       <a class="btn btn-primary" href="#kontakt">Kontakt</a>
     </nav>
@@ -604,6 +651,27 @@
     </div>
   </section>
 
+  <!-- CENE -->
+  <section id="cene">
+    <div class="wrap">
+      <div class="section-head reveal" style="margin-left:auto;margin-right:auto;text-align:center">
+        <span class="eyebrow">Cene</span>
+        <h2>Jednostavne cene, bez skrivenih troškova</h2>
+        <p>Izaberite paket koji odgovara vašem restoranu. Kako rastete, lako prelazite na veći.</p>
+      </div>
+      <div class="billing-wrap reveal">
+        <div class="billing">
+          <span class="lbl on" data-period="m">Mesečno</span>
+          <button class="switch" id="billingSwitch" role="switch" aria-checked="false" aria-label="Godišnje plaćanje"></button>
+          <span class="lbl" data-period="y">Godišnje</span>
+          <span class="save">Uštedite 20%</span>
+        </div>
+      </div>
+      <div class="plans" id="plans"></div>
+      <p class="price-note reveal">Cene su u dinarima, bez PDV-a. Za lance restorana i veći broj lokacija <a href="#kontakt">javite nam se</a> za posebnu ponudu.</p>
+    </div>
+  </section>
+
   <!-- FAQ -->
   <section id="pitanja">
     <div class="wrap">
@@ -617,7 +685,7 @@
         <details class="reveal"><summary>Da li je jelo zaista u stvarnoj veličini?</summary><p>Da. Jela skeniramo sa stvarnim dimenzijama, pa se u AR-u prikazuju u razmeri 1:1, tačno onoliko velika koliko stižu na sto.</p></details>
         <details class="reveal"><summary>Šta ako promenim izgled jela ili dodam novo?</summary><p>Novo ili izmenjeno jelo ponovo snimimo i zamenimo. Link i QR kod ostaju isti, pa ne morate ništa da štampate ponovo.</p></details>
         <details class="reveal"><summary>Da li moram da menjam meni ili sistem za porudžbine?</summary><p>Ne. FoodAR radi uz vaš postojeći meni. Pored artikala se dodaju samo QR kodovi, kao nalepnice ili u sledećem izdanju menija.</p></details>
-        <details class="reveal"><summary>Koliko košta?</summary><p>Cena zavisi od broja jela i obima posla. Pošaljite nam upit preko forme ispod i dobićete ponudu prilagođenu vašem restoranu.</p></details>
+        <details class="reveal"><summary>Koliko košta?</summary><p>Paketi počinju od 2.490 dinara mesečno, a godišnjim plaćanjem štedite 20%. Pogledajte <a href="#cene">cenovnik</a>, a za veći broj lokacija pošaljite upit i dobićete posebnu ponudu.</p></details>
       </div>
     </div>
   </section>
@@ -659,6 +727,14 @@
             </select>
           </label>
         </div>
+        <label>Paket
+          <select name="paket" id="paketSelect">
+            <option value="">Još ne znam</option>
+            <option>Starter</option>
+            <option>Pro</option>
+            <option>Elite</option>
+          </select>
+        </label>
         <label>Poruka<textarea name="poruka" placeholder="Npr. želimo da probamo sa 5 najpopularnijih jela…"></textarea></label>
         <div class="form-msg" id="formMsg" role="status"></div>
         <button class="btn btn-primary" type="submit" id="submitBtn">Pošalji upit</button>
@@ -825,6 +901,63 @@
     }
   });
 
+  // ---------- Cenovnik (cene u dinarima mesečno; ovde ih menjaš) ----------
+  const PLANS = [
+    { name: 'Starter', for: 'Za manje restorane i kafiće', monthly: 2490, yearly: 1990,
+      features: ['Jedna lokacija', '-Prioritetna podrška', 'Do 30 jela na meniju', 'Digitalni meni sa QR kodom', 'Do 5 novih 3D jela mesečno'] },
+    { name: 'Pro', for: 'Najbolji izbor za većinu restorana', monthly: 5990, yearly: 4790, popular: true,
+      features: ['Prioritetna podrška', 'Do 3 lokacije', 'Do 100 jela na meniju', 'Digitalni meni sa QR kodom', 'Do 20 novih 3D jela mesečno'] },
+    { name: 'Elite', for: 'Za lance i veće restorane', monthly: 11990, yearly: 9590,
+      features: ['Prioritetna podrška', 'Do 10 lokacija', 'Neograničen broj jela', 'Vaš logo i boje (brendiranje)', 'Statistika pregleda jela', 'Digitalni meni sa QR kodom', 'Do 40 novih 3D jela mesečno'] }
+  ];
+  const din = n => n.toLocaleString('sr-RS');
+  const plansEl = document.getElementById('plans');
+  plansEl.innerHTML = PLANS.map(p => `
+    <div class="plan reveal${p.popular ? ' popular' : ''}">
+      ${p.popular ? '<span class="badge">Najpopularnije</span>' : ''}
+      <h3>${p.name}</h3>
+      <p class="for">${p.for}</p>
+      <div class="price"><b data-m="${p.monthly}" data-y="${p.yearly}">${din(p.monthly)}</b><span>din / mesečno</span></div>
+      <p class="billed" data-y-text="Plaća se godišnje: ${din(p.yearly * 12)} din · <em>ušteda ${din((p.monthly - p.yearly) * 12)} din</em>">Plaća se mesečno, otkazivanje bilo kada.</p>
+      <ul>${p.features.map(f => f.startsWith('-') ? `<li class="no">${f.slice(1)}</li>` : `<li>${f}</li>`).join('')}</ul>
+      <a class="btn ${p.popular ? 'btn-primary' : 'btn-ghost'}" href="#kontakt" data-plan="${p.name}">Izaberi ${p.name}</a>
+    </div>`).join('');
+  plansEl.querySelectorAll('.plan').forEach((el, i) => el.style.setProperty('--d', (i * 0.15) + 's'));
+
+  const billingSwitch = document.getElementById('billingSwitch');
+  function animateNumber(el, to) {
+    const from = Number(el.textContent.replace(/\D/g, '')) || to;
+    if (reduceMotion || from === to) { el.textContent = din(to); return; }
+    const t0 = performance.now(), dur = 600;
+    const step = t => {
+      const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+      el.textContent = din(Math.round((from + (to - from) * e) / 10) * 10);
+      if (k < 1) requestAnimationFrame(step); else el.textContent = din(to);
+    };
+    requestAnimationFrame(step);
+    el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
+  }
+  function setBilling(yearly) {
+    billingSwitch.setAttribute('aria-checked', String(yearly));
+    document.querySelectorAll('.billing .lbl').forEach(l => l.classList.toggle('on', (l.dataset.period === 'y') === yearly));
+    plansEl.querySelectorAll('.price b').forEach(b => animateNumber(b, Number(yearly ? b.dataset.y : b.dataset.m)));
+    plansEl.querySelectorAll('.billed').forEach(p => {
+      p.dataset.mText = p.dataset.mText || p.innerHTML;
+      p.innerHTML = yearly ? p.dataset.yText : p.dataset.mText;
+    });
+  }
+  billingSwitch.addEventListener('click', () => setBilling(billingSwitch.getAttribute('aria-checked') !== 'true'));
+  document.querySelectorAll('.billing .lbl').forEach(l => l.addEventListener('click', () => setBilling(l.dataset.period === 'y')));
+  // "Izaberi paket" -> popuni paket u kontakt formi
+  plansEl.addEventListener('click', e => {
+    const a = e.target.closest('[data-plan]'); if (!a) return;
+    const sel = document.getElementById('paketSelect');
+    const yearly = billingSwitch.getAttribute('aria-checked') === 'true';
+    sel.value = a.dataset.plan;
+    const msgBox = document.querySelector('#contactForm textarea[name=poruka]');
+    if (!msgBox.value) msgBox.value = `Zanima me paket ${a.dataset.plan} (${yearly ? 'godišnje' : 'mesečno'} plaćanje).`;
+  });
+
   // ---------- Animacije pri skrolovanju ----------
   document.getElementById('year').textContent = new Date().getFullYear();
   const header = document.querySelector('header');
@@ -848,7 +981,7 @@
   // ---------- Efekti mišem (samo na računaru) ----------
   if (finePointer && !reduceMotion) {
     // svetlo i nagib kartica
-    document.querySelectorAll('.card, .step, .bitem, .included').forEach(el => {
+    document.querySelectorAll('.card, .step, .bitem, .included, .plan').forEach(el => {
       const tilt = !el.classList.contains('included');
       el.addEventListener('pointermove', e => {
         const r = el.getBoundingClientRect();
