@@ -24,6 +24,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
+  <script src="/ar-launch.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
   <style>
     :root {
@@ -896,7 +897,8 @@
     if (heroMv.loaded) scheduleHero(heroRemaining); // nastavi od mesta gde je stalo
   });
   document.getElementById('heroAr').addEventListener('click', () => {
-    if (heroMv.canActivateAR) heroMv.activateAR();
+    const d = HERO[heroIdx] || {};
+    if (FoodAR.canLaunch(heroMv)) FoodAR.launchAR(heroMv, { title: d.name, fixedScale: d.realSize !== false });
     else document.getElementById('demo').scrollIntoView();
   });
 
@@ -945,8 +947,8 @@
   addEventListener('resize', movePill);
   document.fonts && document.fonts.ready.then(movePill);
   document.getElementById('demoAr').addEventListener('click', () => {
-    if (demoMv.canActivateAR) demoMv.activateAR();
-    else alert('Vaš telefon ne podržava AR, ali jelo možete da okrećete i zumirate prstima.');
+    const d = DISHES[current] || {};
+    FoodAR.launchAR(demoMv, { title: d.name, fixedScale: d.realSize !== false });
   });
   fetch('dishes.json', { cache: 'no-cache' }).then(r => r.json()).then(list => {
     DISHES = list.filter(d => d.demo && !d.hidden);
