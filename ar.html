@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>FoodAR</title>
   <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
+  <script src="/ar-launch.js"></script>
   <style>
     html, body { margin: 0; height: 100%; overflow: hidden; background: #fff; font-family: system-ui, sans-serif; }
     model-viewer { width: 100vw; height: 100vh; height: 100dvh; }
@@ -74,6 +75,7 @@
     mv.src = item.glb;
     if (item.usdz) mv.iosSrc = item.usdz;   // bez usdz-a model-viewer sam pravi model za iPhone
     if (item.realSize) mv.arScale = 'fixed';
+    window.DISH = item;
   }).catch(() => { loading.textContent = 'Greška pri učitavanju. Osvežite stranicu.'; });
 
   function showMessage({ title, text }) {
@@ -91,14 +93,14 @@
   const ua = navigator.userAgent;
   const isIOS = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const isMobile = isIOS || /Android/i.test(ua);
-  if (isIOS && /CriOS|FxiOS|EdgiOS|Instagram|FBAN|FBAV/i.test(ua)) {
-    alert("Za AR na iPhone-u otvorite stranicu u Safari browseru.");
-  }
-
+  // Instagram/Facebook/TikTok ugrađeni browser: FoodAR.launchAR sam bira način (Scene Viewer na Androidu, Safari na iPhone-u)
+  let tried = false;
   function launchAR() {
-    if (mv.canActivateAR) {
-      mv.activateAR();
-    }
+    if (!FoodAR.canLaunch(mv)) return;
+    // iPhone u aplikaciji: prozor sa uputstvom prikaži tek kad gost dodirne ekran
+    if (FoodAR.inApp && FoodAR.ios && !tried) { tried = true; return; }
+    tried = true;
+    FoodAR.launchAR(mv, { title: window.DISH && window.DISH.name, fixedScale: !!(window.DISH && window.DISH.realSize) });
   }
 
   mv.addEventListener('load', () => {
@@ -106,16 +108,16 @@
     if (!isMobile) return;          // na računaru samo 3D prikaz
     // Pokušaj odmah (radi gde browser dozvoljava); u suprotnom ostaje veliki taster
     try { launchAR(); } catch (e) {}
-    tap.hidden = !mv.canActivateAR;
+    tap.hidden = !FoodAR.canLaunch(mv);
   });
 
   // Dodir bilo gde na ekranu -> AR
-  tap.addEventListener('click', launchAR);
+  tap.addEventListener('click', () => { tried = true; launchAR(); });
 
   // Kada korisnik izađe iz AR-a, ponovo ponudi taster
   mv.addEventListener('ar-status', (e) => {
     if (e.detail.status === 'session-started') tap.hidden = true;
-    if (e.detail.status === 'not-presenting' || e.detail.status === 'failed') tap.hidden = !mv.canActivateAR;
+    if (e.detail.status === 'not-presenting' || e.detail.status === 'failed') tap.hidden = !FoodAR.canLaunch(mv);
   });
 
   mv.addEventListener('error', () => { loading.textContent = 'Greška pri učitavanju modela.'; });
