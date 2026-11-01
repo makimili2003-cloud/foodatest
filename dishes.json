@@ -76,5 +76,13 @@
     "glb": "modeli/sushi.glb",
     "realSize": true,
     "demo": true
+  },
+  {
+    "sub": "kroasan",
+    "name": "kroasan",
+    "desc": "",
+    "glb": "modeli/kroasan.glb",
+    "realSize": true,
+    "demo": true
   }
 ]
