@@ -244,9 +244,9 @@ $('q').oninput = render; $('who').onchange = render;
 $('list').onclick = e => { const b = e.target.closest('[data-id]'); if (b) open(b.dataset.id); };
 
 const TEMPLATES = {
-  demo: u => `Poštovani/a ${u.ime || ''},\n\nhvala na interesovanju za FoodAR! Rado bismo vam uživo pokazali kako izgleda 3D i AR meni na primeru vaših jela${u.restoran ? ' u restoranu ' + u.restoran : ''}.\n\nDa li vam odgovara da se vidimo u toku naredne nedelje? Predložite dan i vreme koje vama odgovara, a mi ćemo se prilagoditi. Demonstracija je besplatna i bez obaveze.\n\nSrdačan pozdrav,`,
-  ponuda: u => `Poštovani/a ${u.ime || ''},\n\nhvala na upitu! Na osnovu onoga što ste nam napisali${u.broj_jela ? ' (' + u.broj_jela + ' jela na meniju)' : ''}, preporučujemo paket ${u.paket || 'Pro'}.\n\nU paket je uključeno 3D skeniranje jela u vašem restoranu, obrada modela, hosting i QR kodovi za meni. Sve cene i detalje možete pogledati na https://foodar.org/#cene\n\nJavite nam ako imate pitanja ili želite da dogovorimo besplatnu demonstraciju.\n\nSrdačan pozdrav,`,
-  poziv: u => `Poštovani/a ${u.ime || ''},\n\nhvala na upitu za FoodAR. Pokušali smo da vas dobijemo telefonom${u.telefon ? ' na ' + u.telefon : ''}. Javite nam kada vam odgovara da se čujemo, ili nam jednostavno odgovorite na ovaj mejl.\n\nSrdačan pozdrav,`
+  demo: u => `Poštovani/a ${u.ime || ''},\n\nhvala na interesovanju za FoodAR! Rado bismo Vam uživo pokazali kako izgleda 3D i AR meni na primeru Vaših jela${u.restoran ? ' u restoranu ' + u.restoran : ''}.\n\nDa li Vam odgovara da se vidimo u toku naredne nedelje? Predložite dan i vreme koje Vama odgovara, a mi ćemo se prilagoditi. Demonstracija je besplatna i bez obaveze.\n\nSrdačan pozdrav,`,
+  ponuda: u => `Poštovani/a ${u.ime || ''},\n\nhvala na upitu! Na osnovu onoga što ste nam napisali${u.broj_jela ? ' (' + u.broj_jela + ' jela na meniju)' : ''}, preporučujemo paket ${u.paket || 'Pro'}.\n\nU paket je uključeno 3D skeniranje jela u Vašem restoranu, obrada modela, hosting i QR kodovi za meni. Sve cene i detalje možete pogledati na https://foodar.org/#cene\n\nJavite nam ako imate pitanja ili želite da dogovorimo besplatnu demonstraciju.\n\nSrdačan pozdrav,`,
+  poziv: u => `Poštovani/a ${u.ime || ''},\n\nhvala na upitu za FoodAR. Pokušali smo da Vas dobijemo telefonom${u.telefon ? ' na ' + u.telefon : ''}. Javite nam kada Vam odgovara da se čujemo, ili nam jednostavno odgovorite na ovaj mejl.\n\nSrdačan pozdrav,`
 };
 
 function open(id, keepScroll) {
@@ -297,7 +297,7 @@ function open(id, keepScroll) {
             <label>Za<input value="${esc(u.email)}" disabled /></label>
           </div>
           <label>Predmet<input id="rSubj" value="${esc('Re: Upit za FoodAR' + (u.restoran ? ' – ' + u.restoran : ''))}" /></label>
-          <div class="tpl"><span class="hint" style="align-self:center">Šabloni:</span><button data-t="demo">Predlog demonstracije</button><button data-t="ponuda">Ponuda i cene</button><button data-t="poziv">Nismo vas dobili telefonom</button></div>
+          <div class="tpl"><span class="hint" style="align-self:center">Šabloni:</span><button data-t="demo">Predlog demonstracije</button><button data-t="ponuda">Ponuda i cene</button><button data-t="poziv">Nismo Vas dobili telefonom</button></div>
           <label>Poruka<textarea id="rText" placeholder="Napiši odgovor…"></textarea></label>
           <div class="hint">Potpis i originalni upit se dodaju automatski. Mejl ostaje i u „Poslato“ izabranog Gmail naloga, a odgovor klijenta stiže u taj inbox.</div>
           <div class="err hidden" id="rErr"></div>
