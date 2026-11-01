@@ -15,7 +15,7 @@
     "glb": "dorucak.glb",
     "usdz": "dorucak.usdz",
     "realSize": true,
-    "demo": true
+    "demo": false
   },
   {
     "sub": "hleb",
