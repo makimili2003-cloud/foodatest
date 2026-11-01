@@ -1,6 +1,5 @@
 // Objava na GitHub: svi fajlovi jednog jela idu u JEDAN commit (Git Data API).
-// Netlify posle toga sam objavi sajt.
-import fs from 'node:fs/promises';
+// Netlify posle toga sam objavi sajt. Token je u Netlify promenljivoj GITHUB_TOKEN.
 
 const API = process.env.GITHUB_API || 'https://api.github.com';
 
@@ -8,7 +7,7 @@ function cfg() {
   const token = process.env.GITHUB_TOKEN;
   const repo = process.env.GITHUB_REPO || 'makimili2003-cloud/foodatest';
   const branch = process.env.GITHUB_BRANCH || 'main';
-  if (!token) throw new Error('GITHUB_TOKEN nije podešen u .env fajlu.');
+  if (!token) throw new Error('GITHUB_TOKEN nije podešen u Netlify-ju (Site configuration → Environment variables).');
   return { token, repo, branch };
 }
 
@@ -52,6 +51,8 @@ async function readDishes(ref) {
   }
 }
 
+export async function createBlob(buffer) { return blob(buffer); }
+
 async function blob(buffer) {
   const r = await gh('POST', '/git/blobs', { content: buffer.toString('base64'), encoding: 'base64' });
   return r.sha;
@@ -76,22 +77,19 @@ export async function getDishes() {
 }
 
 /**
- * Dodaje ili menja jelo.
+ * Dodaje ili menja jelo. Fajlovi su već poslati kao GitHub blob-ovi (createBlob).
  * @param {{sub,name,desc,realSize,demo}} dish
- * @param {string} glbPath  obrađen .glb
- * @param {string|null} usdzPath  opcioni .usdz (za iPhone)
+ * @param {{ glbSha: string, usdzSha?: string }} files
  */
-export async function publishDish(dish, glbPath, usdzPath) {
+export async function publishDish(dish, { glbSha, usdzSha }) {
   const { commitSha } = await head();
   const list = await readDishes(commitSha);
   const old = list.find(d => d.sub === dish.sub);
 
   const glbRepoPath = `modeli/${dish.sub}.glb`;
-  const usdzRepoPath = usdzPath ? `modeli/${dish.sub}.usdz` : null;
-  const entries = [
-    { path: glbRepoPath, mode: '100644', type: 'blob', sha: await blob(await fs.readFile(glbPath)) }
-  ];
-  if (usdzPath) entries.push({ path: usdzRepoPath, mode: '100644', type: 'blob', sha: await blob(await fs.readFile(usdzPath)) });
+  const usdzRepoPath = usdzSha ? `modeli/${dish.sub}.usdz` : null;
+  const entries = [{ path: glbRepoPath, mode: '100644', type: 'blob', sha: glbSha }];
+  if (usdzSha) entries.push({ path: usdzRepoPath, mode: '100644', type: 'blob', sha: usdzSha });
 
   const entry = {
     sub: dish.sub,

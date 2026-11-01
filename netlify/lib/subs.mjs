@@ -1,9 +1,8 @@
-// Pretplate: čuvaju se SAMO lokalno, u admin/data/pretplate.json (privatni podaci klijenata ne idu na GitHub).
-// Model je napravljen tako da kasnije online plaćanje (kartica / Apple Pay) može automatski da upisuje uplate
-// preko recordExternalPayment() – vidi /api/integracije/uplata u server.js.
-import fs from 'node:fs';
-import path from 'node:path';
+// Pretplate: čuvaju se u Netlify Blobs (privatno skladište sajta, NE na GitHub-u).
+// Online plaćanje (kartica / Apple Pay) kasnije može automatski da upisuje uplate preko
+// recordExternalPayment() – vidi netlify/functions/uplata.mjs.
 import crypto from 'node:crypto';
+import { adminStore } from './store.mjs';
 
 export const DEFAULT_PLANS = {
   Starter: { mesecno: 2490, godisnje: 23880 },
@@ -12,30 +11,29 @@ export const DEFAULT_PLANS = {
 };
 export const METHODS = ['racun', 'gotovina', 'kartica', 'apple-pay', 'google-pay', 'online'];
 
-let FILE, BACKUP_DIR, store;
+let store; // podaci učitani za ovaj zahtev
 
-export function initStore(dataDir) {
-  FILE = path.join(dataDir, 'pretplate.json');
-  BACKUP_DIR = path.join(dataDir, 'rezervne-kopije');
-  fs.mkdirSync(BACKUP_DIR, { recursive: true });
-  store = fs.existsSync(FILE) ? JSON.parse(fs.readFileSync(FILE, 'utf8')) : { subs: [], payments: [], plans: DEFAULT_PLANS };
-  store.plans ||= DEFAULT_PLANS;
-  store.subs ||= []; store.payments ||= [];
-}
-
-function save() {
-  // Jedna rezervna kopija dnevno (čuva se poslednjih 30)
-  const today = new Date().toISOString().slice(0, 10);
-  const backup = path.join(BACKUP_DIR, `pretplate-${today}.json`);
-  if (fs.existsSync(FILE) && !fs.existsSync(backup)) {
-    fs.copyFileSync(FILE, backup);
-    const old = fs.readdirSync(BACKUP_DIR).filter(f => f.endsWith('.json')).sort().slice(0, -30);
-    for (const f of old) fs.rmSync(path.join(BACKUP_DIR, f), { force: true });
+/** Učitaj podatke, izvrši izmenu i sačuvaj (sa dnevnom rezervnom kopijom). */
+export async function withData(fn, { write = true } = {}) {
+  const blobs = adminStore();
+  store = (await blobs.get('pretplate', { type: 'json' })) || { subs: [], payments: [], plans: DEFAULT_PLANS };
+  store.plans ||= DEFAULT_PLANS; store.subs ||= []; store.payments ||= [];
+  const result = await fn();
+  if (write) {
+    const day = new Date().toISOString().slice(0, 10);
+    const bk = `rezervne-kopije/${day}`;
+    if (!(await blobs.getMetadata(bk))) {
+      const prev = await blobs.get('pretplate', { type: 'json' });
+      if (prev) await blobs.setJSON(bk, prev);
+      // čuvaj poslednjih 30 kopija
+      const { blobs: list } = await blobs.list({ prefix: 'rezervne-kopije/' });
+      for (const x of list.map(x => x.key).sort().slice(0, -30)) await blobs.delete(x);
+    }
+    await blobs.setJSON('pretplate', store);
   }
-  const tmp = FILE + '.tmp';
-  fs.writeFileSync(tmp, JSON.stringify(store, null, 2));
-  fs.renameSync(tmp, FILE);
+  return result;
 }
+function save() { /* čuva se u withData() */ }
 
 const id = () => crypto.randomUUID().slice(0, 8);
 const isDate = s => /^\d{4}-\d{2}-\d{2}$/.test(String(s || ''));
@@ -70,6 +68,7 @@ function clean(input, existing = {}) {
 export function getAll() {
   return { ...store, today: todayStr() };
 }
+export function rawData() { return store; }
 
 export function createSub(input) {
   const s = clean(input, {

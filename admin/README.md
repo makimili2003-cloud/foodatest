@@ -1,106 +1,64 @@
-# FoodAR admin – dodavanje jela sa telefona
+# FoodAR admin – na internetu (foodar.org/admin)
 
-Lokalni panel koji radi na **tvom računaru**. Otvaraš ga sa telefona (na istoj Wi-Fi mreži) i za svako jelo:
+Admin panel radi direktno na sajtu: **https://foodar.org/admin/**, sa telefona ili računara, bilo gde.
+Cela admin stranica je zaključana lozinkom: bez nje se vidi samo ekran za prijavu (ni stranice ni njihov kod).
 
-1. **uploaduješ 3D model** (`.glb`, npr. iz Polycam / Luma / Scaniverse),
-2. model se **automatski obradi da dobro izgleda i na Androidu i na iPhone-u**:
-   - teksture se smanje na najviše 2048×2048 (veće Android zamuti ili odbije),
-   - dodaju se glatke normale ako ih model nema (bez njih jelo izgleda ravno i „kockasto“),
-   - mreža se pojednostavi ako ima više od 100.000 trouglova,
-   - model se centrira i spusti na sto, a po želji se podesi na stvarnu širinu u cm,
-3. **pregledaš** ga na telefonu, upišeš naziv i adresu (npr. `cevapi`),
-4. klikneš **Objavi**: model i spisak jela (`dishes.json`) idu u jedan commit na GitHub, Netlify sam objavi sajt,
-   a poddomen `cevapi.foodar.org` se doda na Netlify (ako je povezan),
-5. preuzmeš **QR kod** (PNG ili SVG za štampu) i staviš ga na meni.
+- **Jela:** uploaduješ 3D model (`.glb`). Model se **obradi na tvom uređaju** da dobro izgleda na Androidu i iPhone-u:
+  - teksture najviše 2048×2048;
+  - glatke normale ako ih nema;
+  - mreža pojednostavljena iznad 100.000 trouglova;
+  - model spušten na sto, a po želji podešen na stvarnu širinu u cm.
 
-U kartici **Sva jela** vidiš sva jela, preuzimaš QR kodove, stavljaš ih u demo na sajtu ili ih brišeš.
-
-> Panel se ne objavljuje na sajtu (`/admin` na foodar.org vraća 404). Radi samo na tvom računaru.
+  Posle pregleda klikneš **Objavi**: model ide na GitHub, Netlify objavi sajt i dodaje poddomen (`ime.foodar.org`).
+  Preuzmeš QR kod (PNG ili SVG za štampu).
+- **Pretplate:** klijenti, uplate, ko kasni, koliko novca očekuješ ovog meseca, grafikon prihoda, izvoz CSV i rezervna kopija.
+  Podaci se čuvaju u **Netlify Blobs** (privatno skladište sajta), **ne** na GitHub-u.
 
 ---
 
-## Podešavanje (jednom)
+## Podešavanje (jednom): promenljive u Netlify-ju
 
-### 1. Instaliraj Node.js
-Preuzmi **LTS** verziju sa <https://nodejs.org> i instaliraj je.
+Netlify → tvoj sajt → **Site configuration → Environment variables → Add a variable**.
+Posle dodavanja ili izmene promenljive: **Deploys → Trigger deploy → Deploy site**.
 
-### 2. Preuzmi repo na računar
-Na GitHubu: **foodatest → Code → Download ZIP**, pa raspakuj. Ili `git clone https://github.com/makimili2003-cloud/foodatest.git`.
+| Promenljiva | Obavezno | Šta je |
+|---|---|---|
+| `ADMIN_PASSWORD` | **da** | Lozinka za admin panel. **Ovde je menjaš.** Neka bude duga (npr. 4 nasumične reči). |
+| `GITHUB_TOKEN` | da, za objavu jela | GitHub token sa dozvolom *Contents: Read and write* za repo `foodatest` |
+| `NETLIFY_TOKEN` | ne | Za automatsko dodavanje poddomena (`ime.foodar.org`) |
+| `WEBHOOK_SECRET` | ne | Za buduće automatsko upisivanje online uplata |
+| `SESSION_SECRET` | ne | Dodatna tajna za prijavu; kad je promeniš, svi uređaji se odjave |
 
-### 3. Napravi GitHub token
-1. Otvori <https://github.com/settings/personal-access-tokens/new>
-2. **Token name:** `foodar-admin`, **Expiration:** npr. 1 godina
-3. **Repository access → Only select repositories →** `foodatest`
-4. **Permissions → Repository permissions → Contents → Read and write**
-5. **Generate token** i kopiraj ga (vidi se samo jednom).
+### Kako da promeniš lozinku
+1. Netlify → **Site configuration → Environment variables** → `ADMIN_PASSWORD` → **Edit** → upiši novu → **Save**.
+2. **Deploys → Trigger deploy → Deploy site** (1–2 minuta).
+3. Promena lozinke **odjavljuje sve uređaje**, pa se ponovo prijaviš novom lozinkom.
 
-### 4. (Opciono) Netlify token za automatske poddomene
-1. <https://app.netlify.com/user/applications#personal-access-tokens> → **New access token** → kopiraj.
-2. `NETLIFY_SITE_ID` može da ostane `foodar.org`, ili upiši Site ID iz **Site configuration → Site details**.
+Posle 8 pogrešnih pokušaja prijava se zaključava na 15 minuta (zaštita od pogađanja). Prijava traje 30 dana po uređaju.
+Odjava: link **Odjava** gore desno.
 
-Bez ovoga, poddomen svakog novog jela dodaješ ručno: Netlify → **Domain management → Add domain alias** → `ime.foodar.org`.
+### GitHub token
+1. <https://github.com/settings/personal-access-tokens/new>
+2. **Repository access → Only select repositories →** `foodatest`
+3. **Permissions → Repository permissions → Contents → Read and write**
+4. **Generate token**, kopiraj ga u Netlify kao `GITHUB_TOKEN`.
 
-> Ako je `foodar.org` na **Netlify DNS-u**, Netlify sam napravi DNS zapis i HTTPS sertifikat za svaki novi poddomen.
-> Ako je DNS kod registrara domena, tamo jednom dodaj **wildcard** zapis: `CNAME  *  ime-sajta.netlify.app`.
-
-### 5. Pokreni
-- **Windows:** dupli klik na `admin/Pokreni-admin.bat`
-- **Mac:** dupli klik na `admin/Pokreni-admin.command` (prvi put: desni klik → Open)
-
-Prvi put se instaliraju paketi i napravi se fajl `admin/.env`. Otvori ga i upiši:
-
-```
-ADMIN_PIN=tvoj-pin
-GITHUB_TOKEN=github_pat_...
-NETLIFY_TOKEN=...        (opciono)
-```
-
-Pa pokreni ponovo. U prozoru piše adresa za telefon (npr. `http://192.168.1.20:3000`) i QR kod: skeniraj ga telefonom.
-
-> **Windows:** ako telefon ne može da otvori stranicu, dozvoli Node.js u Windows Firewall-u
-> (pojavi se pitanje pri prvom pokretanju → **Allow access** za privatne mreže).
+### Netlify token (opciono, za automatske poddomene)
+<https://app.netlify.com/user/applications#personal-access-tokens> → **New access token** → kopiraj u `NETLIFY_TOKEN`.
+Bez njega, poddomen novog jela dodaješ ručno: **Domain management → Add domain alias** → `ime.foodar.org`.
 
 ---
 
-## Saveti za snimanje jela
-- Snimaj jelo na tanjiru, na stolu, pri ravnomernom svetlu bez jakih senki.
-- Izvezi kao **GLB** (Polycam: Export → GLB, Luma: Download → GLB).
-- Ako je model pogrešne veličine (npr. tanjir od 1 m), upiši stvarnu širinu u cm pri uploadu.
-- `.usdz` za iPhone nije obavezan: ako ga ne pošalješ, iPhone verzija se pravi automatski iz obrađenog modela.
+## Kako je napravljeno (za programera)
 
-## Fajlovi
-- `server.js` – lokalni server (upload, obrada, objava, QR)
-- `optimize.js` – obrada 3D modela
-- `github.js` – objava na GitHub (jedan commit po jelu)
-- `netlify.js` – dodavanje poddomena
-- `public/index.html` – izgled panela
-- `../dishes.json` – spisak jela koji koriste sajt (`index.html`) i AR stranica (`ar.html`)
-
----
-
-## Pretplate (praćenje klijenata i prihoda)
-
-U panelu klikni **Pretplate** gore desno (ili otvori `http://localhost:3000/pretplate.html`).
-
-- **Očekivano ovog meseca:** koliko je već naplaćeno (zeleno) i koliko još treba da stigne (zelena šrafura).
-- **Mesečni prihod:** godišnje pretplate su preračunate na mesec, a ispod je procena za celu godinu.
-- **Aktivni klijenti** i **ko kasni sa uplatom**.
-- **Grafikon prihoda:** proteklih 6 meseci (naplaćeno) i narednih 6 (očekivano).
-- **Naplata uskoro:** ko kasni i kome ističe pretplata u narednih 30 dana, sa dugmetom „Uplata“.
-- **Tabela svih klijenata:** status, „plaćeno do“, koliko još traje, pretraga i filteri.
-- Klik na klijenta otvara detalje sa istorijom uplata, izmenom, otkazivanjem i brisanjem.
-- **Izvoz (CSV)** za Excel i **Cene paketa** (podrazumevani iznosi za nove pretplate).
-
-**Kako se unosi:** dodaš klijenta (**Nova pretplata**), a kad plati, klikneš **+ Uplata**. Pretplata se sama produži
-za mesec ili godinu, a sve ostalo (statusi, rokovi, očekivani prihod) računa se automatski.
-
-**Gde se čuva:** samo na tvom računaru, u `admin/data/pretplate.json`. Svaki dan se pravi rezervna kopija u
-`admin/data/rezervne-kopije/` (čuva se poslednjih 30). Ovi podaci se **ne** šalju na GitHub, jer su privatni.
-Povremeno sačuvaj kopiju `data` foldera, npr. na Google Drive ili USB.
-
-### Automatski unos (kad dodamo online plaćanje na sajtu)
-Panel već ima ulaz za automatske uplate: `POST /integracije/uplata`, zaštićen tajnom `WEBHOOK_SECRET` iz `.env`.
-Kad platni servis (kartica / Apple Pay / Google Pay) javi uplatu, pretplata se sama napravi ili produži,
-a ista uplata se nikad ne upiše dva puta. Takve pretplate su označene sa **ONLINE**.
-Za to panel mora da radi na serveru koji je stalno dostupan sa interneta (ne samo na računaru kod kuće);
-to podešavamo zajedno sa izborom platnog servisa.
+- `admin/`: stranice panela (`index.html` + `jela.js` za jela, `pretplate.html`) i `common.js` (prijava, pozivi ka API-ju).
+- `admin/vendor/optimize.js`: obrada modela u browseru, spakovana iz `admin-src/optimize.js`
+  (`npm install && npm run build:optimizer`).
+- `netlify/edge-functions/admin-gate.js`: čuva sve pod `/admin` (traži važeći kolačić prijave).
+- `netlify/functions/api.mjs`: API panela (`/api/*`): prijava, upload modela u delovima (Netlify prima najviše ~6 MB
+  po zahtevu), objava na GitHub, pretplate.
+- `netlify/functions/uplata.mjs`: `POST /integracije/uplata` za buduće online plaćanje (zaglavlje `X-Webhook-Secret`).
+  Pretplatu napravi ili produži, a isti `paymentId` ne upisuje dva puta.
+- `netlify/lib/`: zajednička logika (prijava, GitHub, Netlify domeni, pretplate, skladište).
+- Pretplate: Netlify Blobs, skladište `foodar-admin`, ključ `pretplate`. Dnevna rezervna kopija ide pod `rezervne-kopije/`
+  (čuva se poslednjih 30), a dugme **Rezervna kopija** u panelu preuzima sve kao JSON.

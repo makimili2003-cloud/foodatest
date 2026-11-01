@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#1f1a17" />
+  <meta name="robots" content="noindex, nofollow" />
   <title>Pretplate – FoodAR admin</title>
   <style>
     :root {
@@ -251,19 +252,15 @@
 <body>
 <header>
   <div class="hbar">
-    <a class="brand" href="/"><i>AR</i>FoodAR</a>
+    <a class="brand" href="/admin/"><i>AR</i>FoodAR</a>
     <nav class="hnav">
-      <a href="/">Jela</a>
-      <a href="/pretplate.html" class="on">Pretplate</a>
+      <a href="/admin/">Jela</a>
+      <a href="/admin/pretplate.html" class="on">Pretplate</a>
+      <a href="#" id="logoutBtn">Odjava</a>
     </nav>
   </div>
 </header>
 
-<section id="pinView" class="pin hidden">
-  <h2 style="font:700 24px Georgia,serif;margin:0">Unesi PIN</h2>
-  <input id="pinInput" type="password" inputmode="numeric" autocomplete="current-password" />
-  <button class="btn btn-primary" style="width:100%;justify-content:center" id="pinBtn">Uđi</button>
-</section>
 
 <main id="app" class="hidden">
   <div class="top">
@@ -273,6 +270,7 @@
     </div>
     <div class="acts">
       <button class="btn btn-ghost" id="plansBtn" title="Cene paketa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>Cene paketa</button>
+      <button class="btn btn-ghost" id="backupBtn" title="Preuzmi sve podatke (JSON)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3z"/><path d="M4 7v10c0 1.7 3.6 3 8 3s8-1.3 8-3V7M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>Rezervna kopija</button>
       <button class="btn btn-ghost" id="csvBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>Izvoz (CSV)</button>
       <button class="btn btn-primary" id="newBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Nova pretplata</button>
     </div>
@@ -364,9 +362,9 @@
 <div class="toast" id="toast"></div>
 <div class="tip" id="tip"></div>
 
-<script>
+<script type="module">
+import { api, ensureLogin, logout } from './common.js';
 const $ = id => document.getElementById(id);
-let PIN = ''; try { PIN = localStorage.getItem('foodar-pin') || ''; } catch (e) {}
 let DB = { subs: [], payments: [], plans: {} }, TODAY = '', FILTER = 'sve';
 const MONTHS = ['januar','februar','mart','april','maj','jun','jul','avgust','septembar','oktobar','novembar','decembar'];
 const MSHORT = ['jan','feb','mar','apr','maj','jun','jul','avg','sep','okt','nov','dec'];
@@ -765,33 +763,30 @@ $('csvBtn').onclick = () => {
   a.download = `foodar-pretplate-${TODAY}.csv`; a.click(); URL.revokeObjectURL(a.href);
 };
 $('newBtn').onclick = () => openSubForm(null);
+$('backupBtn').onclick = async () => {
+  const r = await api('GET', '/api/rezervna-kopija', null, { raw: true });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(await r.blob());
+  a.download = `foodar-pretplate-${TODAY}.json`; a.click(); URL.revokeObjectURL(a.href);
+  toast('Rezervna kopija je preuzeta');
+};
 $('plansBtn').onclick = openPlans;
 
 // ---------- API ----------
 async function call(method, url, body, throwErr) {
-  const r = await fetch(url, { method, headers: { 'X-Pin': PIN, ...(body ? { 'Content-Type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined });
-  const j = await r.json().catch(() => ({}));
-  if (r.status === 401) { showPin(); throw new Error('Pogrešan PIN.'); }
-  if (!r.ok) { if (throwErr) throw new Error(j.error || 'Greška'); toast(j.error || 'Greška'); throw new Error(j.error); }
-  await load();
-  return j;
+  try { const j = await api(method, url, body); await load(); return j; }
+  catch (e) { if (throwErr) throw e; toast(e.message || 'Greška'); throw e; }
 }
 async function load() {
-  const r = await fetch('/api/pretplate', { headers: { 'X-Pin': PIN } });
-  if (r.status === 401) return showPin();
-  const j = await r.json();
-  DB = j; TODAY = localToday();
-  $('pinView').classList.add('hidden'); $('app').classList.remove('hidden');
+  DB = await api('GET', '/api/pretplate'); TODAY = localToday();
+  $('app').classList.remove('hidden');
   render();
   if (OPEN) openDrawer(OPEN);
 }
 const localToday = () => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10); };
-function showPin() { $('app').classList.add('hidden'); $('pinView').classList.remove('hidden'); $('pinInput').focus(); }
-$('pinBtn').onclick = () => { PIN = $('pinInput').value.trim(); try { localStorage.setItem('foodar-pin', PIN); } catch (e) {} load(); };
-$('pinInput').onkeydown = e => { if (e.key === 'Enter') $('pinBtn').click(); };
+$('logoutBtn').onclick = e => { e.preventDefault(); logout(); };
 let tt; function toast(t) { $('toast').textContent = t; $('toast').classList.add('on'); clearTimeout(tt); tt = setTimeout(() => $('toast').classList.remove('on'), 2400); }
 let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => DB.subs && render(), 150); });
-load();
+ensureLogin().then(load).catch(e => toast(e.message));
 </script>
 </body>
 </html>
