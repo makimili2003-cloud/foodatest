@@ -42,7 +42,7 @@
     "glb": "lotus.glb",
     "usdz": "lotus.usdz",
     "realSize": true,
-    "demo": true
+    "demo": false
   },
   {
     "sub": "kajganaavokado",
