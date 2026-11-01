@@ -75,3 +75,32 @@ Pa pokreni ponovo. U prozoru piše adresa za telefon (npr. `http://192.168.1.20:
 - `netlify.js` – dodavanje poddomena
 - `public/index.html` – izgled panela
 - `../dishes.json` – spisak jela koji koriste sajt (`index.html`) i AR stranica (`ar.html`)
+
+---
+
+## Pretplate (praćenje klijenata i prihoda)
+
+U panelu klikni **Pretplate** gore desno (ili otvori `http://localhost:3000/pretplate.html`).
+
+- **Očekivano ovog meseca:** koliko je već naplaćeno (zeleno) i koliko još treba da stigne (zelena šrafura).
+- **Mesečni prihod:** godišnje pretplate su preračunate na mesec, a ispod je procena za celu godinu.
+- **Aktivni klijenti** i **ko kasni sa uplatom**.
+- **Grafikon prihoda:** proteklih 6 meseci (naplaćeno) i narednih 6 (očekivano).
+- **Naplata uskoro:** ko kasni i kome ističe pretplata u narednih 30 dana, sa dugmetom „Uplata“.
+- **Tabela svih klijenata:** status, „plaćeno do“, koliko još traje, pretraga i filteri.
+- Klik na klijenta otvara detalje sa istorijom uplata, izmenom, otkazivanjem i brisanjem.
+- **Izvoz (CSV)** za Excel i **Cene paketa** (podrazumevani iznosi za nove pretplate).
+
+**Kako se unosi:** dodaš klijenta (**Nova pretplata**), a kad plati, klikneš **+ Uplata**. Pretplata se sama produži
+za mesec ili godinu, a sve ostalo (statusi, rokovi, očekivani prihod) računa se automatski.
+
+**Gde se čuva:** samo na tvom računaru, u `admin/data/pretplate.json`. Svaki dan se pravi rezervna kopija u
+`admin/data/rezervne-kopije/` (čuva se poslednjih 30). Ovi podaci se **ne** šalju na GitHub, jer su privatni.
+Povremeno sačuvaj kopiju `data` foldera, npr. na Google Drive ili USB.
+
+### Automatski unos (kad dodamo online plaćanje na sajtu)
+Panel već ima ulaz za automatske uplate: `POST /integracije/uplata`, zaštićen tajnom `WEBHOOK_SECRET` iz `.env`.
+Kad platni servis (kartica / Apple Pay / Google Pay) javi uplatu, pretplata se sama napravi ili produži,
+a ista uplata se nikad ne upiše dva puta. Takve pretplate su označene sa **ONLINE**.
+Za to panel mora da radi na serveru koji je stalno dostupan sa interneta (ne samo na računaru kod kuće);
+to podešavamo zajedno sa izborom platnog servisa.

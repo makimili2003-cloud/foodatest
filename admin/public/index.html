@@ -16,7 +16,9 @@
     header { position: sticky; top: 0; z-index: 10; background: var(--ink); color: #fff; padding: 14px 16px; padding-top: max(14px, env(safe-area-inset-top)); display: flex; align-items: center; justify-content: space-between; }
     header b { font: 700 19px Georgia, serif; display: flex; align-items: center; gap: 10px; }
     header b i { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--accent); font: 700 11px system-ui; font-style: normal; }
-    header small { opacity: .7; font-size: 13px; }
+    .hnav { display: flex; gap: 4px; }
+    .hnav a { color: #d8cfc6; text-decoration: none; padding: 7px 12px; border-radius: 999px; font-weight: 600; font-size: 14px; }
+    .hnav a.on { background: rgba(255,255,255,.12); color: #fff; }
     main { max-width: 720px; margin: 0 auto; padding: 16px 16px 80px; }
     .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: var(--bg-2); padding: 5px; border-radius: 14px; margin-bottom: 16px; }
     .tabs button { border: 0; background: transparent; padding: 11px; border-radius: 10px; font: 600 15px system-ui; color: var(--ink-2); cursor: pointer; }
@@ -87,7 +89,7 @@
 <body>
 <header>
   <b><i>AR</i>FoodAR admin</b>
-  <small id="repoInfo"></small>
+  <nav class="hnav"><a href="/" class="on">Jela</a><a href="/pretplate.html">Pretplate</a></nav>
 </header>
 
 <main>
@@ -213,7 +215,6 @@
       await api('GET', '/api/dishes').then(d => { DISHES = d; }).catch(e => { if (e.message === 'Pogrešan PIN.') throw e; $('listStatus').textContent = e.message; });
     } catch (e) { if (e.message === 'Pogrešan PIN.') return; }
     $('pinView').classList.add('hidden'); $('app').classList.remove('hidden');
-    $('repoInfo').textContent = STATUS.domain;
     $('domainSuffix').textContent = '.' + STATUS.domain;
     $('cfg').innerHTML =
       `<span class="${STATUS.github ? '' : 'off'}">GitHub ${STATUS.github ? 'povezan' : 'NIJE povezan'}</span>` +

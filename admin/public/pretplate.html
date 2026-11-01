@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#1f1a17" />
+  <title>Pretplate – FoodAR admin</title>
+  <style>
+    :root {
+      --bg: #fbf7f1; --bg-2: #f3ece2; --card: #fff; --ink: #1f1a17; --ink-2: #6a6058; --ink-3: #9a8f85; --line: #ebe3d8; --line-2: #f3eee7;
+      --accent: #d9472b; --accent-soft: #fbe3dc;
+      /* novac / prihod = zeleno */
+      --money: #1f8a4c; --money-2: #7cc79a; --money-3: #c4e7d1; --money-ink: #17683a; --money-soft: #e5f4ea;
+      --ok: #2f6b3f; --ok-soft: #e3efe6; --warn: #8a5a00; --warn-soft: #fff1d1; --bad: #a3301a; --bad-soft: #fbe3dc; --mute: #6a6058; --mute-soft: #efe9e1;
+      --shadow: 0 1px 2px rgba(60,35,20,.04), 0 8px 24px -12px rgba(60,35,20,.14);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    .num { font-variant-numeric: tabular-nums; }
+
+    /* Header */
+    header { position: sticky; top: 0; z-index: 20; background: var(--ink); color: #fff; padding: 0 20px; padding-top: env(safe-area-inset-top); }
+    .hbar { max-width: 1240px; margin: 0 auto; height: 60px; display: flex; align-items: center; gap: 22px; }
+    .brand { display: flex; align-items: center; gap: 10px; font: 700 19px Georgia, serif; text-decoration: none; color: #fff; }
+    .brand i { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--accent); font: 700 11px system-ui; font-style: normal; }
+    .hnav { display: flex; gap: 4px; margin-left: auto; }
+    .hnav a { color: #d8cfc6; text-decoration: none; padding: 8px 14px; border-radius: 999px; font-weight: 600; font-size: 14px; }
+    .hnav a.on { background: rgba(255,255,255,.12); color: #fff; }
+
+    main { max-width: 1240px; margin: 0 auto; padding: 26px 20px 80px; }
+    .top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px; margin-bottom: 22px; }
+    .top h1 { font: 700 32px/1.1 Georgia, serif; margin: 0; letter-spacing: -.01em; }
+    .top p { margin: 6px 0 0; color: var(--ink-2); }
+    .top .acts { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .btn { display: inline-flex; align-items: center; gap: 8px; border: 0; border-radius: 999px; padding: 11px 18px; font-weight: 600; cursor: pointer; text-decoration: none; transition: background .2s, transform .1s, box-shadow .2s; white-space: nowrap; }
+    .btn:active { transform: scale(.98); }
+    .btn svg { width: 18px; height: 18px; flex: none; }
+    .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 8px 18px -10px rgba(217,71,43,.8); }
+    .btn-primary:hover { background: #c43d23; }
+    .btn-ghost { background: var(--card); border: 1px solid var(--line); color: var(--ink); }
+    .btn-ghost:hover { border-color: var(--ink-3); }
+    .btn-sm { padding: 7px 12px; font-size: 13px; }
+    .btn-danger { background: transparent; color: var(--bad); border: 1px solid #ecc3b8; }
+    .iconbtn { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); cursor: pointer; color: var(--ink-2); }
+    .iconbtn:hover { color: var(--ink); border-color: var(--ink-3); }
+    .iconbtn svg { width: 17px; height: 17px; }
+
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 20px; box-shadow: var(--shadow); }
+    .card-h { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 20px 0; }
+    .card-h h2 { margin: 0; font-size: 16px; font-weight: 700; }
+    .card-h small { color: var(--ink-2); font-size: 13px; }
+    .card-b { padding: 16px 20px 20px; }
+
+    /* KPI */
+    .kpis { display: grid; grid-template-columns: 1.45fr 1fr 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+    .kpi { padding: 18px 20px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .kpi .lbl { color: var(--ink-2); font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 7px; }
+    .kpi .lbl svg { width: 16px; height: 16px; color: var(--ink-3); }
+    .kpi .val { font: 700 30px/1.15 Georgia, serif; letter-spacing: -.01em; margin-top: 4px; }
+    .kpi .val small { font: 600 14px system-ui; color: var(--ink-2); margin-left: 4px; }
+    .kpi .sub { color: var(--ink-2); font-size: 13px; }
+    .kpi.hero { background: linear-gradient(160deg, #fff 0%, #f0f9f3 100%); border-color: #cfe9d8; }
+    .money { color: var(--money-ink); }
+    .plus { color: var(--money-ink); font-weight: 700; }
+    .kpi.hero .val { font-size: 40px; }
+    .meter { height: 10px; border-radius: 99px; background: var(--line-2); overflow: hidden; margin: 12px 0 6px; display: flex; gap: 2px; }
+    .meter i { display: block; height: 100%; background: var(--money); border-radius: 99px 0 0 99px; transition: width .8s cubic-bezier(.2,.8,.2,1); }
+    .meter b { display: block; height: 100%; background: repeating-linear-gradient(135deg, var(--money-2) 0 4px, var(--money-3) 4px 7px); border-radius: 0 99px 99px 0; transition: width .8s cubic-bezier(.2,.8,.2,1); }
+    .meter-legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12.5px; color: var(--ink-2); }
+    .meter-legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .sw { width: 10px; height: 10px; border-radius: 3px; background: var(--money); flex: none; }
+    .sw.exp { background: repeating-linear-gradient(135deg, var(--money-2) 0 2px, var(--money-3) 2px 4px); }
+    .kpi.alert .val { color: var(--bad); }
+
+    .grid2 { display: grid; grid-template-columns: 1.7fr 1fr; gap: 14px; margin-bottom: 14px; align-items: start; }
+    .col { display: grid; gap: 14px; }
+    .up { max-height: 300px; }
+
+    /* Chart */
+    .chart-wrap { position: relative; }
+    .chart svg { display: block; width: 100%; height: 260px; overflow: visible; }
+    .chart .grid line { stroke: var(--line-2); stroke-width: 1; }
+    .chart .axis text { fill: var(--ink-3); font-size: 11.5px; }
+    .chart .xl text { fill: var(--ink-2); font-size: 11.5px; }
+    .chart .xl text.now { fill: var(--ink); font-weight: 700; }
+    .chart .bar { transition: opacity .15s; }
+    .chart .hit { fill: transparent; cursor: pointer; }
+    .chart .lab { fill: var(--ink); font-size: 12px; font-weight: 700; }
+    .chart .nowline { stroke: var(--ink-3); stroke-width: 1; }
+    .tip { position: absolute; pointer-events: none; background: var(--ink); color: #fff; border-radius: 10px; padding: 9px 12px; font-size: 12.5px; line-height: 1.5; white-space: nowrap; opacity: 0; transform: translate(-50%, calc(-100% - 10px)); transition: opacity .12s; z-index: 5; box-shadow: 0 10px 24px -10px rgba(0,0,0,.5); }
+    .tip b { font-size: 13.5px; }
+    .tip .r { display: flex; align-items: center; gap: 7px; }
+    .legend { display: flex; gap: 16px; font-size: 12.5px; color: var(--ink-2); }
+    .legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .linkbtn { background: none; border: 0; color: var(--ink-2); font-size: 12.5px; text-decoration: underline; cursor: pointer; padding: 0; }
+    .tview { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+    .tview th, .tview td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--line-2); }
+    .tview th:first-child, .tview td:first-child { text-align: left; }
+
+    /* Upcoming */
+    .up { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; max-height: 330px; overflow: auto; }
+    .up li { display: grid; grid-template-columns: 46px 1fr auto; align-items: center; gap: 12px; padding: 9px 8px; border-radius: 12px; }
+    .up li:hover { background: var(--bg); }
+    .day { text-align: center; border-radius: 10px; background: var(--bg-2); padding: 4px 0; line-height: 1.15; }
+    .day b { display: block; font-size: 17px; }
+    .day small { font-size: 10.5px; color: var(--ink-2); text-transform: uppercase; letter-spacing: .04em; }
+    .day.late { background: var(--bad-soft); color: var(--bad); }
+    .day.late small { color: var(--bad); }
+    .up .nm { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .up .meta { font-size: 12.5px; color: var(--ink-2); }
+    .up .amt { text-align: right; font-weight: 700; color: var(--money-ink); }
+    .up .amt button { display: block; margin-top: 3px; margin-left: auto; }
+    .empty { color: var(--ink-2); text-align: center; padding: 26px 10px; font-size: 14px; }
+
+    /* Plans */
+    .plans { display: grid; gap: 14px; }
+    .prow .t { display: flex; justify-content: space-between; font-size: 13.5px; margin-bottom: 6px; }
+    .prow .t b { font-weight: 700; }
+    .prow .t span { color: var(--ink-2); }
+    .ptrack { height: 10px; background: var(--line-2); border-radius: 99px; overflow: hidden; }
+    .ptrack i { display: block; height: 100%; background: var(--money); border-radius: 0 4px 4px 0; transition: width .8s cubic-bezier(.2,.8,.2,1); }
+
+    /* Table */
+    .tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--line-2); }
+    .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+    .chip { border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 6px 12px; font-size: 13px; font-weight: 600; color: var(--ink-2); cursor: pointer; }
+    .chip b { font-weight: 700; color: var(--ink-3); margin-left: 3px; }
+    .chip.on { background: var(--ink); border-color: var(--ink); color: #fff; }
+    .chip.on b { color: #cfc6bd; }
+    .search { position: relative; }
+    .search input { width: 240px; max-width: 100%; border: 1px solid var(--line); background: var(--bg); border-radius: 999px; padding: 9px 14px 9px 36px; outline: none; }
+    .search input:focus { border-color: var(--ink-3); background: #fff; }
+    .search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--ink-3); }
+    table.subs { width: 100%; border-collapse: collapse; }
+    table.subs th { text-align: left; font-size: 12px; font-weight: 600; color: var(--ink-3); text-transform: uppercase; letter-spacing: .05em; padding: 12px 20px 8px; }
+    table.subs td { padding: 14px 20px; border-top: 1px solid var(--line-2); vertical-align: middle; }
+    table.subs tbody tr { cursor: pointer; transition: background .15s; }
+    table.subs tbody tr:hover { background: #fffaf6; }
+    .who b { display: block; font-weight: 700; }
+    .who span { font-size: 13px; color: var(--ink-2); }
+    .plan-tag { display: inline-block; font-weight: 700; font-size: 13px; }
+    .plan-tag small { display: block; font-weight: 500; color: var(--ink-2); font-size: 12.5px; }
+    .badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px 4px 8px; border-radius: 999px; font-size: 12.5px; font-weight: 700; white-space: nowrap; }
+    .badge svg { width: 14px; height: 14px; }
+    .b-aktivna { background: var(--ok-soft); color: var(--ok); }
+    .b-istice, .b-otkazuje, .b-ceka { background: var(--warn-soft); color: var(--warn); }
+    .b-kasni { background: var(--bad-soft); color: var(--bad); }
+    .b-istekla, .b-otkazana { background: var(--mute-soft); color: var(--mute); }
+    .period { min-width: 170px; }
+    .period .t { font-size: 13px; display: flex; justify-content: space-between; gap: 10px; white-space: nowrap; }
+    .period .t span { color: var(--ink-2); }
+    .ptbar { height: 6px; border-radius: 99px; background: var(--line-2); margin-top: 6px; overflow: hidden; }
+    .ptbar i { display: block; height: 100%; border-radius: 99px; background: var(--ok); }
+    .ptbar i.w { background: #d79a1e; }
+    .ptbar i.b { background: var(--bad); }
+    .ra { text-align: right; white-space: nowrap; }
+    .src { display: inline-block; font-size: 11px; font-weight: 700; color: var(--ink-3); border: 1px solid var(--line); border-radius: 6px; padding: 0 5px; margin-left: 6px; vertical-align: 1px; }
+
+    /* Drawer & modal */
+    .scrim { position: fixed; inset: 0; background: rgba(31,26,23,.42); z-index: 40; opacity: 0; pointer-events: none; transition: opacity .25s; backdrop-filter: blur(2px); }
+    .scrim.on { opacity: 1; pointer-events: auto; }
+    .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(520px, 100%); background: var(--bg); z-index: 41; transform: translateX(105%); transition: transform .35s cubic-bezier(.2,.8,.2,1); display: flex; flex-direction: column; box-shadow: -20px 0 60px -20px rgba(0,0,0,.35); }
+    .drawer.on { transform: none; }
+    .dh { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 20px 22px 16px; padding-top: max(20px, env(safe-area-inset-top)); background: var(--card); border-bottom: 1px solid var(--line); }
+    .dh h3 { margin: 0; font: 700 22px Georgia, serif; }
+    .dh p { margin: 4px 0 0; color: var(--ink-2); font-size: 13.5px; }
+    .db { padding: 18px 22px 40px; overflow: auto; flex: 1; display: grid; gap: 14px; align-content: start; }
+    .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .fact { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; }
+    .fact small { display: block; color: var(--ink-2); font-size: 12px; }
+    .fact b { font-size: 16px; }
+    .hist { list-style: none; margin: 0; padding: 0; background: var(--card); border: 1px solid var(--line); border-radius: 14px; }
+    .hist li { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-top: 1px solid var(--line-2); font-size: 14px; }
+    .hist li:first-child { border-top: 0; }
+    .hist .g { flex: 1; min-width: 0; }
+    .hist .g small { display: block; color: var(--ink-2); font-size: 12.5px; }
+    .sec-t { font-size: 12px; font-weight: 700; color: var(--ink-3); text-transform: uppercase; letter-spacing: .05em; margin: 6px 0 -4px; }
+    .dacts { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .modal { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 16px; pointer-events: none; }
+    .modal .box { width: min(560px, 100%); max-height: calc(100vh - 32px); overflow: auto; background: var(--card); border-radius: 22px; box-shadow: 0 30px 80px -20px rgba(0,0,0,.45); opacity: 0; transform: translateY(14px) scale(.98); transition: opacity .22s, transform .3s cubic-bezier(.2,.8,.2,1); }
+    .modal.on { pointer-events: auto; }
+    .modal.on .box { opacity: 1; transform: none; }
+    .mh { display: flex; justify-content: space-between; align-items: center; padding: 20px 22px 6px; }
+    .mh h3 { margin: 0; font: 700 21px Georgia, serif; }
+    .mb { padding: 12px 22px 22px; display: grid; gap: 14px; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    label.f { display: grid; gap: 6px; font-size: 13px; font-weight: 600; }
+    label.f small { font-weight: 400; color: var(--ink-2); }
+    .f input, .f select, .f textarea { width: 100%; border: 1.5px solid var(--line); background: var(--bg); border-radius: 12px; padding: 11px 12px; outline: none; font-size: 15px; }
+    .f input:focus, .f select:focus, .f textarea:focus { border-color: var(--accent); background: #fff; }
+    .f textarea { min-height: 64px; resize: vertical; }
+    .seg { display: grid; grid-template-columns: 1fr 1fr; background: var(--bg-2); border-radius: 12px; padding: 4px; gap: 4px; }
+    .seg button { border: 0; background: transparent; border-radius: 9px; padding: 9px; font-weight: 600; color: var(--ink-2); cursor: pointer; }
+    .seg button.on { background: #fff; color: var(--ink); box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+    .planpick { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .planpick button { border: 1.5px solid var(--line); background: var(--bg); border-radius: 14px; padding: 12px 10px; text-align: left; cursor: pointer; transition: border-color .2s, background .2s; }
+    .planpick button b { display: block; font-size: 15px; }
+    .planpick button span { font-size: 12.5px; color: var(--ink-2); }
+    .planpick button.on { border-color: var(--accent); background: #fff6f2; }
+    .chk { display: flex; gap: 10px; align-items: flex-start; font-weight: 600; font-size: 14px; }
+    .chk input { width: 19px; height: 19px; accent-color: var(--accent); margin-top: 1px; flex: none; }
+    .pv { background: var(--bg); border-radius: 12px; padding: 11px 13px; font-size: 13.5px; color: var(--ink-2); }
+    .pv b { color: var(--ink); }
+    .err { background: var(--bad-soft); color: var(--bad); border-radius: 12px; padding: 10px 12px; font-size: 14px; }
+    .mf { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+
+    .toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); background: var(--ink); color: #fff; padding: 12px 18px; border-radius: 999px; font-weight: 600; font-size: 14px; opacity: 0; transition: all .3s cubic-bezier(.2,.8,.2,1); z-index: 60; pointer-events: none; box-shadow: 0 12px 30px -12px rgba(0,0,0,.5); }
+    .toast.on { opacity: 1; transform: translate(-50%, 0); }
+
+    .pin { max-width: 340px; margin: 14vh auto 0; text-align: center; }
+    .pin input { text-align: center; font-size: 24px; letter-spacing: .3em; width: 100%; border: 1.5px solid var(--line); border-radius: 12px; padding: 12px; margin: 14px 0; }
+    .hidden { display: none !important; }
+
+    .fade { animation: fade .5s cubic-bezier(.2,.8,.2,1) both; }
+    @keyframes fade { from { opacity: 0; transform: translateY(8px); } }
+
+    @media (max-width: 1060px) {
+      .kpis { grid-template-columns: 1fr 1fr; }
+      .grid2 { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 760px) {
+      main { padding: 18px 14px 80px; }
+      .top h1 { font-size: 26px; }
+      .kpis { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .kpi.hero { grid-column: 1 / -1; }
+      .kpi .val { font-size: 24px; }
+      .kpi.hero .val { font-size: 34px; }
+      .hnav a { padding: 7px 10px; }
+      .search input { width: 100%; }
+      .search { width: 100%; }
+      /* Tabela -> kartice */
+      table.subs thead { display: none; }
+      table.subs, table.subs tbody, table.subs tr, table.subs td { display: block; width: 100%; }
+      table.subs tr { padding: 14px 16px; border-top: 1px solid var(--line-2); display: grid; grid-template-columns: 1fr auto; gap: 8px 10px; }
+      table.subs td { padding: 0; border: 0; }
+      table.subs td.c-plan { grid-column: 1; }
+      table.subs td.c-status { grid-column: 2; grid-row: 1; text-align: right; }
+      table.subs td.c-amt { grid-column: 2; grid-row: 2; text-align: right; }
+      table.subs td.c-period { grid-column: 1 / -1; }
+      table.subs td.c-act { display: none; }
+      .row2 { grid-template-columns: 1fr; }
+      .planpick { grid-template-columns: 1fr 1fr 1fr; }
+      .facts { grid-template-columns: 1fr 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+  </style>
+</head>
+<body>
+<header>
+  <div class="hbar">
+    <a class="brand" href="/"><i>AR</i>FoodAR</a>
+    <nav class="hnav">
+      <a href="/">Jela</a>
+      <a href="/pretplate.html" class="on">Pretplate</a>
+    </nav>
+  </div>
+</header>
+
+<section id="pinView" class="pin hidden">
+  <h2 style="font:700 24px Georgia,serif;margin:0">Unesi PIN</h2>
+  <input id="pinInput" type="password" inputmode="numeric" autocomplete="current-password" />
+  <button class="btn btn-primary" style="width:100%;justify-content:center" id="pinBtn">Uđi</button>
+</section>
+
+<main id="app" class="hidden">
+  <div class="top">
+    <div>
+      <h1>Pretplate</h1>
+      <p id="monthLabel"></p>
+    </div>
+    <div class="acts">
+      <button class="btn btn-ghost" id="plansBtn" title="Cene paketa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>Cene paketa</button>
+      <button class="btn btn-ghost" id="csvBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>Izvoz (CSV)</button>
+      <button class="btn btn-primary" id="newBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Nova pretplata</button>
+    </div>
+  </div>
+
+  <!-- KPI -->
+  <section class="kpis">
+    <div class="card kpi hero fade">
+      <span class="lbl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg><span id="kMonthName">Očekivano ovog meseca</span></span>
+      <span class="val num money" id="kExpected">–</span>
+      <div class="meter" aria-hidden="true"><i id="mCollected" style="width:0"></i><b id="mDue" style="width:0"></b></div>
+      <div class="meter-legend">
+        <span><i class="sw"></i>Naplaćeno <b class="num money" id="kCollected">–</b></span>
+        <span><i class="sw exp"></i>Još za naplatu <b class="num" id="kDue">–</b></span>
+      </div>
+    </div>
+    <div class="card kpi fade" style="animation-delay:.05s">
+      <span class="lbl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>Mesečni prihod</span>
+      <span class="val num money" id="kMrr">–</span>
+      <span class="sub" id="kArr"></span>
+    </div>
+    <div class="card kpi fade" style="animation-delay:.1s">
+      <span class="lbl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V8l9-5 9 5v13"/><path d="M9 21v-6h6v6"/></svg>Aktivni klijenti</span>
+      <span class="val num" id="kActive">–</span>
+      <span class="sub" id="kActiveSub"></span>
+    </div>
+    <div class="card kpi fade" id="kLateCard" style="animation-delay:.15s">
+      <span class="lbl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Kasne sa uplatom</span>
+      <span class="val num" id="kLate">–</span>
+      <span class="sub" id="kLateSub"></span>
+    </div>
+  </section>
+
+  <section class="grid2">
+    <div class="card fade" style="animation-delay:.1s">
+      <div class="card-h">
+        <div><h2>Prihod po mesecima</h2><small>Proteklih 6 meseci i očekivanje za narednih 6</small></div>
+        <div class="legend"><span><i class="sw"></i>Naplaćeno</span><span><i class="sw exp"></i>Očekivano</span></div>
+      </div>
+      <div class="card-b">
+        <div class="chart-wrap chart" id="chart"></div>
+        <button class="linkbtn" id="tableToggle">Prikaži kao tabelu</button>
+        <div id="chartTable" class="hidden"></div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card fade" style="animation-delay:.15s">
+        <div class="card-h"><div><h2>Naplata uskoro</h2><small>Kasne i ističu u narednih 30 dana</small></div></div>
+        <div class="card-b" style="padding-top:10px"><ul class="up" id="upcoming"></ul></div>
+      </div>
+      <div class="card fade" style="animation-delay:.2s">
+        <div class="card-h"><div><h2>Paketi</h2><small>Aktivni klijenti i mesečni prihod po paketu</small></div></div>
+        <div class="card-b"><div class="plans" id="planDist"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="card fade" style="animation-delay:.25s">
+      <div class="tools">
+        <div class="chips" id="chips"></div>
+        <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" type="search" placeholder="Pretraži restoran, kontakt…" /></label>
+      </div>
+      <table class="subs">
+        <thead><tr><th>Klijent</th><th>Paket</th><th>Status</th><th>Plaćeno do</th><th class="ra">Iznos</th><th></th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <div class="empty hidden" id="noRows"></div>
+    </div>
+  </section>
+</main>
+
+<!-- Detalji klijenta -->
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="dh">
+    <div><h3 id="dName"></h3><p id="dContact"></p></div>
+    <button class="iconbtn" data-close aria-label="Zatvori"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  </div>
+  <div class="db" id="dBody"></div>
+</aside>
+
+<!-- Modal -->
+<div class="modal" id="modal"><div class="box" role="dialog" aria-modal="true">
+  <div class="mh"><h3 id="mTitle"></h3><button class="iconbtn" data-close aria-label="Zatvori"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+  <div class="mb" id="mBody"></div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+<div class="tip" id="tip"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+let PIN = ''; try { PIN = localStorage.getItem('foodar-pin') || ''; } catch (e) {}
+let DB = { subs: [], payments: [], plans: {} }, TODAY = '', FILTER = 'sve';
+const MONTHS = ['januar','februar','mart','april','maj','jun','jul','avgust','septembar','oktobar','novembar','decembar'];
+const MSHORT = ['jan','feb','mar','apr','maj','jun','jul','avg','sep','okt','nov','dec'];
+const METHODS = { racun: 'Uplata na račun', gotovina: 'Gotovina', kartica: 'Kartica', 'apple-pay': 'Apple Pay', 'google-pay': 'Google Pay', online: 'Online' };
+const ICON = {
+  ok: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>',
+  clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3 2 21h20z"/><path d="M12 10v5M12 18v.01"/></svg>',
+  x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>'
+};
+
+// ---------- pomoćne ----------
+const din = n => Math.round(n).toLocaleString('sr-RS') + ' din';
+const dinShort = n => n >= 1e6 ? (n / 1e6).toLocaleString('sr-RS', { maximumFractionDigits: 1 }) + ' mil' : n >= 1e4 ? Math.round(n / 1e3) + 'K' : Math.round(n).toLocaleString('sr-RS');
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const dt = s => { const [y, m, d] = s.split('-'); return `${d}.${m}.${y}.`; };
+const days = (a, b) => Math.round((Date.parse(b) - Date.parse(a)) / 864e5); // b - a
+const ym = s => s.slice(0, 7);
+function addInterval(s, interval, times = 1) {
+  const [y, m, d] = s.split('-').map(Number), mo = (interval === 'godisnje' ? 12 : 1) * times;
+  const t = new Date(Date.UTC(y, m - 1 + mo, 1)), last = new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth() + 1, 0)).getUTCDate();
+  t.setUTCDate(Math.min(d, last)); return t.toISOString().slice(0, 10);
+}
+function monthAdd(ymStr, k) { const [y, m] = ymStr.split('-').map(Number); const t = new Date(Date.UTC(y, m - 1 + k, 1)); return t.toISOString().slice(0, 7); }
+const endOfMonth = ymStr => { const [y, m] = ymStr.split('-').map(Number); return new Date(Date.UTC(y, m, 0)).toISOString().slice(0, 10); };
+const monthly = s => s.interval === 'godisnje' ? s.amount / 12 : s.amount;
+const paymentsOf = id => DB.payments.filter(p => p.subId === id).sort((a, b) => b.date.localeCompare(a.date));
+
+function statusOf(s) {
+  const left = days(TODAY, s.periodEnd);
+  if (!DB.payments.some(p => p.subId === s.id) && !s.cancelAtPeriodEnd) return { k: 'ceka', label: 'Čeka prvu uplatu', icon: ICON.clock, left };
+  if (s.cancelAtPeriodEnd) return left >= 0 ? { k: 'otkazuje', label: 'Otkazuje se', icon: ICON.clock, left } : { k: 'otkazana', label: 'Otkazana', icon: ICON.x, left };
+  if (left >= 0) return left <= 7 ? { k: 'istice', label: 'Ističe uskoro', icon: ICON.clock, left } : { k: 'aktivna', label: 'Aktivna', icon: ICON.ok, left };
+  if (left >= -30) return { k: 'kasni', label: 'Kasni sa uplatom', icon: ICON.alert, left };
+  return { k: 'istekla', label: 'Istekla', icon: ICON.x, left };
+}
+const isLive = st => ['aktivna', 'istice', 'otkazuje'].includes(st.k);
+const owes = st => ['kasni', 'ceka'].includes(st.k);
+
+// ---------- proračun ----------
+function compute() {
+  const cur = ym(TODAY), monthEnd = endOfMonth(cur);
+  const collected = DB.payments.filter(p => ym(p.date) === cur).reduce((a, p) => a + p.amount, 0);
+  let due = 0, late = 0, lateAmt = 0, active = 0, mrr = 0, cancelling = 0, newThisMonth = 0;
+  const upcoming = [];
+  for (const s of DB.subs) {
+    const st = statusOf(s);
+    if (owes(st)) { due += s.amount; upcoming.push({ s, st, date: s.periodEnd, late: true }); if (st.k === 'kasni') { late++; lateAmt += s.amount; } }
+    else if (st.k !== 'otkazuje' && isLive(st)) {
+      if (s.periodEnd <= monthEnd) due += s.amount;
+      if (st.left <= 30) upcoming.push({ s, st, date: s.periodEnd });
+    }
+    if (isLive(st)) { active++; mrr += monthly(s); if (st.k === 'otkazuje') cancelling++; }
+    if (ym(s.startDate) === cur) newThisMonth++;
+  }
+  upcoming.sort((a, b) => (b.late - a.late) || a.date.localeCompare(b.date));
+
+  // grafikon: 6 meseci unazad (naplaćeno) + tekući + 6 unapred (očekivano)
+  const months = [];
+  for (let k = -6; k <= 6; k++) months.push({ ym: monthAdd(cur, k), paid: 0, exp: 0, k });
+  const idx = Object.fromEntries(months.map((m, i) => [m.ym, i]));
+  for (const p of DB.payments) if (ym(p.date) in idx && ym(p.date) <= cur) months[idx[ym(p.date)]].paid += p.amount;
+  const horizon = endOfMonth(months[months.length - 1].ym);
+  for (const s of DB.subs) {
+    const st = statusOf(s);
+    if (owes(st)) months[idx[cur]].exp += s.amount;
+    if (!isLive(st) && !owes(st)) continue;
+    if (st.k === 'otkazuje') continue;
+    let d = owes(st) ? addInterval(s.periodEnd > TODAY ? s.periodEnd : TODAY, s.interval) : s.periodEnd;
+    if (st.k === 'ceka') d = addInterval(s.periodEnd, s.interval);
+    let guard = 0;
+    while (d <= horizon && guard++ < 40) {
+      if (d >= TODAY && idx[ym(d)] !== undefined) months[idx[ym(d)]].exp += s.amount;
+      d = addInterval(d, s.interval);
+    }
+  }
+  return { cur, collected, due, late, lateAmt, active, mrr, cancelling, newThisMonth, upcoming, months };
+}
+
+// ---------- render ----------
+function render() {
+  const c = compute();
+  const [y, m] = c.cur.split('-').map(Number);
+  $('monthLabel').textContent = `${MONTHS[m - 1][0].toUpperCase() + MONTHS[m - 1].slice(1)} ${y} · danas ${dt(TODAY)}`;
+  $('kMonthName').textContent = `Očekivano za ${MONTHS[m - 1]}`;
+  const total = c.collected + c.due;
+  countUp($('kExpected'), total, din);
+  $('kCollected').textContent = (c.collected ? '+' : '') + din(c.collected); $('kDue').textContent = din(c.due);
+  requestAnimationFrame(() => {
+    $('mCollected').style.width = total ? (c.collected / total * 100) + '%' : '0';
+    $('mDue').style.width = total ? (c.due / total * 100) + '%' : '0';
+  });
+  countUp($('kMrr'), c.mrr, din);
+  $('kArr').textContent = `≈ ${din(c.mrr * 12)} godišnje`;
+  countUp($('kActive'), c.active, n => Math.round(n));
+  $('kActiveSub').textContent = [c.newThisMonth ? `+${c.newThisMonth} novih ovog meseca` : 'Nema novih ovog meseca', c.cancelling ? `${c.cancelling} otkazuje` : ''].filter(Boolean).join(' · ');
+  countUp($('kLate'), c.late, n => Math.round(n));
+  $('kLateSub').textContent = c.late ? `Ukupno dug: ${din(c.lateAmt)}` : 'Svi su uredno platili';
+  $('kLateCard').classList.toggle('alert', c.late > 0);
+
+  renderChart(c);
+  renderUpcoming(c.upcoming);
+  renderPlans();
+  renderTable();
+}
+
+function countUp(el, to, fmt) {
+  const from = Number(el.dataset.v || 0); el.dataset.v = to;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches || from === to) { el.textContent = fmt(to); return; }
+  const t0 = performance.now(), dur = 700;
+  const step = t => { const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(from + (to - from) * e); if (k < 1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+
+function renderChart(c) {
+  const el = $('chart'), W = Math.max(320, el.clientWidth || 600), H = 260;
+  const pad = { l: 44, r: 8, t: 22, b: 28 };
+  const iw = W - pad.l - pad.r, ih = H - pad.t - pad.b;
+  const max = Math.max(1, ...c.months.map(m => m.paid + m.exp));
+  const step = niceStep(max / 4), top = Math.ceil(max / step) * step;
+  const y = v => pad.t + ih - v / top * ih;
+  const band = iw / c.months.length, bw = Math.min(24, band * .56);
+  let g = '<g class="grid">';
+  for (let v = 0; v <= top + 1e-6; v += step) g += `<line x1="${pad.l}" x2="${W - pad.r}" y1="${y(v)}" y2="${y(v)}"/>`;
+  g += '</g><g class="axis">';
+  for (let v = 0; v <= top + 1e-6; v += step) g += `<text x="${pad.l - 8}" y="${y(v) + 4}" text-anchor="end" class="num">${dinShort(v)}</text>`;
+  g += '</g>';
+  const defs = `<defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#c4e7d1"/><rect width="3" height="6" fill="#7cc79a"/></pattern></defs>`;
+  let bars = '', xl = '<g class="xl">', hits = '';
+  const rnd = (x, yTop, w, h, roundTop) => {
+    if (h <= 0) return '';
+    const r = Math.min(4, h, w / 2);
+    return roundTop
+      ? `M${x},${yTop + h} V${yTop + r} Q${x},${yTop} ${x + r},${yTop} H${x + w - r} Q${x + w},${yTop} ${x + w},${yTop + r} V${yTop + h} Z`
+      : `M${x},${yTop + h} V${yTop} H${x + w} V${yTop + h} Z`;
+  };
+  c.months.forEach((m, i) => {
+    const cx = pad.l + band * i + band / 2, x = cx - bw / 2;
+    const hp = m.paid / top * ih, he = m.exp / top * ih;
+    const gap = hp > 0 && he > 0 ? 2 : 0;
+    const yp = pad.t + ih - hp, ye = yp - gap - he;
+    if (hp > 0) bars += `<path class="bar" d="${rnd(x, yp, bw, hp, he <= 0)}" fill="#1f8a4c" style="transform-origin:${cx}px ${pad.t + ih}px"/>`;
+    if (he > 0) bars += `<path class="bar" d="${rnd(x, ye, bw, he, true)}" fill="url(#hatch)"/>`;
+    const [yy, mm] = m.ym.split('-').map(Number);
+    const showLbl = c.months.length <= 13 && (W > 520 || i % 2 === 0 || m.k === 0);
+    if (showLbl) xl += `<text x="${cx}" y="${H - 8}" text-anchor="middle" class="${m.k === 0 ? 'now' : ''}">${MSHORT[mm - 1]}${mm === 1 ? " '" + String(yy).slice(2) : ''}</text>`;
+    if (m.k === 0 && m.paid + m.exp > 0) bars += `<text class="lab num" x="${cx}" y="${ye - 7}" text-anchor="middle">${dinShort(m.paid + m.exp)}</text>`;
+    hits += `<rect class="hit" x="${pad.l + band * i}" y="${pad.t}" width="${band}" height="${ih}" data-i="${i}"/>`;
+  });
+  xl += '</g>';
+  const nowX = pad.l + band * 6;
+  const nowLine = `<line class="nowline" x1="${nowX}" x2="${nowX}" y1="${pad.t}" y2="${pad.t + ih}" stroke-dasharray="0"/>`;
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Prihod po mesecima">${defs}${g}${bars}${xl}${hits}</svg>`;
+  // tooltip
+  const tip = $('tip');
+  el.querySelectorAll('.hit').forEach(h => {
+    h.addEventListener('pointerenter', e => {
+      const m = c.months[+h.dataset.i], [yy, mm] = m.ym.split('-').map(Number);
+      const r = el.getBoundingClientRect(), hr = h.getBoundingClientRect();
+      tip.innerHTML = `<b>${MONTHS[mm - 1]} ${yy}.</b>` +
+        (m.paid ? `<div class="r"><i class="sw"></i>Naplaćeno: +${din(m.paid)}</div>` : '') +
+        (m.exp ? `<div class="r"><i class="sw exp"></i>Očekivano: ${din(m.exp)}</div>` : '') +
+        (!m.paid && !m.exp ? '<div class="r">Nema prihoda</div>' : '');
+      tip.style.left = (hr.left + hr.width / 2 + scrollX) + 'px';
+      tip.style.top = (r.top + scrollY + 20) + 'px';
+      tip.style.opacity = 1;
+      el.querySelectorAll('.bar').forEach(b => b.style.opacity = .45);
+    });
+    h.addEventListener('pointerleave', () => { tip.style.opacity = 0; el.querySelectorAll('.bar').forEach(b => b.style.opacity = 1); });
+  });
+  // tabela
+  $('chartTable').innerHTML = `<table class="tview"><thead><tr><th>Mesec</th><th>Naplaćeno</th><th>Očekivano</th></tr></thead><tbody>${c.months.map(m => { const [yy, mm] = m.ym.split('-').map(Number); return `<tr><td>${MONTHS[mm - 1]} ${yy}.</td><td class="num">${m.paid ? din(m.paid) : '–'}</td><td class="num">${m.exp ? din(m.exp) : '–'}</td></tr>`; }).join('')}</tbody></table>`;
+}
+function niceStep(raw) { const p = Math.pow(10, Math.floor(Math.log10(raw || 1))), n = raw / p; return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * p; }
+$('tableToggle').onclick = () => { const h = $('chartTable').classList.toggle('hidden'); $('tableToggle').textContent = h ? 'Prikaži kao tabelu' : 'Sakrij tabelu'; };
+
+function renderUpcoming(list) {
+  if (!list.length) { $('upcoming').innerHTML = '<li class="empty" style="display:block">Nema naplata u narednih 30 dana.</li>'; return; }
+  $('upcoming').innerHTML = list.slice(0, 30).map(({ s, st, date, late }) => {
+    const [, mm, dd] = date.split('-').map(Number);
+    const when = st.k === 'ceka' ? 'prva uplata' : late ? `kasni ${-st.left} ${-st.left === 1 ? 'dan' : 'dana'}` : st.left === 0 ? 'danas' : st.left === 1 ? 'sutra' : `za ${st.left} dana`;
+    return `<li data-open="${s.id}" style="cursor:pointer">
+      <div class="day ${late ? 'late' : ''}"><b class="num">${dd}</b><small>${MSHORT[mm - 1]}</small></div>
+      <div style="min-width:0"><div class="nm">${esc(s.restoran)}</div><div class="meta">${esc(s.plan)} · ${s.interval === 'godisnje' ? 'godišnje' : 'mesečno'} · ${when}</div></div>
+      <div class="amt num">${din(s.amount)}<button class="btn btn-ghost btn-sm" data-pay="${s.id}">Uplata</button></div>
+    </li>`;
+  }).join('');
+}
+
+function renderPlans() {
+  const names = Object.keys(DB.plans);
+  for (const s of DB.subs) if (!names.includes(s.plan)) names.push(s.plan);
+  const rows = names.map(n => {
+    const live = DB.subs.filter(s => s.plan === n && isLive(statusOf(s)));
+    return { n, count: live.length, mrr: live.reduce((a, s) => a + monthly(s), 0) };
+  });
+  const max = Math.max(1, ...rows.map(r => r.mrr));
+  $('planDist').innerHTML = rows.map(r => `<div class="prow"><div class="t"><b>${esc(r.n)}</b><span class="num">${r.count} ${r.count === 1 ? 'klijent' : 'klijenata'} · <span class="money">${din(r.mrr)}/mes</span></span></div><div class="ptrack"><i style="width:0" data-w="${r.mrr / max * 100}"></i></div></div>`).join('');
+  requestAnimationFrame(() => $('planDist').querySelectorAll('i').forEach(i => i.style.width = i.dataset.w + '%'));
+}
+
+const FILTERS = [
+  ['sve', 'Sve', () => true],
+  ['aktivne', 'Aktivne', st => isLive(st)],
+  ['istice', 'Ističu uskoro', st => st.k === 'istice'],
+  ['kasne', 'Neplaćene', st => owes(st)],
+  ['neaktivne', 'Otkazane i istekle', st => ['otkazana', 'istekla'].includes(st.k)]
+];
+function renderTable() {
+  const q = $('q').value.trim().toLowerCase();
+  const withSt = DB.subs.map(s => ({ s, st: statusOf(s) }));
+  $('chips').innerHTML = FILTERS.map(([k, label, fn]) => `<button class="chip ${FILTER === k ? 'on' : ''}" data-f="${k}">${label}<b>${withSt.filter(x => fn(x.st)).length}</b></button>`).join('');
+  const fn = FILTERS.find(f => f[0] === FILTER)[2];
+  const order = { kasni: 0, ceka: 1, istice: 2, otkazuje: 3, aktivna: 4, otkazana: 5, istekla: 6 };
+  const list = withSt.filter(x => fn(x.st) && (!q || [x.s.restoran, x.s.kontakt, x.s.email, x.s.telefon, x.s.grad].join(' ').toLowerCase().includes(q)))
+    .sort((a, b) => order[a.st.k] - order[b.st.k] || a.s.periodEnd.localeCompare(b.s.periodEnd));
+  $('noRows').classList.toggle('hidden', list.length > 0);
+  $('noRows').innerHTML = DB.subs.length ? 'Nema pretplata za ovaj filter.' : 'Još nema pretplata. Klikni <b>Nova pretplata</b> da dodaš prvog klijenta.';
+  $('rows').innerHTML = list.map(({ s, st }) => {
+    const total = Math.max(1, days(addInterval(s.periodEnd, s.interval, -1), s.periodEnd));
+    const pct = Math.max(0, Math.min(100, st.left / total * 100));
+    const cls = st.left < 0 ? 'b' : st.left <= 7 ? 'w' : '';
+    const leftTxt = st.k === 'ceka' ? 'nije plaćeno' : st.left >= 0 ? `još ${st.left} ${st.left === 1 ? 'dan' : 'dana'}` : `pre ${-st.left} ${-st.left === 1 ? 'dan' : 'dana'}`;
+    return `<tr data-open="${s.id}">
+      <td class="who"><b>${esc(s.restoran)}${s.source === 'online' ? '<span class="src">ONLINE</span>' : ''}</b><span>${esc([s.kontakt, s.grad].filter(Boolean).join(' · ') || s.email || '')}</span></td>
+      <td class="c-plan"><span class="plan-tag">${esc(s.plan)}<small>${s.interval === 'godisnje' ? 'godišnje' : 'mesečno'}</small></span></td>
+      <td class="c-status"><span class="badge b-${st.k}">${st.icon}${st.label}</span></td>
+      <td class="c-period period"><div class="t"><b class="num">${st.k === 'ceka' ? '–' : dt(s.periodEnd)}</b><span>${leftTxt}</span></div><div class="ptbar"><i class="${cls}" style="width:${st.k === 'ceka' ? 0 : pct}%"></i></div></td>
+      <td class="c-amt ra num"><b>${din(s.amount)}</b></td>
+      <td class="c-act ra"><button class="btn btn-ghost btn-sm" data-pay="${s.id}">+ Uplata</button></td>
+    </tr>`;
+  }).join('');
+}
+$('chips').onclick = e => { const b = e.target.closest('[data-f]'); if (b) { FILTER = b.dataset.f; renderTable(); } };
+$('q').oninput = renderTable;
+
+document.addEventListener('click', e => {
+  const pay = e.target.closest('[data-pay]');
+  if (pay) { e.stopPropagation(); openPayment(pay.dataset.pay); return; }
+  const op = e.target.closest('[data-open]');
+  if (op && !e.target.closest('.drawer') && !e.target.closest('.modal')) openDrawer(op.dataset.open);
+  if (e.target.closest('[data-close]') || e.target === $('scrim')) { if ($('modal').classList.contains('on')) closeModal(); else closeDrawer(); }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { if ($('modal').classList.contains('on')) closeModal(); else closeDrawer(); } });
+
+// ---------- detalji ----------
+let OPEN = null;
+function openDrawer(id) {
+  OPEN = id;
+  const s = DB.subs.find(x => x.id === id); if (!s) return closeDrawer();
+  const st = statusOf(s), pays = paymentsOf(id), sum = pays.reduce((a, p) => a + p.amount, 0);
+  $('dName').innerHTML = esc(s.restoran) + (s.source === 'online' ? '<span class="src">ONLINE</span>' : '');
+  $('dContact').textContent = [s.kontakt, s.telefon, s.email, s.grad].filter(Boolean).join(' · ') || 'Nema kontakt podataka';
+  $('dBody').innerHTML = `
+    <div><span class="badge b-${st.k}">${st.icon}${st.label}</span></div>
+    <div class="facts">
+      <div class="fact"><small>Paket</small><b>${esc(s.plan)}</b> <small>${s.interval === 'godisnje' ? 'godišnje plaćanje' : 'mesečno plaćanje'}</small></div>
+      <div class="fact"><small>Iznos po periodu</small><b class="num">${din(s.amount)}</b></div>
+      <div class="fact"><small>Plaćeno do</small><b class="num">${st.k === 'ceka' ? '–' : dt(s.periodEnd)}</b> <small>${st.k === 'ceka' ? 'čeka prvu uplatu' : st.left >= 0 ? 'još ' + st.left + ' dana' : 'isteklo pre ' + (-st.left) + ' dana'}</small></div>
+      <div class="fact"><small>Klijent od</small><b class="num">${dt(s.startDate)}</b> <small>ukupno uplaćeno <span class="plus">+${din(sum)}</span></small></div>
+    </div>
+    ${s.napomena ? `<div class="pv">${esc(s.napomena)}</div>` : ''}
+    <div class="dacts">
+      <button class="btn btn-primary btn-sm" data-pay="${s.id}">+ Evidentiraj uplatu</button>
+      <button class="btn btn-ghost btn-sm" id="dEdit">Izmeni</button>
+      <button class="btn btn-ghost btn-sm" id="dCancel">${s.cancelAtPeriodEnd ? 'Vrati pretplatu' : 'Otkaži na kraju perioda'}</button>
+      <button class="btn btn-danger btn-sm" id="dDel">Obriši</button>
+    </div>
+    <div class="sec-t">Istorija uplata</div>
+    ${pays.length ? `<ul class="hist">${pays.map(p => `<li><div class="g"><b class="num plus">+${din(p.amount)}</b> <small>${dt(p.date)} · ${METHODS[p.method] || p.method}${p.source === 'online' ? ' · automatski' : ''} · period ${dt(p.periodFrom)} – ${dt(p.periodTo)}${p.note ? ' · ' + esc(p.note) : ''}</small></div><button class="iconbtn" data-delpay="${p.id}" title="Obriši uplatu">${ICON.x}</button></li>`).join('')}</ul>` : '<div class="empty" style="background:#fff;border:1px solid var(--line);border-radius:14px">Još nema uplata.</div>'}
+  `;
+  $('dEdit').onclick = () => openSubForm(s);
+  $('dCancel').onclick = async () => {
+    await call('PATCH', '/api/pretplate/' + s.id, { cancelAtPeriodEnd: !s.cancelAtPeriodEnd });
+    toast(s.cancelAtPeriodEnd ? 'Pretplata je vraćena' : 'Pretplata se otkazuje na kraju perioda');
+  };
+  $('dDel').onclick = async () => {
+    if (!confirm(`Obrisati pretplatu „${s.restoran}“ i sve njene uplate? Ovo se ne može vratiti.`)) return;
+    await call('DELETE', '/api/pretplate/' + s.id); closeDrawer(); toast('Pretplata je obrisana');
+  };
+  $('dBody').querySelectorAll('[data-delpay]').forEach(b => b.onclick = async () => {
+    if (!confirm('Obrisati ovu uplatu? "Plaćeno do" se vraća na stanje pre nje.')) return;
+    await call('DELETE', '/api/uplate/' + b.dataset.delpay); toast('Uplata je obrisana');
+  });
+  $('scrim').classList.add('on'); $('drawer').classList.add('on'); $('drawer').setAttribute('aria-hidden', 'false');
+}
+function closeDrawer() { OPEN = null; $('drawer').classList.remove('on'); $('drawer').setAttribute('aria-hidden', 'true'); if (!$('modal').classList.contains('on')) $('scrim').classList.remove('on'); }
+
+// ---------- modal ----------
+function openModal(title, html) {
+  $('mTitle').textContent = title; $('mBody').innerHTML = html;
+  $('scrim').classList.add('on'); $('modal').classList.add('on');
+  setTimeout(() => $('mBody').querySelector('input:not([type=checkbox]),select')?.focus(), 50);
+}
+function closeModal() { $('modal').classList.remove('on'); if (!OPEN) $('scrim').classList.remove('on'); }
+
+function planOpts(sel) {
+  return Object.entries(DB.plans).map(([n, p]) => `<button type="button" data-plan="${esc(n)}" class="${n === sel ? 'on' : ''}"><b>${esc(n)}</b><span class="num">${din(p.mesecno)}/mes</span></button>`).join('');
+}
+function openSubForm(s) {
+  const edit = !!s;
+  s = s || { plan: Object.keys(DB.plans)[1] || Object.keys(DB.plans)[0], interval: 'mesecno', startDate: TODAY };
+  openModal(edit ? 'Izmeni pretplatu' : 'Nova pretplata', `
+    <div class="row2">
+      <label class="f">Restoran<input id="fRest" value="${esc(s.restoran || '')}" placeholder="npr. Restoran Lipa" /></label>
+      <label class="f">Kontakt osoba<input id="fKont" value="${esc(s.kontakt || '')}" placeholder="Ime i prezime" /></label>
+    </div>
+    <div class="row2">
+      <label class="f">Telefon<input id="fTel" type="tel" value="${esc(s.telefon || '')}" /></label>
+      <label class="f">Email<input id="fMail" type="email" value="${esc(s.email || '')}" /></label>
+    </div>
+    <label class="f">Grad<input id="fGrad" value="${esc(s.grad || '')}" /></label>
+    <label class="f">Paket<div class="planpick" id="fPlan">${planOpts(s.plan)}</div></label>
+    <label class="f">Plaćanje<div class="seg" id="fInt"><button type="button" data-v="mesecno" class="${s.interval !== 'godisnje' ? 'on' : ''}">Mesečno</button><button type="button" data-v="godisnje" class="${s.interval === 'godisnje' ? 'on' : ''}">Godišnje</button></div></label>
+    <div class="row2">
+      <label class="f">Iznos po periodu (din)<input id="fAmt" type="number" min="0" step="10" inputmode="numeric" value="${s.amount || ''}" /><small id="fAmtHint"></small></label>
+      <label class="f">${edit ? 'Plaćeno do' : 'Početak pretplate'}<input id="fDate" type="date" value="${edit ? s.periodEnd : s.startDate}" /></label>
+    </div>
+    ${edit ? '' : `<label class="chk"><input type="checkbox" id="fPaid" checked /> <span>Prva uplata je već primljena <small style="display:block;font-weight:400;color:var(--ink-2)">Pretplata odmah postaje aktivna do kraja prvog perioda.</small></span></label>
+    <label class="f" id="fMethWrap">Način plaćanja<select id="fMeth">${Object.entries(METHODS).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}</select></label>`}
+    <label class="f">Napomena<textarea id="fNote" placeholder="npr. popust 10% prvih 3 meseca">${esc(s.napomena || '')}</textarea></label>
+    <div class="err hidden" id="fErr"></div>
+    <div class="mf"><button class="btn btn-ghost" data-close>Odustani</button><button class="btn btn-primary" id="fSave">${edit ? 'Sačuvaj' : 'Dodaj pretplatu'}</button></div>
+  `);
+  let plan = s.plan, interval = s.interval || 'mesecno', amtTouched = edit;
+  const setAmt = () => { const p = DB.plans[plan]; if (!p) return; const def = p[interval]; $('fAmtHint').textContent = `Cenovnik: ${din(def)} ${interval === 'godisnje' ? 'godišnje' : 'mesečno'}`; if (!amtTouched) $('fAmt').value = def; };
+  setAmt();
+  $('fAmt').oninput = () => amtTouched = true;
+  $('fPlan').onclick = e => { const b = e.target.closest('[data-plan]'); if (!b) return; plan = b.dataset.plan; $('fPlan').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); if (!edit) amtTouched = false; setAmt(); };
+  $('fInt').onclick = e => { const b = e.target.closest('[data-v]'); if (!b) return; interval = b.dataset.v; $('fInt').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); if (!edit) amtTouched = false; setAmt(); };
+  if (!edit) $('fPaid').onchange = () => $('fMethWrap').classList.toggle('hidden', !$('fPaid').checked);
+  $('fSave').onclick = async () => {
+    const body = { restoran: $('fRest').value, kontakt: $('fKont').value, telefon: $('fTel').value, email: $('fMail').value, grad: $('fGrad').value, plan, interval, amount: $('fAmt').value, napomena: $('fNote').value };
+    if (edit) body.periodEnd = $('fDate').value; else { body.startDate = $('fDate').value; if ($('fPaid').checked) body.firstPayment = { date: $('fDate').value, method: $('fMeth').value }; }
+    try {
+      $('fSave').disabled = true;
+      await call(edit ? 'PATCH' : 'POST', edit ? '/api/pretplate/' + s.id : '/api/pretplate', body, true);
+      closeModal(); toast(edit ? 'Sačuvano' : `Dodat klijent ${body.restoran}`);
+    } catch (err) { $('fErr').textContent = err.message; $('fErr').classList.remove('hidden'); $('fSave').disabled = false; }
+  };
+}
+
+function openPayment(id) {
+  const s = DB.subs.find(x => x.id === id); if (!s) return;
+  const st = statusOf(s);
+  openModal('Evidentiraj uplatu', `
+    <div class="pv"><b>${esc(s.restoran)}</b> · ${esc(s.plan)} · ${s.interval === 'godisnje' ? 'godišnje' : 'mesečno'}</div>
+    <div class="row2">
+      <label class="f">Iznos (din)<input id="pAmt" type="number" min="0" step="10" inputmode="numeric" value="${s.amount}" /></label>
+      <label class="f">Datum uplate<input id="pDate" type="date" value="${TODAY}" /></label>
+    </div>
+    <div class="row2">
+      <label class="f">Način plaćanja<select id="pMeth">${Object.entries(METHODS).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}</select></label>
+      <label class="f">Broj perioda<select id="pPer">${[1, 2, 3, 6, 12].map(n => `<option value="${n}">${n} ${s.interval === 'godisnje' ? (n === 1 ? 'godina' : 'godine') : (n === 1 ? 'mesec' : n < 5 ? 'meseca' : 'meseci')}</option>`).join('')}</select></label>
+    </div>
+    <label class="f">Napomena<input id="pNote" placeholder="npr. broj fakture" /></label>
+    <div class="pv" id="pPrev"></div>
+    <div class="err hidden" id="pErr"></div>
+    <div class="mf"><button class="btn btn-ghost" data-close>Odustani</button><button class="btn btn-primary" id="pSave">Sačuvaj uplatu</button></div>
+  `);
+  const prev = () => {
+    const per = +$('pPer').value, date = $('pDate').value || TODAY;
+    const from = days(s.periodEnd, date) > 31 ? date : s.periodEnd, to = addInterval(from, s.interval, per);
+    $('pPrev').innerHTML = `Plaćeno do: <b>${st.k === 'ceka' ? '–' : dt(s.periodEnd)}</b> → <b>${dt(to)}</b>`;
+    if (document.activeElement !== $('pAmt')) $('pAmt').value = s.amount * per;
+  };
+  prev(); $('pPer').onchange = prev; $('pDate').onchange = prev;
+  $('pSave').onclick = async () => {
+    try {
+      $('pSave').disabled = true;
+      await call('POST', `/api/pretplate/${s.id}/uplate`, { amount: $('pAmt').value, date: $('pDate').value, method: $('pMeth').value, periods: $('pPer').value, note: $('pNote').value }, true);
+      closeModal(); toast(`+${din(+$('pAmt').value)} zabeleženo`);
+    } catch (err) { $('pErr').textContent = err.message; $('pErr').classList.remove('hidden'); $('pSave').disabled = false; }
+  };
+}
+
+function openPlans() {
+  openModal('Cene paketa', `
+    <p style="margin:0;color:var(--ink-2);font-size:14px">Koriste se kao podrazumevani iznos za nove pretplate. Postojeće pretplate zadržavaju svoj iznos.</p>
+    ${Object.entries(DB.plans).map(([n, p]) => `<div class="row2" data-pl="${esc(n)}"><label class="f">${esc(n)}: mesečno (din)<input type="number" data-k="mesecno" value="${p.mesecno}" /></label><label class="f">${esc(n)}: godišnje ukupno (din)<input type="number" data-k="godisnje" value="${p.godisnje}" /></label></div>`).join('')}
+    <div class="mf"><button class="btn btn-ghost" data-close>Odustani</button><button class="btn btn-primary" id="plSave">Sačuvaj cene</button></div>
+  `);
+  $('plSave').onclick = async () => {
+    const out = {};
+    $('mBody').querySelectorAll('[data-pl]').forEach(r => out[r.dataset.pl] = { mesecno: r.querySelector('[data-k=mesecno]').value, godisnje: r.querySelector('[data-k=godisnje]').value });
+    await call('PUT', '/api/paketi', out); closeModal(); toast('Cene su sačuvane');
+  };
+}
+
+// ---------- CSV ----------
+$('csvBtn').onclick = () => {
+  const head = ['Restoran', 'Kontakt', 'Telefon', 'Email', 'Grad', 'Paket', 'Plaćanje', 'Iznos', 'Status', 'Plaćeno do', 'Početak', 'Ukupno uplaćeno', 'Izvor', 'Napomena'];
+  const rows = DB.subs.map(s => { const st = statusOf(s); return [s.restoran, s.kontakt, s.telefon, s.email, s.grad, s.plan, s.interval === 'godisnje' ? 'godišnje' : 'mesečno', s.amount, st.label, s.periodEnd, s.startDate, paymentsOf(s.id).reduce((a, p) => a + p.amount, 0), s.source, s.napomena]; });
+  const csv = '﻿' + [head, ...rows].map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(';')).join('\r\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = `foodar-pretplate-${TODAY}.csv`; a.click(); URL.revokeObjectURL(a.href);
+};
+$('newBtn').onclick = () => openSubForm(null);
+$('plansBtn').onclick = openPlans;
+
+// ---------- API ----------
+async function call(method, url, body, throwErr) {
+  const r = await fetch(url, { method, headers: { 'X-Pin': PIN, ...(body ? { 'Content-Type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined });
+  const j = await r.json().catch(() => ({}));
+  if (r.status === 401) { showPin(); throw new Error('Pogrešan PIN.'); }
+  if (!r.ok) { if (throwErr) throw new Error(j.error || 'Greška'); toast(j.error || 'Greška'); throw new Error(j.error); }
+  await load();
+  return j;
+}
+async function load() {
+  const r = await fetch('/api/pretplate', { headers: { 'X-Pin': PIN } });
+  if (r.status === 401) return showPin();
+  const j = await r.json();
+  DB = j; TODAY = localToday();
+  $('pinView').classList.add('hidden'); $('app').classList.remove('hidden');
+  render();
+  if (OPEN) openDrawer(OPEN);
+}
+const localToday = () => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10); };
+function showPin() { $('app').classList.add('hidden'); $('pinView').classList.remove('hidden'); $('pinInput').focus(); }
+$('pinBtn').onclick = () => { PIN = $('pinInput').value.trim(); try { localStorage.setItem('foodar-pin', PIN); } catch (e) {} load(); };
+$('pinInput').onkeydown = e => { if (e.key === 'Enter') $('pinBtn').click(); };
+let tt; function toast(t) { $('toast').textContent = t; $('toast').classList.add('on'); clearTimeout(tt); tt = setTimeout(() => $('toast').classList.remove('on'), 2400); }
+let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => DB.subs && render(), 150); });
+load();
+</script>
+</body>
+</html>

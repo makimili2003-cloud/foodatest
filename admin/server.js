@@ -25,12 +25,14 @@ if (fs.existsSync(envFile)) {
 const { optimizeGlb } = await import('./optimize.js');
 const gh = await import('./github.js');
 const netlify = await import('./netlify.js');
+const subs = await import('./subs.js');
 
 const PORT = Number(process.env.PORT) || 3000;
 const DOMAIN = process.env.DOMAIN || 'foodar.org';
 const PIN = process.env.ADMIN_PIN || '';
 const TMP = path.join(DIR, 'tmp');
 fs.mkdirSync(TMP, { recursive: true });
+subs.initStore(path.join(DIR, 'data'));
 
 const RESERVED = new Set(['www', 'admin', 'api', 'mail', 'smtp', 'ftp', 'app', 'demo', 'test']);
 const validSub = s => /^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$/.test(s) && !RESERVED.has(s);
@@ -156,6 +158,26 @@ app.get('/api/qr/:sub.:ext(png|svg)', wrap(async (req, res) => {
   res.set('Content-Disposition', `${req.query.download ? 'attachment' : 'inline'}; filename="foodar-qr-${sub}.${ext}"`);
   if (ext === 'svg') res.type('image/svg+xml').send(await QRCode.toString(dishUrl(sub), { ...opts, type: 'svg' }));
   else res.type('png').send(await QRCode.toBuffer(dishUrl(sub), { ...opts, width: 1200 }));
+}));
+
+// ================= PRETPLATE =================
+app.get('/api/pretplate', (req, res) => res.json({ ...subs.getAll(), domain: DOMAIN }));
+app.post('/api/pretplate', wrap(async (req, res) => res.json(subs.createSub(req.body || {}))));
+app.patch('/api/pretplate/:id', wrap(async (req, res) => res.json(subs.updateSub(req.params.id, req.body || {}))));
+app.delete('/api/pretplate/:id', wrap(async (req, res) => { subs.deleteSub(req.params.id); res.json({ ok: true }); }));
+app.post('/api/pretplate/:id/uplate', wrap(async (req, res) => res.json(subs.recordPayment(req.params.id, req.body || {}))));
+app.delete('/api/uplate/:id', wrap(async (req, res) => { subs.deletePayment(req.params.id); res.json({ ok: true }); }));
+app.put('/api/paketi', wrap(async (req, res) => res.json(subs.setPlans(req.body || {}))));
+
+// Za buduće online plaćanje (Apple Pay / kartica na sajtu): platni servis šalje uplatu ovde,
+// a pretplata se sama napravi ili produži. Zaštićeno tajnom WEBHOOK_SECRET iz .env.
+app.post('/integracije/uplata', wrap(async (req, res) => {
+  const secret = process.env.WEBHOOK_SECRET || '';
+  const given = String(req.get('x-webhook-secret') || '');
+  if (!secret || given.length !== secret.length || !crypto.timingSafeEqual(Buffer.from(given), Buffer.from(secret))) {
+    return res.status(401).json({ error: 'Neispravna tajna.' });
+  }
+  res.json(subs.recordExternalPayment(req.body || {}));
 }));
 
 app.use((err, req, res, next) => {
