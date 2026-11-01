@@ -41,16 +41,19 @@
     document.head.appendChild(st);
   }
 
-  // iPhone u aplikaciji: uputstvo + "Otvori u Safariju"
-  function iosHelp() {
+  // Aplikacija (Instagram…): uputstvo + otvaranje u pravom browseru (iPhone: Safari, Android: Chrome)
+  function browserHelp() {
     css();
     var url = location.href.split('#')[0];
+    var B = IOS ? 'Safariju' : 'Chrome-u';
+    var openHref = IOS ? 'x-safari-' + url
+      : 'intent://' + url.replace(/^https?:\/\//, '') + '#Intent;scheme=' + (location.protocol === 'http:' ? 'http' : 'https') + ';package=com.android.chrome;S.browser_fallback_url=' + encodeURIComponent(url) + ';end;';
     var w = document.createElement('div'); w.className = 'arh';
     w.innerHTML = '<div class="arh-box" role="dialog" aria-modal="true">' +
-      '<h3>Otvorite u Safariju za AR</h3>' +
-      '<p>' + APP + ' ne dozvoljava prikaz jela na stolu (AR). U Safariju radi odmah:</p>' +
-      '<a class="b p" id="arhSafari" href="x-safari-' + url + '">Otvori u Safariju</a>' +
-      '<ol style="margin-top:16px"><li>Ako se ne otvori: tapnite <span class="dots">•••</span> gore desno</li><li>Izaberite <b>„Open in external browser“</b> / <b>„Otvori u Safariju“</b></li><li>Tapnite ponovo <b>„Pogledaj na svom stolu“</b></li></ol>' +
+      '<h3>Otvorite u ' + B + ' za AR</h3>' +
+      '<p>' + APP + ' ne dozvoljava prikaz jela na stolu (AR). U ' + B + ' radi odmah:</p>' +
+      '<a class="b p" id="arhOpen" href="' + openHref + '">Otvori u ' + B + '</a>' +
+      '<ol style="margin-top:16px"><li>Ako se ne otvori: tapnite <span class="dots">' + (IOS ? '•••' : '⋮') + '</span> gore desno</li><li>Izaberite <b>„Open in external browser“</b> / <b>„Otvori u ' + B + '“</b></li><li>Tapnite ponovo <b>„Pogledaj na svom stolu“</b></li></ol>' +
       '<button class="b g" id="arhCopy" type="button">Kopiraj link</button>' +
       '<button class="b t" id="arhClose" type="button">Zatvori</button></div>';
     document.body.appendChild(w);
@@ -58,7 +61,7 @@
     w.querySelector('#arhClose').onclick = function () { w.remove(); };
     w.querySelector('#arhCopy').onclick = function () {
       var btn = this;
-      var done = function () { btn.textContent = 'Link je kopiran ✓ Nalepite ga u Safari'; };
+      var done = function () { btn.textContent = 'Link je kopiran ✓ Nalepite ga u ' + (IOS ? 'Safari' : 'Chrome'); };
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, function () { prompt('Kopirajte link:', url); });
       else prompt('Kopirajte link:', url);
     };
@@ -82,8 +85,20 @@
     opts = opts || {};
     var glb = mv.getAttribute('src') || mv.src;
     if (!IN_APP && mv.canActivateAR) { mv.activateAR(); return; }
-    if (ANDROID && glb) { sceneViewer({ glb: glb, title: opts.title, fixedScale: opts.fixedScale }); return; }
-    if (IOS && IN_APP) { iosHelp(); return; }
+    if (ANDROID && glb) {
+      var left = false;
+      var onHide = function () { if (document.hidden) left = true; };
+      var onBlur = function () { left = true; };
+      document.addEventListener('visibilitychange', onHide); window.addEventListener('blur', onBlur);
+      sceneViewer({ glb: glb, title: opts.title, fixedScale: opts.fixedScale });
+      // ako aplikacija blokira AR (stranica ostane vidljiva 2 s), ponudi otvaranje u Chrome-u
+      if (IN_APP) setTimeout(function () {
+        document.removeEventListener('visibilitychange', onHide); window.removeEventListener('blur', onBlur);
+        if (!left && !document.hidden) browserHelp();
+      }, 2000);
+      return;
+    }
+    if (IOS && IN_APP) { browserHelp(); return; }
     if (mv.canActivateAR) { mv.activateAR(); return; }
     noAR();
   }
