@@ -183,7 +183,7 @@ function domainNote(d) {
   if (!d) return '';
   if (d.status === 'added') return `<div class="note ok">Domen ${esc(d.domain)} je dodat na Netlify. HTTPS sertifikat stiže za nekoliko minuta.</div>`;
   if (d.status === 'exists' || d.status === 'wildcard') return `<div class="note ok">Domen ${esc(d.domain)} već radi.</div>`;
-  if (d.status === 'skipped') return `<div class="note warn">Netlify token nije podešen: dodaj ${esc(d.domain)} ručno (Netlify → Domain management → Add domain alias).</div>`;
+  if (d.status === 'skipped') return `<div class="note warn">Adresa ${esc(d.domain)} još nije povezana jer automatski domeni nisu uključeni (fali NETLIFY_TOKEN). Uputstvo je u kartici <b>Sva jela</b>. Kad ga podesiš, klikni tamo „Poveži domene“.</div>`;
   if (d.status === 'error') return `<div class="note warn">Domen nije dodat automatski (${esc(d.error)}). Dodaj ${esc(d.domain)} ručno u Netlify → Domain management.</div>`;
   return '';
 }
@@ -216,7 +216,31 @@ async function loadList() {
   try { DISHES = await api('GET', '/api/dishes'); renderList(); }
   catch (e) { $('listStatus').innerHTML = `<div class="note err">${esc(e.message)}</div>`; }
 }
+// ---------- domeni (ime.foodar.org) ----------
+function renderDomCard(result) {
+  const box = $('domCard');
+  if (!STATUS.netlify) {
+    box.innerHTML = `<h2 style="font-size:18px">Automatski domeni nisu uključeni</h2>
+      <p class="sub" style="margin-bottom:8px">Da bi panel sam pravio adrese kao <b>sir.${esc(STATUS.domain)}</b>, Netlify-ju treba dozvola (token). Jednom:</p>
+      <ol style="margin:0 0 6px;padding-left:20px;font-size:14px;line-height:1.7">
+        <li>Otvori <a href="https://app.netlify.com/user/applications#personal-access-tokens" target="_blank" rel="noopener">Netlify → Personal access tokens</a> → <b>New access token</b> → kopiraj ga.</li>
+        <li>Sajt u Netlify-ju → <b>Site configuration → Environment variables → Add a variable</b>: <code>NETLIFY_TOKEN</code> = token.</li>
+        <li><b>Deploys → Trigger deploy</b>, pa se vrati ovde i klikni „Poveži domene“.</li>
+      </ol>`;
+    return;
+  }
+  box.innerHTML = `<div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap">
+      <div><h2 style="font-size:18px">Domeni jela</h2><p class="sub" style="margin:0">Novo jelo automatski dobija svoju adresu. Ovde možeš povezati i jela kojima adresa fali.</p></div>
+      <button class="btn btn-primary btn-sm" id="syncDom">Poveži domene</button></div>
+    ${result ? `<div class="note ${result.error ? 'err' : 'ok'}" style="margin-top:12px">${result.error ? esc(result.error) : result.status === 'wildcard' ? 'Sva jela već rade (podešen je *.' + esc(STATUS.domain) + ').' : result.added.length ? 'Dodato: ' + result.added.map(esc).join(', ') + '. HTTPS sertifikat stiže za nekoliko minuta.' : 'Sva jela već imaju svoju adresu (' + result.existing + ').'}</div>` : ''}`;
+  $('syncDom').onclick = async () => {
+    $('syncDom').disabled = true; $('syncDom').textContent = 'Povezujem…';
+    try { renderDomCard(await api('POST', '/api/domeni')); } catch (e) { renderDomCard({ error: e.message }); }
+  };
+}
+
 function renderList() {
+  renderDomCard();
   $('listStatus').textContent = DISHES.length ? `${DISHES.length} jela na sajtu` : 'Još nema jela.';
   $('list').innerHTML = DISHES.map(d => `
     <div class="dish">

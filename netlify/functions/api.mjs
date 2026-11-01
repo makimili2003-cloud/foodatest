@@ -141,6 +141,13 @@ export default async (req, context) => {
       return json({ ...result, url: dishUrl(sub), domain });
     }
 
+    // ---------- domeni jela ----------
+    if (path === '/domeni' && method === 'POST') {
+      if (!netlify.netlifyConfigured()) throw new HttpError(400, 'NETLIFY_TOKEN nije podešen u Netlify-ju. Dodaj ga (uputstvo je u panelu) i uradi Trigger deploy.');
+      const list = await gh.getDishes();
+      return json(await netlify.syncSubdomains(list.map(d => d.sub), DOMAIN));
+    }
+
     // ---------- upiti ----------
     if (path === '/upiti' && method === 'GET') return json({ upiti: await upiti.list(), senders: mail.availableSenders(), inbox: mail.INBOX });
     if ((m = path.match(/^\/upiti\/([a-z0-9-]+)\/odgovor$/)) && method === 'POST') {
