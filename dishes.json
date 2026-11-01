@@ -24,7 +24,7 @@
     "glb": "hlebandroid.glb",
     "usdz": "hleb.usdz",
     "realSize": true,
-    "demo": true
+    "demo": false
   },
   {
     "sub": "bananahleb",
