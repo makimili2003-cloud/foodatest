@@ -34,11 +34,40 @@ async function start() {
   $('domainSuffix').textContent = '.' + STATUS.domain;
   $('cfg').innerHTML =
     `<span class="${STATUS.github ? '' : 'off'}">GitHub ${STATUS.github ? 'povezan' : 'NIJE povezan'}</span>` +
-    `<span class="${STATUS.netlify ? '' : 'off'}">Netlify domeni ${STATUS.netlify ? 'automatski' : 'ručno'}</span>`;
+    `<span class="${STATUS.netlify ? '' : 'off'}">Netlify domeni ${STATUS.netlify ? 'automatski' : 'ručno'}</span>` +
+    `<button class="btn btn-ghost btn-sm" id="diagBtn" style="padding:4px 10px;font-size:12px">Proveri GitHub vezu</button>`;
+  $('diagBtn').onclick = diagnose;
   try { DISHES = await api('GET', '/api/dishes'); } catch (e) { $('listStatus').textContent = e.message; }
   renderList();
 }
 $('logoutBtn').onclick = e => { e.preventDefault(); logout(); };
+
+// ---------- provera GitHub veze ----------
+async function diagnose() {
+  const box = $('diagCard');
+  box.classList.remove('hidden'); box.innerHTML = '<b>Proveravam vezu sa GitHub-om…</b>';
+  try {
+    const d = await api('GET', '/api/dijagnostika'), g = d.github;
+    const row = (ok, label, val) => `<div style="display:flex;gap:8px;padding:5px 0;border-top:1px solid var(--line)"><span>${ok === null ? '•' : ok ? '✅' : '❌'}</span><span style="flex:1">${label}</span><b style="text-align:right;word-break:break-all">${esc(String(val ?? '–'))}</b></div>`;
+    let tip = '';
+    if (!g.tokenSet) tip = 'GITHUB_TOKEN nije podešen u Netlify-ju (ili je podešen samo za Builds, a ne i za Functions). Dodaj ga i uradi Trigger deploy.';
+    else if (String(g.user).startsWith('greška')) tip = 'GitHub ne prihvata token (neispravan, obrisan ili istekao). Napravi novi, stavi ga u Netlify kao GITHUB_TOKEN i uradi Trigger deploy.';
+    else if (!g.repoFound) tip = `Token ne vidi repo ${g.repo}. U podešavanjima tokena, pod Repository access, izaberi foodatest.`;
+    else if (g.writeTest !== 'OK') tip = 'Token vidi repo, ali NE sme da piše. Proveri da je ovo isti token koji si menjao (poslednja 4 znaka gore). Ako je fine-grained: Permissions → Contents → Read and write, pa Update. Ako je classic (ghp_): štikliraj „repo“. Ako si menjao vrednost u Netlify-ju, obavezno Trigger deploy.';
+    else tip = 'Sve je u redu: token sme da piše u repo. Objava jela bi trebalo da radi.';
+    box.innerHTML = `<b>Provera GitHub veze</b>
+      ${row(g.tokenSet, 'Token učitan u Netlify', g.tokenSet ? g.tokenHint : 'NE')}
+      ${g.tokenSet ? row(null, 'Tip tokena', g.tokenType) : ''}
+      ${g.tokenSet ? row(!String(g.user).startsWith('greška'), 'GitHub nalog tokena', g.user) : ''}
+      ${g.tokenSet ? row(g.repoFound, 'Vidi repo ' + (g.repo || ''), g.repoFound ? 'da' : 'ne (' + g.repoError + ')') : ''}
+      ${g.tokenSet && g.repoFound ? row(g.canWrite, 'GitHub kaže da sme da piše', g.canWrite ? 'da' : 'ne') : ''}
+      ${g.tokenSet ? row(g.writeTest === 'OK', 'Proba upisa', g.writeTest) : ''}
+      ${g.classicScopes ? row(null, 'Classic scope-ovi', g.classicScopes) : ''}
+      ${g.tokenExpires ? row(null, 'Token ističe', g.tokenExpires) : ''}
+      ${g.hadWhitespace ? row(false, 'Token je imao razmak/novi red', 'automatski uklonjeno') : ''}
+      <div class="note ${g.writeTest === 'OK' ? 'ok' : 'warn'}" style="margin-top:10px">${esc(tip)}</div>`;
+  } catch (e) { box.innerHTML = `<div class="note err">${esc(e.message)}</div>`; }
+}
 
 // ---------- tabovi ----------
 document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
@@ -144,6 +173,7 @@ $('publishBtn').onclick = async () => {
     showDone(r, body);
   } catch (e) {
     $('pubStatus').innerHTML = `<div class="note err">${esc(e.message)}</div>`;
+    if (/GitHub/.test(e.message)) { diagnose(); scrollTo({ top: 0, behavior: 'smooth' }); }
   } finally {
     $('publishBtn').disabled = false; $('restartBtn').disabled = false; $('prog2').classList.add('hidden');
   }
