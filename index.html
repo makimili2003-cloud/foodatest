@@ -668,7 +668,7 @@
         </div>
       </div>
       <div class="plans" id="plans"></div>
-      <p class="price-note reveal">Cene su u dinarima. Za lance restorana i veći broj lokacija <a href="#kontakt">javite nam se</a> za posebnu ponudu.</p>
+      <p class="price-note reveal">Cene su u dinarima. Za posebne potrebe <a href="#kontakt">javite nam se</a> i napravićemo ponudu po meri.</p>
     </div>
   </section>
 
@@ -685,7 +685,7 @@
         <details class="reveal"><summary>Da li je jelo zaista u stvarnoj veličini?</summary><p>Da. Jela skeniramo sa stvarnim dimenzijama, pa se u AR-u prikazuju u razmeri 1:1, tačno onoliko velika koliko stižu na sto.</p></details>
         <details class="reveal"><summary>Šta ako promenim izgled jela ili dodam novo?</summary><p>Novo ili izmenjeno jelo ponovo snimimo i zamenimo. Link i QR kod ostaju isti, pa ne morate ništa da štampate ponovo.</p></details>
         <details class="reveal"><summary>Da li moram da menjam meni ili sistem za porudžbine?</summary><p>Ne. FoodAR radi uz vaš postojeći meni. Pored artikala se dodaju samo QR kodovi, kao nalepnice ili u sledećem izdanju menija.</p></details>
-        <details class="reveal"><summary>Koliko košta?</summary><p>Paketi počinju od 2.490 dinara mesečno, a godišnjim plaćanjem štedite 20%. Pogledajte <a href="#cene">cenovnik</a>, a za veći broj lokacija pošaljite upit i dobićete posebnu ponudu.</p></details>
+        <details class="reveal"><summary>Koliko košta?</summary><p>Paketi počinju od 2.490 dinara mesečno, a godišnjim plaćanjem štedite 20%. Pogledajte <a href="#cene">cenovnik</a>, a za posebne potrebe pošaljite upit i dobićete ponudu po meri.</p></details>
       </div>
     </div>
   </section>
@@ -904,11 +904,11 @@
   // ---------- Cenovnik (cene u dinarima mesečno; ovde ih menjaš) ----------
   const PLANS = [
     { name: 'Starter', for: 'Za manje restorane i kafiće', monthly: 2490, yearly: 1990,
-      features: ['Jedna lokacija', '-Prioritetna podrška', 'Do 30 jela na meniju', 'Digitalni meni sa QR kodom', 'Do 5 novih 3D jela mesečno'] },
+      features: ['-Prioritetna podrška', 'Do 30 jela na meniju', 'Digitalni meni sa QR kodom', 'Do 5 novih 3D jela mesečno'] },
     { name: 'Pro', for: 'Najbolji izbor za većinu restorana', monthly: 5990, yearly: 4790, popular: true,
-      features: ['Prioritetna podrška', 'Do 3 lokacije', 'Do 100 jela na meniju', 'Digitalni meni sa QR kodom', 'Do 20 novih 3D jela mesečno'] },
+      features: ['Prioritetna podrška', 'Do 100 jela na meniju', 'Digitalni meni sa QR kodom', 'Do 20 novih 3D jela mesečno'] },
     { name: 'Elite', for: 'Za lance i veće restorane', monthly: 11990, yearly: 9590,
-      features: ['Prioritetna podrška', 'Do 10 lokacija', 'Neograničen broj jela', 'Vaš logo i boje (brendiranje)', 'Digitalni meni sa QR kodom', 'Do 40 novih 3D jela mesečno'] }
+      features: ['Prioritetna podrška', 'Neograničen broj jela', 'Vaš logo i boje (brendiranje)', 'Digitalni meni sa QR kodom', 'Do 40 novih 3D jela mesečno'] }
   ];
   const din = n => n.toLocaleString('sr-RS');
   const plansEl = document.getElementById('plans');
