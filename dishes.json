@@ -77,5 +77,13 @@
     "glb": "modeli/strips.glb",
     "realSize": true,
     "demo": true
+  },
+  {
+    "sub": "sushi",
+    "name": "sushi",
+    "desc": "",
+    "glb": "modeli/sushi.glb",
+    "realSize": true,
+    "demo": false
   }
 ]
