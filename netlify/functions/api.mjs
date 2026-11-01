@@ -5,6 +5,8 @@ import { checkPassword, passwordConfigured, signToken, verifyToken } from '../li
 import * as gh from '../lib/github.mjs';
 import * as netlify from '../lib/netlify-api.mjs';
 import * as subs from '../lib/subs.mjs';
+import * as upiti from '../lib/upiti.mjs';
+import * as mail from '../lib/mail.mjs';
 
 const DOMAIN = process.env.DOMAIN || 'foodar.org';
 const RESERVED = new Set(['www', 'admin', 'api', 'mail', 'smtp', 'ftp', 'app', 'demo', 'test']);
@@ -29,6 +31,19 @@ export default async (req, context) => {
 
   try {
     // ---------- prijava ----------
+    // ---------- javni upit sa kontakt forme sajta (bez prijave) ----------
+    if (path === '/upit' && method === 'POST') {
+      const b = await body();
+      if (b['bot-field']) return json({ ok: true }); // zamka za botove
+      let entry;
+      try { entry = await upiti.submit(b, context?.ip || req.headers.get('x-nf-client-connection-ip')); }
+      catch (e) { throw new HttpError(e.status || 400, e.message); }
+      let emailed = false;
+      try { emailed = await mail.notifyNewInquiry(entry, `${url.origin}/admin/upiti.html#${entry.id}`); }
+      catch (e) { console.error('obaveštenje o upitu:', e.message); }
+      return json({ ok: true, id: entry.id, emailed });
+    }
+
     if (path === '/login' && method === 'POST') {
       if (!passwordConfigured()) throw new HttpError(503, 'Lozinka nije podešena. U Netlify-ju dodaj promenljivu ADMIN_PASSWORD (vidi uputstvo).');
       const ip = context?.ip || req.headers.get('x-nf-client-connection-ip') || 'nepoznat';
@@ -63,7 +78,8 @@ export default async (req, context) => {
       return json({ github: await gh.diagnose(), netlifyToken: Boolean(process.env.NETLIFY_TOKEN), siteId: context?.site?.id || null, deployId: process.env.DEPLOY_ID || context?.deploy?.id || null });
     }
     if (path === '/status' && method === 'GET') {
-      return json({ domain: DOMAIN, repo: process.env.GITHUB_REPO || 'makimili2003-cloud/foodatest', github: Boolean(process.env.GITHUB_TOKEN), netlify: netlify.netlifyConfigured() });
+      const noviUpiti = (await upiti.list()).filter(u => u.status === 'novo').length;
+      return json({ noviUpiti, domain: DOMAIN, repo: process.env.GITHUB_REPO || 'makimili2003-cloud/foodatest', github: Boolean(process.env.GITHUB_TOKEN), netlify: netlify.netlifyConfigured() });
     }
 
     // ---------- jela ----------
@@ -123,6 +139,24 @@ export default async (req, context) => {
       let domain;
       try { domain = await netlify.addSubdomain(sub, DOMAIN); } catch (e) { domain = { status: 'error', error: e.message, domain: `${sub}.${DOMAIN}` }; }
       return json({ ...result, url: dishUrl(sub), domain });
+    }
+
+    // ---------- upiti ----------
+    if (path === '/upiti' && method === 'GET') return json({ upiti: await upiti.list(), senders: mail.availableSenders(), inbox: mail.INBOX });
+    if ((m = path.match(/^\/upiti\/([a-z0-9-]+)\/odgovor$/)) && method === 'POST') {
+      const { od, predmet, tekst } = await body();
+      const u = await upiti.get(m[1]);
+      if (!u) throw new HttpError(404, 'Upit nije pronađen.');
+      if (!u.email) throw new HttpError(400, 'Klijent nije ostavio email, pa mu možeš samo pozvati telefon.');
+      if (!String(tekst || '').trim()) throw new HttpError(400, 'Napiši tekst odgovora.');
+      if (!mail.SENDERS[od]) throw new HttpError(400, 'Izaberi sa koje adrese šalješ.');
+      const subject = String(predmet || '').trim().slice(0, 200) || `Re: Upit za FoodAR – ${u.restoran || u.ime}`;
+      await mail.sendReply(od, u, subject, String(tekst).trim().slice(0, 10000));
+      return json(await upiti.addReply(m[1], { od, email: mail.SENDERS[od].email, predmet: subject, tekst: String(tekst).trim().slice(0, 10000) }));
+    }
+    if ((m = path.match(/^\/upiti\/([a-z0-9-]+)$/))) {
+      if (method === 'PATCH') return json(await upiti.update(m[1], await body()));
+      if (method === 'DELETE') { await upiti.remove(m[1]); return json({ ok: true }); }
     }
 
     // ---------- pretplate ----------

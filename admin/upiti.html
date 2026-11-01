@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#1f1a17" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Upiti – FoodAR admin</title>
+  <style>
+    :root {
+      --bg: #fbf7f1; --bg-2: #f3ece2; --card: #fff; --ink: #1f1a17; --ink-2: #6a6058; --ink-3: #9a8f85; --line: #ebe3d8; --line-2: #f3eee7;
+      --accent: #d9472b; --accent-soft: #fbe3dc; --ok: #2f6b3f; --ok-soft: #e3efe6; --warn: #8a5a00; --warn-soft: #fff1d1; --info: #1c5cab; --info-soft: #e3eefb;
+      --shadow: 0 1px 2px rgba(60,35,20,.04), 0 8px 24px -12px rgba(60,35,20,.14);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    header { position: sticky; top: 0; z-index: 20; background: var(--ink); color: #fff; padding: 0 20px; padding-top: env(safe-area-inset-top); }
+    .hbar { max-width: 1280px; margin: 0 auto; height: 60px; display: flex; align-items: center; gap: 22px; }
+    .brand { display: flex; align-items: center; gap: 10px; font: 700 19px Georgia, serif; text-decoration: none; color: #fff; }
+    .brand i { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--accent); font: 700 11px system-ui; font-style: normal; }
+    .hnav { display: flex; gap: 4px; margin-left: auto; }
+    .hnav a { color: #d8cfc6; text-decoration: none; padding: 8px 12px; border-radius: 999px; font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; }
+    .hnav a.on { background: rgba(255,255,255,.12); color: #fff; }
+    .nbadge { background: var(--accent); color: #fff; border-radius: 99px; font-size: 11px; font-weight: 700; padding: 1px 7px; min-width: 20px; text-align: center; }
+
+    main { max-width: 1280px; margin: 0 auto; padding: 24px 20px 60px; }
+    .top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px; margin-bottom: 18px; }
+    .top h1 { font: 700 32px/1.1 Georgia, serif; margin: 0; }
+    .top p { margin: 6px 0 0; color: var(--ink-2); }
+    .stats { display: flex; gap: 10px; flex-wrap: wrap; }
+    .stat { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 8px 14px; text-align: center; min-width: 92px; }
+    .stat b { display: block; font: 700 22px Georgia, serif; }
+    .stat small { color: var(--ink-2); font-size: 12px; }
+    .stat.new b { color: var(--accent); }
+
+    .layout { display: grid; grid-template-columns: 400px 1fr; gap: 16px; align-items: start; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 20px; box-shadow: var(--shadow); }
+    .tools { padding: 14px; border-bottom: 1px solid var(--line-2); display: grid; gap: 10px; }
+    .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+    .chip { border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 5px 11px; font-size: 13px; font-weight: 600; color: var(--ink-2); cursor: pointer; }
+    .chip b { color: var(--ink-3); margin-left: 3px; }
+    .chip.on { background: var(--ink); border-color: var(--ink); color: #fff; }
+    .chip.on b { color: #cfc6bd; }
+    .search input, .tools select { width: 100%; border: 1px solid var(--line); background: var(--bg); border-radius: 999px; padding: 9px 14px; outline: none; }
+    .search input:focus { border-color: var(--ink-3); background: #fff; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+    .list { max-height: calc(100vh - 250px); overflow: auto; }
+    .item { display: block; width: 100%; text-align: left; border: 0; background: none; padding: 14px 16px; border-top: 1px solid var(--line-2); cursor: pointer; position: relative; transition: background .15s; }
+    .item:first-child { border-top: 0; }
+    .item:hover { background: #fffaf6; }
+    .item.on { background: #fff4ef; box-shadow: inset 3px 0 0 var(--accent); }
+    .item .l1 { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+    .item .nm { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .item.unread .nm::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); margin-right: 7px; vertical-align: 2px; }
+    .item time { color: var(--ink-3); font-size: 12.5px; white-space: nowrap; }
+    .item .l2 { color: var(--ink-2); font-size: 13px; margin-top: 2px; }
+    .item .l3 { color: var(--ink-3); font-size: 13px; margin-top: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .item .tags { display: flex; gap: 5px; margin-top: 7px; flex-wrap: wrap; }
+    .tag { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: var(--bg-2); color: var(--ink-2); }
+    .s-novo { background: var(--accent-soft); color: #a3301a; }
+    .s-u-obradi { background: var(--warn-soft); color: var(--warn); }
+    .s-zavrseno { background: var(--ok-soft); color: var(--ok); }
+    .s-arhiva { background: var(--bg-2); color: var(--ink-3); }
+    .t-person { background: var(--info-soft); color: var(--info); }
+    .empty { color: var(--ink-2); text-align: center; padding: 40px 16px; }
+
+    /* Detalji */
+    .detail { min-height: 420px; }
+    .dh { padding: 20px 22px 16px; border-bottom: 1px solid var(--line-2); display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+    .dh h2 { margin: 0; font: 700 26px/1.15 Georgia, serif; }
+    .dh p { margin: 4px 0 0; color: var(--ink-2); font-size: 14px; }
+    .btn.back { display: none; }
+    .db { padding: 18px 22px 24px; display: grid; gap: 18px; }
+    .contact { display: flex; flex-wrap: wrap; gap: 8px; }
+    .btn { display: inline-flex; align-items: center; gap: 7px; border: 0; border-radius: 999px; padding: 10px 16px; font-weight: 600; cursor: pointer; text-decoration: none; white-space: nowrap; transition: background .2s, transform .1s; font-size: 14px; }
+    .btn:active { transform: scale(.98); }
+    .btn svg { width: 17px; height: 17px; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: #c43d23; }
+    .btn-primary:disabled { opacity: .55; cursor: default; }
+    .btn-ghost { background: var(--card); border: 1px solid var(--line); color: var(--ink); }
+    .btn-ghost:hover { border-color: var(--ink-3); }
+    .btn-danger { background: transparent; border: 1px solid #ecc3b8; color: #a3301a; }
+    .facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .fact { background: var(--bg); border-radius: 12px; padding: 10px 12px; min-width: 0; }
+    .fact small { display: block; color: var(--ink-2); font-size: 12px; }
+    .fact b { word-break: break-word; }
+    .msgbox { background: var(--bg); border-radius: 14px; padding: 14px 16px; white-space: pre-wrap; }
+    .sec { font-size: 12px; font-weight: 700; color: var(--ink-3); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
+    .seg { display: inline-flex; background: var(--bg-2); border-radius: 12px; padding: 4px; gap: 3px; flex-wrap: wrap; }
+    .seg button { border: 0; background: transparent; border-radius: 9px; padding: 7px 12px; font-weight: 600; font-size: 13.5px; color: var(--ink-2); cursor: pointer; }
+    .seg button.on { background: #fff; color: var(--ink); box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+    .ctrl { display: flex; flex-wrap: wrap; gap: 20px; }
+    .thread { display: grid; gap: 10px; }
+    .bubble { border-radius: 14px; padding: 12px 14px; font-size: 14px; }
+    .bubble.reply { background: #eef6f0; border: 1px solid #d3e8da; }
+    .bubble.note { background: #fffaf0; border: 1px dashed #ecd9a8; }
+    .bubble .meta { font-size: 12px; color: var(--ink-2); margin-bottom: 4px; }
+    .bubble .txt { white-space: pre-wrap; }
+    .compose { border: 1px solid var(--line); border-radius: 16px; padding: 14px; display: grid; gap: 10px; background: #fff; }
+    .compose label { display: grid; gap: 5px; font-size: 13px; font-weight: 600; }
+    .compose input, .compose select, .compose textarea, .notein { width: 100%; border: 1.5px solid var(--line); background: var(--bg); border-radius: 12px; padding: 10px 12px; outline: none; }
+    .compose input:focus, .compose select:focus, .compose textarea:focus, .notein:focus { border-color: var(--accent); background: #fff; }
+    .compose textarea { min-height: 170px; resize: vertical; line-height: 1.55; }
+    .tpl { display: flex; gap: 6px; flex-wrap: wrap; }
+    .tpl button { border: 1px dashed var(--line); background: var(--bg); border-radius: 999px; padding: 5px 11px; font-size: 12.5px; cursor: pointer; color: var(--ink-2); }
+    .tpl button:hover { border-color: var(--accent); color: var(--accent); }
+    .hint { font-size: 12.5px; color: var(--ink-2); }
+    .note-row { display: flex; gap: 8px; }
+    .err { background: var(--accent-soft); color: #a3301a; border-radius: 12px; padding: 10px 12px; font-size: 14px; }
+    .warnbox { background: var(--warn-soft); color: var(--warn); border-radius: 12px; padding: 10px 12px; font-size: 13.5px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; }
+    .hidden { display: none !important; }
+    .toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); background: var(--ink); color: #fff; padding: 12px 18px; border-radius: 999px; font-weight: 600; font-size: 14px; opacity: 0; transition: all .3s cubic-bezier(.2,.8,.2,1); z-index: 60; pointer-events: none; }
+    .toast.on { opacity: 1; transform: translate(-50%, 0); }
+    .fade { animation: fade .35s cubic-bezier(.2,.8,.2,1) both; }
+    @keyframes fade { from { opacity: 0; transform: translateY(6px); } }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .list { max-height: none; }
+      .detail { position: fixed; inset: 0; top: 0; z-index: 30; border-radius: 0; overflow: auto; transform: translateX(105%); transition: transform .3s cubic-bezier(.2,.8,.2,1); padding-top: env(safe-area-inset-top); }
+      .detail.open { transform: none; }
+      .btn.back { display: inline-flex; }
+      .facts { grid-template-columns: 1fr 1fr; }
+      .top h1 { font-size: 26px; }
+      main { padding: 16px 14px 60px; }
+      .hnav a { padding: 7px 9px; font-size: 13px; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+  </style>
+</head>
+<body>
+<header>
+  <div class="hbar">
+    <a class="brand" href="/admin/"><i>AR</i>FoodAR</a>
+    <nav class="hnav">
+      <a href="/admin/">Jela</a>
+      <a href="/admin/pretplate.html">Pretplate</a>
+      <a href="/admin/upiti.html" class="on">Upiti</a>
+      <a href="#" id="logoutBtn">Odjava</a>
+    </nav>
+  </div>
+</header>
+
+<main id="app" class="hidden">
+  <div class="top">
+    <div>
+      <h1>Upiti</h1>
+      <p>Upiti sa kontakt forme na sajtu. Stižu i mejlom na <b id="inboxAddr">ar@foodar.org</b>.</p>
+    </div>
+    <div class="stats" id="stats"></div>
+  </div>
+
+  <div class="layout">
+    <section class="card">
+      <div class="tools">
+        <div class="chips" id="chips"></div>
+        <div class="row2">
+          <label class="search"><input id="q" type="search" placeholder="Pretraži…" /></label>
+          <select id="who" aria-label="Dodeljeno">
+            <option value="">Svi</option>
+            <option value="-">Nedodeljeni</option>
+            <option value="ar">AR (glavni)</option>
+            <option value="milan">Milan</option>
+            <option value="mateja">Mateja</option>
+          </select>
+        </div>
+      </div>
+      <div class="list" id="list"></div>
+    </section>
+
+    <section class="card detail" id="detail">
+      <div class="empty" id="placeholder">Izaberi upit sa liste.</div>
+      <div id="dview" class="hidden"></div>
+    </section>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { api, ensureLogin, logout, updateBadge } from './common.js';
+const $ = id => document.getElementById(id);
+let DATA = { upiti: [], senders: [] }, SEL = null, FILTER = 'aktivni';
+const TEAM = { ar: 'AR (glavni)', milan: 'Milan', mateja: 'Mateja' };
+const STATUS = { novo: 'Novo', 'u-obradi': 'U obradi', zavrseno: 'Završeno', arhiva: 'Arhiva' };
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const when = iso => {
+  const d = new Date(iso), diff = (Date.now() - d) / 1000;
+  if (diff < 60) return 'upravo';
+  if (diff < 3600) return `pre ${Math.floor(diff / 60)} min`;
+  if (diff < 86400) return `pre ${Math.floor(diff / 3600)} h`;
+  if (diff < 7 * 86400) return `pre ${Math.floor(diff / 86400)} d`;
+  return d.toLocaleDateString('sr-RS');
+};
+const full = iso => new Date(iso).toLocaleString('sr-RS', { day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+let tt; const toast = t => { $('toast').textContent = t; $('toast').classList.add('on'); clearTimeout(tt); tt = setTimeout(() => $('toast').classList.remove('on'), 2400); };
+
+const FILTERS = [
+  ['aktivni', 'Aktivni', u => u.status === 'novo' || u.status === 'u-obradi'],
+  ['novo', 'Novi', u => u.status === 'novo'],
+  ['u-obradi', 'U obradi', u => u.status === 'u-obradi'],
+  ['zavrseno', 'Završeni', u => u.status === 'zavrseno'],
+  ['arhiva', 'Arhiva', u => u.status === 'arhiva'],
+  ['svi', 'Svi', () => true]
+];
+
+async function load() {
+  DATA = await api('GET', '/api/upiti');
+  $('app').classList.remove('hidden');
+  $('inboxAddr').textContent = DATA.inbox || 'ar@foodar.org';
+  updateBadge(DATA.upiti.filter(u => u.status === 'novo').length);
+  render();
+  const hash = location.hash.slice(1);
+  if (hash && !SEL && DATA.upiti.some(u => u.id === hash)) { FILTER = 'svi'; render(); open(hash); }
+  else if (SEL) open(SEL, true);
+}
+
+function render() {
+  const U = DATA.upiti;
+  const month = new Date().toISOString().slice(0, 7);
+  $('stats').innerHTML = `
+    <div class="stat new"><b>${U.filter(u => u.status === 'novo').length}</b><small>novih</small></div>
+    <div class="stat"><b>${U.filter(u => u.status === 'u-obradi').length}</b><small>u obradi</small></div>
+    <div class="stat"><b>${U.filter(u => u.createdAt.slice(0, 7) === month).length}</b><small>ovog meseca</small></div>
+    <div class="stat"><b>${U.length}</b><small>ukupno</small></div>`;
+  $('chips').innerHTML = FILTERS.map(([k, l, fn]) => `<button class="chip ${FILTER === k ? 'on' : ''}" data-f="${k}">${l}<b>${U.filter(fn).length}</b></button>`).join('');
+  const q = $('q').value.trim().toLowerCase(), who = $('who').value;
+  const fn = FILTERS.find(f => f[0] === FILTER)[2];
+  const list = U.filter(u => fn(u) && (!who || (who === '-' ? !u.dodeljeno : u.dodeljeno === who)) &&
+    (!q || ['ime', 'restoran', 'email', 'telefon', 'grad', 'poruka'].some(k => String(u[k] || '').toLowerCase().includes(q))));
+  $('list').innerHTML = list.length ? list.map(u => `
+    <button class="item ${u.status === 'novo' ? 'unread' : ''} ${SEL === u.id ? 'on' : ''}" data-id="${u.id}">
+      <div class="l1"><span class="nm">${esc(u.restoran || u.ime)}</span><time>${when(u.createdAt)}</time></div>
+      <div class="l2">${esc([u.restoran ? u.ime : '', u.grad].filter(Boolean).join(' · ') || u.email || u.telefon)}</div>
+      ${u.poruka ? `<div class="l3">${esc(u.poruka)}</div>` : ''}
+      <div class="tags"><span class="tag s-${u.status}">${STATUS[u.status]}</span>${u.paket ? `<span class="tag">${esc(u.paket)}</span>` : ''}${u.dodeljeno ? `<span class="tag t-person">${TEAM[u.dodeljeno]}</span>` : ''}${u.odgovori?.length ? `<span class="tag s-zavrseno">✓ odgovoreno</span>` : ''}</div>
+    </button>`).join('') : `<div class="empty">${U.length ? 'Nema upita za ovaj filter.' : 'Još nema upita. Kad neko popuni formu na sajtu, pojaviće se ovde.'}</div>`;
+}
+$('chips').onclick = e => { const b = e.target.closest('[data-f]'); if (b) { FILTER = b.dataset.f; render(); } };
+$('q').oninput = render; $('who').onchange = render;
+$('list').onclick = e => { const b = e.target.closest('[data-id]'); if (b) open(b.dataset.id); };
+
+const TEMPLATES = {
+  demo: u => `Poštovani/a ${u.ime || ''},\n\nhvala na interesovanju za FoodAR! Rado bismo vam uživo pokazali kako izgleda 3D i AR meni na primeru vaših jela${u.restoran ? ' u restoranu ' + u.restoran : ''}.\n\nDa li vam odgovara da se vidimo u toku naredne nedelje? Predložite dan i vreme koje vama odgovara, a mi ćemo se prilagoditi. Demonstracija je besplatna i bez obaveze.\n\nSrdačan pozdrav,`,
+  ponuda: u => `Poštovani/a ${u.ime || ''},\n\nhvala na upitu! Na osnovu onoga što ste nam napisali${u.broj_jela ? ' (' + u.broj_jela + ' jela na meniju)' : ''}, preporučujemo paket ${u.paket || 'Pro'}.\n\nU paket je uključeno 3D skeniranje jela u vašem restoranu, obrada modela, hosting i QR kodovi za meni. Sve cene i detalje možete pogledati na https://foodar.org/#cene\n\nJavite nam ako imate pitanja ili želite da dogovorimo besplatnu demonstraciju.\n\nSrdačan pozdrav,`,
+  poziv: u => `Poštovani/a ${u.ime || ''},\n\nhvala na upitu za FoodAR. Pokušali smo da vas dobijemo telefonom${u.telefon ? ' na ' + u.telefon : ''}. Javite nam kada vam odgovara da se čujemo, ili nam jednostavno odgovorite na ovaj mejl.\n\nSrdačan pozdrav,`
+};
+
+function open(id, keepScroll) {
+  const u = DATA.upiti.find(x => x.id === id); if (!u) return;
+  SEL = id; history.replaceState(null, '', '#' + id);
+  document.querySelectorAll('.item').forEach(i => i.classList.toggle('on', i.dataset.id === id));
+  $('placeholder').classList.add('hidden'); $('dview').classList.remove('hidden');
+  $('detail').classList.add('open');
+  const senders = DATA.senders || [];
+  const anyReady = senders.some(s => s.ready);
+  const defaultFrom = (senders.find(s => s.id === u.dodeljeno && s.ready) || senders.find(s => s.ready) || senders[0] || {}).id;
+  const thread = [
+    ...(u.odgovori || []).map(o => ({ at: o.at, html: `<div class="bubble reply"><div class="meta">✉️ Odgovor sa <b>${esc(o.email)}</b> · ${full(o.at)}<br>Predmet: ${esc(o.predmet)}</div><div class="txt">${esc(o.tekst)}</div></div>` })),
+    ...(u.beleske || []).map(b => ({ at: b.at, html: `<div class="bubble note"><div class="meta">📝 Beleška${b.ko ? ' · ' + TEAM[b.ko] : ''} · ${full(b.at)}</div><div class="txt">${esc(b.tekst)}</div></div>` }))
+  ].sort((a, b) => a.at.localeCompare(b.at)).map(x => x.html).join('');
+  $('dview').innerHTML = `
+    <div class="dh fade">
+      <div>
+        <button class="btn btn-ghost back" id="backBtn" style="margin-bottom:10px">← Nazad</button>
+        <h2>${esc(u.restoran || u.ime)}</h2>
+        <p>${esc(u.restoran ? u.ime : '')}${u.restoran && u.ime ? ' · ' : ''}primljeno ${full(u.createdAt)}</p>
+      </div>
+      <span class="tag s-${u.status}" style="font-size:12.5px;padding:4px 11px">${STATUS[u.status]}</span>
+    </div>
+    <div class="db fade">
+      <div class="contact">
+        ${u.email ? `<a class="btn btn-primary" href="#odgovor" id="goReply"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="m4 6 8 7 8-7"/></svg>Odgovori mejlom</a>` : ''}
+        ${u.telefon ? `<a class="btn btn-ghost" href="tel:${esc(u.telefon.replace(/[^\d+]/g, ''))}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>Pozovi ${esc(u.telefon)}</a>` : ''}
+        <a class="btn btn-ghost" href="/admin/pretplate.html?${new URLSearchParams({ novi: '1', restoran: u.restoran || '', kontakt: u.ime || '', email: u.email || '', telefon: u.telefon || '', grad: u.grad || '', paket: u.paket || '' })}">+ Napravi pretplatu</a>
+      </div>
+      <div class="facts">
+        ${[['Ime', u.ime], ['Restoran', u.restoran], ['Email', u.email], ['Telefon', u.telefon], ['Grad', u.grad], ['Broj jela', u.broj_jela], ['Paket', u.paket]].filter(x => x[1]).map(([l, v]) => `<div class="fact"><small>${l}</small><b>${esc(v)}</b></div>`).join('')}
+      </div>
+      ${u.poruka ? `<div><div class="sec">Poruka</div><div class="msgbox">${esc(u.poruka)}</div></div>` : ''}
+      <div class="ctrl">
+        <div><div class="sec">Status</div><div class="seg" id="segStatus">${Object.entries(STATUS).map(([k, l]) => `<button data-v="${k}" class="${u.status === k ? 'on' : ''}">${l}</button>`).join('')}</div></div>
+        <div><div class="sec">Dodeljeno</div><div class="seg" id="segWho"><button data-v="" class="${!u.dodeljeno ? 'on' : ''}">Niko</button>${Object.entries(TEAM).map(([k, l]) => `<button data-v="${k}" class="${u.dodeljeno === k ? 'on' : ''}">${l.replace(' (glavni)', '')}</button>`).join('')}</div></div>
+      </div>
+      ${thread ? `<div><div class="sec">Istorija</div><div class="thread">${thread}</div></div>` : ''}
+      <div><div class="sec">Interna beleška</div>
+        <div class="note-row"><input class="notein" id="noteIn" placeholder="npr. Zvao, javlja se u ponedeljak" /><button class="btn btn-ghost" id="noteBtn">Dodaj</button></div>
+      </div>
+      ${u.email ? `<div id="odgovor"><div class="sec">Odgovor klijentu</div>
+        <div class="compose">
+          ${anyReady ? '' : `<div class="warnbox">Slanje mejlova iz panela još nije podešeno. U Netlify-ju dodaj <b>GMAIL_AR_PASS</b> (App password za ar@foodar.org); vidi uputstvo u admin/README.md. Do tada možeš odgovoriti iz Gmail-a: <a href="mailto:${esc(u.email)}">${esc(u.email)}</a>.</div>`}
+          <div class="row2">
+            <label>Od<select id="rFrom">${senders.map(s => `<option value="${s.id}" ${s.id === defaultFrom ? 'selected' : ''} ${s.ready ? '' : 'disabled'}>${esc(s.name)} <${s.email}>${s.ready ? '' : ' (nije podešeno)'}</option>`).join('')}</select></label>
+            <label>Za<input value="${esc(u.email)}" disabled /></label>
+          </div>
+          <label>Predmet<input id="rSubj" value="${esc('Re: Upit za FoodAR' + (u.restoran ? ' – ' + u.restoran : ''))}" /></label>
+          <div class="tpl"><span class="hint" style="align-self:center">Šabloni:</span><button data-t="demo">Predlog demonstracije</button><button data-t="ponuda">Ponuda i cene</button><button data-t="poziv">Nismo vas dobili telefonom</button></div>
+          <label>Poruka<textarea id="rText" placeholder="Napiši odgovor…"></textarea></label>
+          <div class="hint">Potpis i originalni upit se dodaju automatski. Mejl ostaje i u „Poslato“ izabranog Gmail naloga, a odgovor klijenta stiže u taj inbox.</div>
+          <div class="err hidden" id="rErr"></div>
+          <div style="display:flex;justify-content:flex-end"><button class="btn btn-primary" id="rSend" ${anyReady ? '' : 'disabled'}>Pošalji odgovor</button></div>
+        </div></div>` : '<div class="warnbox">Klijent nije ostavio email, pa mu se možeš javiti samo telefonom.</div>'}
+      <div class="actions"><span class="hint">ID: ${u.id}</span><button class="btn btn-danger" id="delBtn">Obriši upit</button></div>
+    </div>`;
+  if (!keepScroll) $('detail').scrollTop = 0;
+  $('backBtn').onclick = () => { $('detail').classList.remove('open'); };
+  const patch = async (body, msg) => { await api('PATCH', '/api/upiti/' + u.id, body); await load(); if (msg) toast(msg); };
+  $('segStatus').onclick = e => { const b = e.target.closest('[data-v]'); if (b && b.dataset.v !== u.status) patch({ status: b.dataset.v }, 'Status: ' + STATUS[b.dataset.v]); };
+  $('segWho').onclick = e => { const b = e.target.closest('[data-v]'); if (b && b.dataset.v !== (u.dodeljeno || '')) patch({ dodeljeno: b.dataset.v }, b.dataset.v ? 'Dodeljeno: ' + TEAM[b.dataset.v] : 'Bez dodele'); };
+  $('noteBtn').onclick = () => { const t = $('noteIn').value.trim(); if (t) patch({ beleska: t, ko: u.dodeljeno }, 'Beleška je dodata'); };
+  $('noteIn').onkeydown = e => { if (e.key === 'Enter') $('noteBtn').click(); };
+  $('delBtn').onclick = async () => { if (!confirm(`Obrisati upit „${u.restoran || u.ime}“?`)) return; await api('DELETE', '/api/upiti/' + u.id); SEL = null; history.replaceState(null, '', location.pathname); $('dview').classList.add('hidden'); $('placeholder').classList.remove('hidden'); $('detail').classList.remove('open'); await load(); toast('Upit je obrisan'); };
+  if (u.status === 'novo') {/* ostaje "novo" dok se ne promeni ručno ili ne odgovori */}
+  if (!u.email) return;
+  $('goReply').onclick = e => { e.preventDefault(); $('odgovor').scrollIntoView({ behavior: 'smooth', block: 'start' }); setTimeout(() => $('rText').focus(), 350); };
+  document.querySelectorAll('.tpl [data-t]').forEach(b => b.onclick = () => {
+    if ($('rText').value.trim() && !confirm('Zameniti postojeći tekst šablonom?')) return;
+    $('rText').value = TEMPLATES[b.dataset.t](u); $('rText').focus();
+  });
+  $('rSend').onclick = async () => {
+    const tekst = $('rText').value.trim();
+    if (!tekst) { $('rErr').textContent = 'Napiši tekst odgovora.'; $('rErr').classList.remove('hidden'); return; }
+    $('rSend').disabled = true; $('rSend').textContent = 'Šaljem…'; $('rErr').classList.add('hidden');
+    try {
+      await api('POST', `/api/upiti/${u.id}/odgovor`, { od: $('rFrom').value, predmet: $('rSubj').value, tekst });
+      await load(); toast('Odgovor je poslat ✓');
+    } catch (e) {
+      $('rErr').textContent = e.message; $('rErr').classList.remove('hidden');
+      $('rSend').disabled = false; $('rSend').textContent = 'Pošalji odgovor';
+    }
+  };
+}
+
+$('logoutBtn').onclick = e => { e.preventDefault(); logout(); };
+ensureLogin().then(load).catch(e => toast(e.message));
+</script>
+</body>
+</html>

@@ -834,7 +834,7 @@
     loader.classList.add('on');
     setTimeout(() => {
       demoMv.src = d.glb; demoMv.iosSrc = d.usdz; demoMv.alt = '3D model: ' + d.name;
-      demoMv.cameraOrbit = '-40deg 75deg 140%'; demoMv.jumpCameraToGoal();
+      demoMv.cameraOrbit = '-40deg 75deg 140%'; demoMv.jumpCameraToGoal?.();
     }, reduceMotion ? 0 : 300);
     if (window.qrcode) {
       const q = qrcode(0, 'M'); q.addData(dishUrl(d)); q.make();
@@ -864,12 +864,20 @@
     if (DISHES.length) select(start >= 0 ? start : 0);
   }).catch(() => { document.getElementById('demo').hidden = true; });
 
-  // ---------- Kontakt forma: email (FormSubmit) + kopija u Netlify Forms ----------
-  const EMAIL = 'makimili2003@gmail.com';
+  // ---------- Kontakt forma ----------
+  // Upit se čuva u admin panelu (foodar.org/admin → Upiti) i šalje mejlom na ar@foodar.org
+  // (kopija milan@ i mateja@). Ako slanje sa servera nije podešeno, mejl ide preko FormSubmit-a.
+  const EMAIL = 'ar@foodar.org';
+  const CC = 'milan@foodar.org,mateja@foodar.org';
   const form = document.getElementById('contactForm');
   const msg = document.getElementById('formMsg');
   const OK_TEXT = 'Hvala! Primili smo vaš upit i javićemo vam se uskoro.';
   if (new URLSearchParams(location.search).get('poslato')) { msg.className = 'form-msg ok'; msg.textContent = OK_TEXT; }
+  const viaFormSubmit = fields => fetch('https://formsubmit.co/ajax/' + EMAIL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify({ ...fields, _subject: 'Novi upit: ' + (fields.restoran || fields.ime), _replyto: fields.email, _cc: CC, _template: 'table', _captcha: 'false' })
+  }).then(r => r.json()).then(j => { if (String(j.success) !== 'true') throw new Error(j.message); });
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const fd = new FormData(form);
@@ -877,31 +885,24 @@
     const btn = document.getElementById('submitBtn');
     btn.disabled = true; btn.textContent = 'Šaljem…';
     const fields = Object.fromEntries([...fd].filter(([k]) => k !== 'bot-field' && k !== 'form-name'));
-    const toEmail = fetch('https://formsubmit.co/ajax/' + EMAIL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({
-        ...fields,
-        _subject: 'Novi upit sa FoodAR sajta – ' + (fields.restoran || fields.ime),
-        _replyto: fields.email,
-        _template: 'table',
-        _captcha: 'false'
-      })
-    }).then(r => r.json()).then(j => { if (String(j.success) !== 'true') throw new Error(j.message); });
-    const toNetlify = fetch('/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams(fd).toString()
-    }).then(r => { if (!r.ok) throw new Error(r.status); });
     try {
-      await Promise.any([toEmail, toNetlify]);
+      let saved = false;
+      try {
+        const r = await fetch('/api/upit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(fields) });
+        const j = await r.json().catch(() => ({}));
+        if (r.status === 429 || (r.status === 400 && j.error)) { msg.className = 'form-msg err'; msg.textContent = j.error; return; }
+        if (!r.ok) throw new Error(j.error || r.status);
+        saved = true;
+        if (!j.emailed) viaFormSubmit(fields).catch(err => console.warn('FormSubmit:', err.message));
+      } catch (err) {
+        console.warn('Čuvanje upita:', err.message);
+        if (!saved) await viaFormSubmit(fields); // bar mejl, ako server ne radi
+      }
       form.reset();
       msg.className = 'form-msg ok'; msg.textContent = OK_TEXT;
     } catch (err) {
-      // Oba servisa su odbila (npr. FormSubmit još nije aktiviran, a Netlify Forms nije uključen).
-      // Gost ipak šalje upit: otvaramo mu email sa već popunjenom porukom.
-      (err.errors || [err]).forEach(x => console.warn('Slanje forme:', x && x.message));
-      const labels = { ime: 'Ime', restoran: 'Restoran', telefon: 'Telefon', email: 'Email', grad: 'Grad', broj_jela: 'Broj jela', poruka: 'Poruka' };
+      // Ni server ni FormSubmit nisu primili upit: otvaramo gostu email sa već popunjenom porukom.
+      const labels = { ime: 'Ime', restoran: 'Restoran', telefon: 'Telefon', email: 'Email', grad: 'Grad', broj_jela: 'Broj jela', paket: 'Paket', poruka: 'Poruka' };
       const body = Object.entries(fields).filter(([, v]) => v).map(([k, v]) => `${labels[k] || k}: ${v}`).join('\n');
       const mailto = `mailto:${EMAIL}?subject=${encodeURIComponent('Upit za FoodAR – ' + (fields.restoran || fields.ime))}&body=${encodeURIComponent(body)}`;
       msg.className = 'form-msg ok';
