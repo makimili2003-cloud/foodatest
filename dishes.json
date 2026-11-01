@@ -75,6 +75,6 @@
     "desc": "",
     "glb": "modeli/sushi.glb",
     "realSize": true,
-    "demo": true
+    "demo": false
   }
 ]
