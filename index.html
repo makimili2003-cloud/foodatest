@@ -670,7 +670,7 @@
           <span class="lbl on" data-period="m">Mesečno</span>
           <button class="switch" id="billingSwitch" role="switch" aria-checked="false" aria-label="Godišnje plaćanje"></button>
           <span class="lbl" data-period="y">Godišnje</span>
-          <span class="save">Uštedite 20%</span>
+          <span class="save">Uštedite 15%</span>
         </div>
       </div>
       <div class="plans" id="plans"></div>
@@ -691,7 +691,7 @@
         <details class="reveal"><summary>Da li je jelo zaista u stvarnoj veličini?</summary><p>Da. Jela skeniramo sa stvarnim dimenzijama, pa se u AR-u prikazuju u razmeri 1:1, tačno onoliko velika koliko stižu na sto.</p></details>
         <details class="reveal"><summary>Šta ako promenim izgled jela ili dodam novo?</summary><p>Novo ili izmenjeno jelo ponovo snimimo i zamenimo. Link i QR kod ostaju isti, pa ne morate ništa da štampate ponovo.</p></details>
         <details class="reveal"><summary>Da li moram da menjam meni ili sistem za porudžbine?</summary><p>Ne. FoodAR radi uz Vaš postojeći meni. Pored artikala se dodaju samo QR kodovi, kao nalepnice ili u sledećem izdanju menija.</p></details>
-        <details class="reveal"><summary>Koliko košta?</summary><p>Paketi počinju od 2.490 dinara mesečno, a godišnjim plaćanjem štedite 20%. Pogledajte <a href="#cene">cenovnik</a>, a za posebne potrebe pošaljite upit i dobićete ponudu po meri.</p></details>
+        <details class="reveal"><summary>Koliko košta?</summary><p>Paketi počinju od 3.990 dinara mesečno, a godišnjim plaćanjem štedite 15%. Pogledajte <a href="#cene">cenovnik</a>, a za posebne potrebe pošaljite upit i dobićete ponudu po meri.</p></details>
       </div>
     </div>
   </section>
@@ -914,13 +914,15 @@
     }
   });
 
-  // ---------- Cenovnik (cene u dinarima mesečno; ovde ih menjaš) ----------
+  // ---------- Cenovnik (cene u dinarima; ovde ih menjaš) ----------
+  // monthly = mesečno plaćanje; yearly = mesečni ekvivalent kod godišnjeg plaćanja (15% popusta, zaokruženo na ...90);
+  // yearlyTotal = ukupno godišnje (monthly × 12 × 0,85)
   const PLANS = [
-    { name: 'Starter', for: 'Za manje restorane i kafiće', monthly: 2490, yearly: 1990,
+    { name: 'Starter', for: 'Za manje restorane i kafiće', monthly: 3990, yearly: 3390, yearlyTotal: 40698,
       features: ['-Prioritetna podrška', 'Do 30 jela na meniju', 'Digitalni meni sa QR kodom', 'Do 5 novih 3D jela mesečno'] },
-    { name: 'Pro', for: 'Najbolji izbor za većinu restorana', monthly: 5990, yearly: 4790, popular: true,
+    { name: 'Pro', for: 'Najbolji izbor za većinu restorana', monthly: 9590, yearly: 8150, yearlyTotal: 97818, popular: true,
       features: ['Prioritetna podrška', 'Do 100 jela na meniju', 'Digitalni meni sa QR kodom', 'Do 20 novih 3D jela mesečno'] },
-    { name: 'Elite', for: 'Za lance i veće restorane', monthly: 11990, yearly: 9590,
+    { name: 'Elite', for: 'Za lance i veće restorane', monthly: 19190, yearly: 16310, yearlyTotal: 195738,
       features: ['Prioritetna podrška', 'Neograničen broj jela', 'Vaš logo i boje (brendiranje)', 'Digitalni meni sa QR kodom', 'Do 40 novih 3D jela mesečno'] }
   ];
   const din = n => n.toLocaleString('sr-RS');
@@ -931,7 +933,7 @@
       <h3>${p.name}</h3>
       <p class="for">${p.for}</p>
       <div class="price"><b data-m="${p.monthly}" data-y="${p.yearly}">${din(p.monthly)}</b><span>din / mesečno</span></div>
-      <p class="billed" data-y-text="Plaća se godišnje: ${din(p.yearly * 12)} din · <em>ušteda ${din((p.monthly - p.yearly) * 12)} din</em>">Plaća se mesečno, otkazivanje bilo kada.</p>
+      <p class="billed" data-y-text="Plaća se godišnje: ${din(p.yearlyTotal)} din · <em>ušteda ${din(p.monthly * 12 - p.yearlyTotal)} din</em>">Plaća se mesečno, otkazivanje bilo kada.</p>
       <ul>${p.features.map(f => f.startsWith('-') ? `<li class="no">${f.slice(1)}</li>` : `<li>${f}</li>`).join('')}</ul>
       <a class="btn ${p.popular ? 'btn-primary' : 'btn-ghost'}" href="#kontakt" data-plan="${p.name}">Izaberi ${p.name}</a>
     </div>`).join('');

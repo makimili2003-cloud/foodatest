@@ -5,10 +5,12 @@ import crypto from 'node:crypto';
 import { adminStore } from './store.mjs';
 
 export const DEFAULT_PLANS = {
-  Starter: { mesecno: 2490, godisnje: 23880 },
-  Pro: { mesecno: 5990, godisnje: 57480 },
-  Elite: { mesecno: 11990, godisnje: 115080 }
+  Starter: { mesecno: 3990, godisnje: 40698 },
+  Pro: { mesecno: 9590, godisnje: 97818 },
+  Elite: { mesecno: 19190, godisnje: 195738 }
 };
+// Stari cenovnik: ako su u skladištu i dalje baš ove (nikad ručno menjane) cene, zameni ih novim.
+const OLD_DEFAULT_PLANS = JSON.stringify({ Starter: { mesecno: 2490, godisnje: 23880 }, Pro: { mesecno: 5990, godisnje: 57480 }, Elite: { mesecno: 11990, godisnje: 115080 } });
 export const METHODS = ['racun', 'gotovina', 'kartica', 'apple-pay', 'google-pay', 'online'];
 
 let store; // podaci učitani za ovaj zahtev
@@ -18,6 +20,7 @@ export async function withData(fn, { write = true } = {}) {
   const blobs = adminStore();
   store = (await blobs.get('pretplate', { type: 'json' })) || { subs: [], payments: [], plans: DEFAULT_PLANS };
   store.plans ||= DEFAULT_PLANS; store.subs ||= []; store.payments ||= [];
+  if (JSON.stringify(store.plans) === OLD_DEFAULT_PLANS) store.plans = DEFAULT_PLANS;
   const result = await fn();
   if (write) {
     const day = new Date().toISOString().slice(0, 10);
