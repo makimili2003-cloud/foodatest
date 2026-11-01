@@ -85,13 +85,5 @@
     "glb": "modeli/sushi.glb",
     "realSize": true,
     "demo": true
-  },
-  {
-    "sub": "sir",
-    "name": "Sir",
-    "desc": "Mladi sir",
-    "glb": "modeli/sir.glb",
-    "realSize": true,
-    "demo": true
   }
 ]
