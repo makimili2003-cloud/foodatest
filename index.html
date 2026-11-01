@@ -1100,7 +1100,6 @@
     let dragging = false;
     stage.addEventListener('pointerdown', () => { dragging = true; });
     for (const ev of ['pointerup', 'pointercancel']) addEventListener(ev, () => { dragging = false; });
-    stage.style.transition = 'translate .45s cubic-bezier(.2,.8,.2,1)';
     document.querySelector('.hero').addEventListener('pointermove', e => {
       const x = e.clientX / innerWidth - .5, y = e.clientY / innerHeight - .5;
       document.querySelectorAll('.blob').forEach((b, i) => b.style.translate = `${x * (i + 1) * 30}px ${y * (i + 1) * 30}px`);
