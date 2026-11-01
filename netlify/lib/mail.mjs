@@ -13,9 +13,14 @@ export const INBOX = 'ar@foodar.org';
 export const COPIES = ['milan@foodar.org', 'mateja@foodar.org'];
 
 const pass = id => (process.env[SENDERS[id]?.env] || '').replace(/\s+/g, '');
-export const canSend = id => Boolean(SENDERS[id] && pass(id));
+const ownLogin = id => Boolean(SENDERS[id] && pass(id));
+// Milan/Mateja bez sopstvenog App password-a šalju PREKO ar@ naloga, u svoje ime:
+// From: Milan <milan@foodar.org> (ako je u ar@ Gmail-u dodat kao "Send mail as", inače Gmail prikaže ar@),
+// Reply-To: milan@ (klijent odgovara Milanu), a Milan dobija skrivenu kopiju (BCC).
+const via = id => (ownLogin(id) ? id : (id !== 'ar' && ownLogin('ar') ? 'ar' : null));
+export const canSend = id => Boolean(SENDERS[id] && via(id));
 export function availableSenders() {
-  return Object.entries(SENDERS).map(([id, s]) => ({ id, email: s.email, name: s.name, ready: canSend(id) }));
+  return Object.entries(SENDERS).map(([id, s]) => ({ id, email: s.email, name: s.name, ready: canSend(id), viaAr: canSend(id) && via(id) !== id }));
 }
 
 const transports = {};
@@ -28,13 +33,15 @@ function transport(id) {
 }
 
 export async function send(id, msg) {
-  if (!canSend(id)) throw new Error(`Slanje sa ${SENDERS[id]?.email || id} nije podešeno (nedostaje ${SENDERS[id]?.env} u Netlify-ju).`);
+  if (!canSend(id)) throw new Error(`Slanje sa ${SENDERS[id]?.email || id} nije podešeno (nedostaje GMAIL_AR_PASS u Netlify-ju).`);
+  const login = via(id);
   try {
     const s = SENDERS[id];
-    return await transport(id).sendMail({ from: { name: s.name, address: s.email }, ...msg });
+    const extra = login !== id ? { replyTo: s.email, bcc: [s.email, ...[].concat(msg.bcc || [])] } : {};
+    return await transport(login).sendMail({ from: { name: s.name, address: s.email }, ...msg, ...extra });
   } catch (e) {
     if (/Invalid login|Username and Password not accepted|535/i.test(e.message)) {
-      throw new Error(`Gmail odbija prijavu za ${SENDERS[id].email}: proveri App password (${SENDERS[id].env}).`);
+      throw new Error(`Gmail odbija prijavu za ${SENDERS[login].email}: proveri App password (${SENDERS[login].env}).`);
     }
     throw new Error('Slanje mejla nije uspelo: ' + e.message);
   }
@@ -70,7 +77,8 @@ export async function sendReply(fromId, u, subject, text) {
     <p style="margin-top:22px;color:#6a6058">${esc(s.name.replace(' | FoodAR', ''))}<br><b style="color:#d9472b">FoodAR</b> · 3D i AR meni za restorane<br><a href="https://foodar.org" style="color:#d9472b">foodar.org</a> · <a href="mailto:${s.email}" style="color:#d9472b">${s.email}</a></p>
     <blockquote style="margin:22px 0 0;padding:10px 14px;border-left:3px solid #ebe3d8;color:#6a6058;font-size:13px">Vaš upit:<br>${esc(quoted).replace(/\n/g, '<br>')}</blockquote></div>`;
   return send(fromId, {
-    to: u.email, cc: fromId === 'ar' ? undefined : INBOX, // kopija u glavni inbox kad odgovara Milan/Mateja
+    // kopija u glavni inbox kad odgovara Milan/Mateja sa svog naloga (preko ar@ je već u ar@ "Poslato")
+    to: u.email, cc: fromId === 'ar' || via(fromId) === 'ar' ? undefined : INBOX,
     replyTo: s.email, subject,
     text: `${text}\n\n${s.name.replace(' | FoodAR', '')}\nFoodAR · foodar.org · ${s.email}\n\n--- Vaš upit ---\n${quoted}`,
     html

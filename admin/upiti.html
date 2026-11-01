@@ -293,7 +293,7 @@ function open(id, keepScroll) {
         <div class="compose">
           ${anyReady ? '' : `<div class="warnbox">Slanje mejlova iz panela još nije podešeno. U Netlify-ju dodaj <b>GMAIL_AR_PASS</b> (App password za ar@foodar.org); vidi uputstvo u admin/README.md. Do tada možeš odgovoriti iz Gmail-a: <a href="mailto:${esc(u.email)}">${esc(u.email)}</a>.</div>`}
           <div class="row2">
-            <label>Od<select id="rFrom">${senders.map(s => `<option value="${s.id}" ${s.id === defaultFrom ? 'selected' : ''} ${s.ready ? '' : 'disabled'}>${esc(s.name)} <${s.email}>${s.ready ? '' : ' (nije podešeno)'}</option>`).join('')}</select></label>
+            <label>Od<select id="rFrom">${senders.map(s => `<option value="${s.id}" ${s.id === defaultFrom ? 'selected' : ''} ${s.ready ? '' : 'disabled'}>${esc(s.name)} <${s.email}>${!s.ready ? ' (nije podešeno)' : s.viaAr ? ' (preko ar@ naloga)' : ''}</option>`).join('')}</select></label>
             <label>Za<input value="${esc(u.email)}" disabled /></label>
           </div>
           <label>Predmet<input id="rSubj" value="${esc('Re: Upit za FoodAR' + (u.restoran ? ' – ' + u.restoran : ''))}" /></label>
