@@ -32,8 +32,8 @@ Posle dodavanja ili izmene promenljive: **Deploys → Trigger deploy → Deploy 
 | `GITHUB_TOKEN` | da, za objavu jela | GitHub token sa dozvolom *Contents: Read and write* za repo `foodatest` |
 | `NETLIFY_TOKEN` | ne | Za automatsko dodavanje poddomena (`ime.foodar.org`) |
 | `GMAIL_AR_PASS` | za mejlove | App password naloga **ar@foodar.org**: obaveštenja o upitima i odgovori sa ar@ |
-| `GMAIL_MILAN_PASS` | ne | App password naloga **milan@foodar.org**, da Milan odgovara sa svoje adrese |
-| `GMAIL_MATEJA_PASS` | ne | App password naloga **mateja@foodar.org**, da Mateja odgovara sa svoje adrese |
+| `GMAIL_MILAN_PASS` | ne | App password naloga **milan@foodar.org**. Bez njega Milan šalje preko ar@ naloga (vidi ispod) |
+| `GMAIL_MATEJA_PASS` | ne | App password naloga **mateja@foodar.org**. Bez njega Mateja šalje preko ar@ naloga |
 | `WEBHOOK_SECRET` | ne | Za buduće automatsko upisivanje online uplata |
 | `SESSION_SECRET` | ne | Dodatna tajna za prijavu; kad je promeniš, svi uređaji se odjave |
 
@@ -54,6 +54,12 @@ Za svaki nalog sa kog šaljete (ar@, milan@, mateja@):
    pa **Trigger deploy**.
 
 Poslati odgovori se vide u „Poslato“ tog Gmail naloga, a kad klijent odgovori, poruka stiže u njegov inbox.
+
+**Milan i Mateja bez App password-a:** dovoljan je samo `GMAIL_AR_PASS`. Njihovi odgovori se tada šalju **preko ar@
+naloga, u njihovo ime**: „Od“ je Milan/Mateja, klijentov odgovor ide njima (Reply-To), a oni dobijaju skrivenu kopiju.
+Da bi klijent u polju „Od“ video baš milan@foodar.org (a ne ar@), u Gmail-u naloga **ar@foodar.org** jednom dodaj adrese:
+**Settings (⚙) → See all settings → Accounts → Send mail as → Add another email address** → `Milan`, `milan@foodar.org`
+(štikliraj *Treat as an alias*) → Gmail pošalje potvrdu na milan@ → Milan klikne link. Isto za mateja@.
 Dok `GMAIL_AR_PASS` nije podešen, upiti se i dalje čuvaju u panelu, a mejl na ar@foodar.org ide preko FormSubmit-a
 (prvi put stiže mejl „Activate Form“ na ar@, klikni da potvrdiš).
 
