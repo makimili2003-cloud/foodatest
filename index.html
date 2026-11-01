@@ -824,7 +824,7 @@
   const heroName = document.getElementById('heroName');
   const heroLoader = document.getElementById('heroLoader');
   const heroPicker = document.getElementById('heroPicker');
-  let HERO = [], heroIdx = -1, heroTimer = null;
+  let HERO = [], heroIdx = -1, heroTimer = null, heroDragging = false;
   // Na računaru se jela sama smenjuju; na telefonu ne (svaka smena skida 3D model preko mobilnog interneta).
   const heroAuto = !reduceMotion && finePointer && !(navigator.connection && navigator.connection.saveData);
   const HERO_DUR = 7000;
@@ -836,7 +836,7 @@
   });
   function scheduleHero() {
     clearTimeout(heroTimer);
-    if (!HERO.auto || HERO.length < 2) return;
+    if (!HERO.auto || HERO.length < 2 || heroDragging) return;
     heroTimer = setTimeout(() => heroSelect((heroIdx + 1) % HERO.length, false), HERO_DUR);
   }
   function heroSelect(i, byUser) {
@@ -870,8 +870,19 @@
     heroSelect(start, false);
     if (heroMv.loaded) scheduleHero();
   }
-  // posetilac sam okreće jelo -> smenjivanje se zaustavlja
-  heroMv.addEventListener('pointerdown', () => { clearTimeout(heroTimer); HERO.auto = false; heroPicker.querySelectorAll('.hero-pick').forEach(b => b.classList.remove('auto')); });
+  // dok posetilac okreće jelo mišem, smenjivanje je pauzirano; kad pusti, nastavlja (traka kreće ispočetka)
+  heroMv.addEventListener('pointerdown', () => {
+    if (!HERO.auto) return;
+    heroDragging = true; clearTimeout(heroTimer);
+    heroPicker.querySelectorAll('.hero-pick').forEach(b => b.classList.remove('auto'));
+  });
+  for (const ev of ['pointerup', 'pointercancel']) addEventListener(ev, () => {
+    if (!heroDragging) return;
+    heroDragging = false;
+    const b = heroPicker.querySelectorAll('.hero-pick')[heroIdx];
+    if (b && HERO.auto) { void b.offsetWidth; b.classList.add('auto'); }
+    if (heroMv.loaded) scheduleHero();
+  });
   document.getElementById('heroAr').addEventListener('click', () => {
     if (heroMv.canActivateAR) heroMv.activateAR();
     else document.getElementById('demo').scrollIntoView();
