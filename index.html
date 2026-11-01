@@ -241,6 +241,19 @@
     footer { background: var(--dark); color: #c9bfb4; padding: 40px 0; font-size: 14px; }
     footer .wrap { display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: center; }
     footer .logo { color: #fff; font-size: 20px; }
+    .ig-link { display: inline-flex; align-items: center; gap: 8px; color: #fff; text-decoration: none; font-weight: 600; transition: color .2s; }
+    .ig-link:hover { color: #f08a3c; }
+    .ig-link svg { width: 20px; height: 20px; }
+    .ig-card { display: flex; align-items: center; gap: 14px; margin-top: 28px; padding: 16px 18px; border-radius: 18px; text-decoration: none; color: var(--ink);
+      background: var(--card); border: 1px solid var(--line); transition: transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .3s, border-color .3s; max-width: 420px; }
+    .ig-card:hover { transform: translateY(-3px); box-shadow: 0 18px 40px -22px rgba(60,35,20,.45); border-color: #e2c9b8; }
+    .ig-card .ig-ic { flex: none; width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; color: #fff;
+      background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fd5949 45%, #d6249f 60%, #285aeb 90%); }
+    .ig-card .ig-ic svg { width: 26px; height: 26px; }
+    .ig-card b { display: block; font-size: 16px; }
+    .ig-card small { color: var(--ink-2); font-size: 14px; }
+    .ig-card .arrow { margin-left: auto; color: var(--accent); font-size: 22px; transition: transform .3s; }
+    .ig-card:hover .arrow { transform: translateX(4px); }
 
     .reveal { opacity: 0; transform: translateY(28px); transition: opacity 1s cubic-bezier(.16,1,.3,1), transform 1s cubic-bezier(.16,1,.3,1); }
     .reveal.in { opacity: 1; transform: none; }
@@ -702,6 +715,11 @@
           <li>Ponuda prilagođena broju jela</li>
           <li>Bez obaveze</li>
         </ul>
+        <a class="ig-card" href="https://www.instagram.com/foodarbg/" target="_blank" rel="noopener">
+          <span class="ig-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".6" fill="currentColor"/></svg></span>
+          <span><b>@foodarbg</b><small>Pratite nas na Instagramu i pogledajte jela u akciji</small></span>
+          <span class="arrow">→</span>
+        </a>
       </div>
 
       <form name="kontakt" method="POST" action="/?poslato=1#kontakt" data-netlify="true" netlify-honeypot="bot-field" id="contactForm" class="reveal">
@@ -748,6 +766,7 @@
   <div class="wrap">
     <a class="logo" href="#top"><i>AR</i>FoodAR</a>
     <span>3D i AR meni za restorane · foodar.org</span>
+    <a class="ig-link" href="https://www.instagram.com/foodarbg/" target="_blank" rel="noopener" aria-label="Instagram @foodarbg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".6" fill="currentColor"/></svg>@foodarbg</a>
     <span>© <span id="year"></span> FoodAR</span>
   </div>
 </footer>
