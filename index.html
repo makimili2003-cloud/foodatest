@@ -646,7 +646,7 @@
         <p>Vi nam pokažete jela, a mi isporučujemo gotov AR meni.</p>
         <ul>
           <li>3D skeniranje jela u Vašem restoranu</li>
-          <li>Obrada modela za verni izgled i brzo učitavanje</li>
+          <li>Obrada modela za realan prikaz jela i brzo učitavanje</li>
           <li>Hosting i poseban link za svako jelo</li>
           <li>QR kodovi spremni za štampu ili nalepnice</li>
           <li>Radi na iPhone (Safari) i Android (Chrome) telefonima</li>
@@ -853,7 +853,7 @@
     else alert('Vaš telefon ne podržava AR, ali jelo možete da okrećete i zumirate prstima.');
   });
   fetch('dishes.json', { cache: 'no-cache' }).then(r => r.json()).then(list => {
-    DISHES = list.filter(d => d.demo);
+    DISHES = list.filter(d => d.demo && !d.hidden);
     DISHES.forEach((d, i) => {
       const b = document.createElement('button');
       b.className = 'tab'; b.type = 'button'; b.setAttribute('role', 'tab'); b.textContent = d.name;

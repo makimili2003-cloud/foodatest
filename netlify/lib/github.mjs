@@ -162,7 +162,7 @@ export async function updateDishMeta(sub, patch) {
   const old = list.find(d => d.sub === sub);
   if (!old) throw new Error('Jelo ne postoji.');
   const allowed = {};
-  for (const k of ['name', 'desc', 'realSize', 'demo']) if (k in patch) allowed[k] = patch[k];
+  for (const k of ['name', 'desc', 'realSize', 'demo', 'hidden']) if (k in patch) allowed[k] = k === 'hidden' || k === 'demo' || k === 'realSize' ? Boolean(patch[k]) : patch[k];
   const next = list.map(d => (d.sub === sub ? { ...d, ...allowed } : d));
   await commit(`Izmenjeni podaci jela: ${sub}`, [
     { path: 'dishes.json', mode: '100644', type: 'blob', sha: await blob(dishesJson(next)) }
