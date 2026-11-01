@@ -305,9 +305,10 @@ $('list').onclick = async e => {
   if (svg) return download(svgUrl(dishUrl(svg)), `foodar-qr-${svg}.svg`);
   if (del) {
     const d = DISHES.find(x => x.sub === del);
-    const typed = prompt(`TRAJNO brisanje „${d.name}“.\n\nQR kod ${del}.${STATUS.domain} će prestati da radi (i na već odštampanim menijima). Ako jelo samo privremeno nije u ponudi, koristi „Skloni iz ponude“.\n\nZa potvrdu upiši adresu jela: ${del}`);
+    const typed = prompt(`TRAJNO brisanje „${d.name}“.\n\nQR kod ${del}.${STATUS.domain} će prestati da radi (i na već odštampanim menijima). Ako jelo samo privremeno nije u ponudi, koristi „Skloni iz ponude“.\n\nZa potvrdu upiši: ${del}\n(može i ${del}.${STATUS.domain})`);
     if (typed === null) return;
-    if (typed.trim().toLowerCase() !== del) { alert('Adresa nije tačno upisana. Jelo nije obrisano.'); return; }
+    const clean = typed.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/+$/, '').replace('.' + STATUS.domain, '');
+    if (clean !== del) { alert(`Nije tačno upisano. Za brisanje upiši: ${del}\nJelo nije obrisano.`); return; }
     t.disabled = true;
     try { await api('DELETE', '/api/dishes/' + del); await loadList(); } catch (err) { alert(err.message); t.disabled = false; }
   }
