@@ -834,10 +834,21 @@
     setTimeout(() => { heroMv.cameraOrbit = '20deg 62deg auto'; }, reduceMotion ? 0 : (heroIdx <= 0 ? 900 : 150));
     scheduleHero();
   });
-  function scheduleHero() {
+  // Tajmer i crvena traka idu zajedno; posle pauze (prevlačenje) nastavljaju od mesta gde su stali.
+  let heroRemaining = HERO_DUR, heroStart = 0;
+  const heroBar = () => heroPicker.querySelectorAll('.hero-pick')[heroIdx];
+  function scheduleHero(delay = HERO_DUR) {
     clearTimeout(heroTimer);
     if (!HERO.auto || HERO.length < 2 || heroDragging) return;
-    heroTimer = setTimeout(() => heroSelect((heroIdx + 1) % HERO.length, false), HERO_DUR);
+    heroRemaining = delay; heroStart = Date.now();
+    const b = heroBar();
+    if (b) {
+      b.classList.remove('auto'); void b.offsetWidth;
+      const bar = b.querySelector('.bar');
+      bar.style.animationDelay = -(HERO_DUR - delay) + 'ms'; bar.style.animationPlayState = 'running';
+      b.classList.add('auto');
+    }
+    heroTimer = setTimeout(() => heroSelect((heroIdx + 1) % HERO.length, false), delay);
   }
   function heroSelect(i, byUser) {
     if (byUser && heroAuto) { HERO.auto = false; heroPicker.querySelectorAll('.hero-pick').forEach(b => b.classList.remove('auto')); }
@@ -846,7 +857,8 @@
     heroIdx = i; const d = HERO[i];
     heroPicker.querySelectorAll('.hero-pick').forEach((b, j) => {
       b.setAttribute('aria-selected', String(i === j));
-      if (i === j) { b.classList.remove('auto'); void b.offsetWidth; if (HERO.auto) b.classList.add('auto'); if (byUser) b.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' }); }
+      b.classList.remove('auto');
+      if (i === j) { if (byUser) b.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' }); }
     });
     heroName.classList.add('swap');
     setTimeout(() => { heroName.textContent = d.name; heroName.classList.remove('swap'); }, 250);
@@ -872,16 +884,16 @@
   }
   // dok posetilac okreće jelo mišem, smenjivanje je pauzirano; kad pusti, nastavlja (traka kreće ispočetka)
   heroMv.addEventListener('pointerdown', () => {
-    if (!HERO.auto) return;
+    if (!HERO.auto || heroDragging) return;
     heroDragging = true; clearTimeout(heroTimer);
-    heroPicker.querySelectorAll('.hero-pick').forEach(b => b.classList.remove('auto'));
+    if (heroStart) heroRemaining = Math.max(300, heroRemaining - (Date.now() - heroStart));
+    heroStart = 0;
+    const bar = heroBar()?.querySelector('.bar'); if (bar) bar.style.animationPlayState = 'paused';
   });
   for (const ev of ['pointerup', 'pointercancel']) addEventListener(ev, () => {
     if (!heroDragging) return;
     heroDragging = false;
-    const b = heroPicker.querySelectorAll('.hero-pick')[heroIdx];
-    if (b && HERO.auto) { void b.offsetWidth; b.classList.add('auto'); }
-    if (heroMv.loaded) scheduleHero();
+    if (heroMv.loaded) scheduleHero(heroRemaining); // nastavi od mesta gde je stalo
   });
   document.getElementById('heroAr').addEventListener('click', () => {
     if (heroMv.canActivateAR) heroMv.activateAR();
