@@ -4,7 +4,8 @@
 const API = process.env.GITHUB_API || 'https://api.github.com';
 
 function cfg() {
-  const token = process.env.GITHUB_TOKEN;
+  // trim: često se pri kopiranju zalepi razmak ili novi red
+  const token = (process.env.GITHUB_TOKEN || '').trim().replace(/^["']|["']$/g, '');
   const repo = process.env.GITHUB_REPO || 'makimili2003-cloud/foodatest';
   const branch = process.env.GITHUB_BRANCH || 'main';
   if (!token) throw new Error('GITHUB_TOKEN nije podešen u Netlify-ju (Site configuration → Environment variables).');
@@ -69,6 +70,34 @@ async function commit(message, entries) {
 
 function dishesJson(list) {
   return Buffer.from(JSON.stringify(list, null, 2) + '\n', 'utf8');
+}
+
+/** Dijagnostika: koji token je učitan i šta GitHub kaže da sme. */
+export async function diagnose() {
+  try { return await diagnoseInner(); } catch (e) { return { tokenSet: Boolean(process.env.GITHUB_TOKEN), networkError: e.message, user: 'greška mreže', writeTest: 'greška mreže' }; }
+}
+async function diagnoseInner() {
+  const raw = process.env.GITHUB_TOKEN || '';
+  const out = { tokenSet: Boolean(raw) };
+  if (!raw) return out;
+  const { token, repo, branch } = cfg();
+  out.repo = repo; out.branch = branch;
+  out.tokenType = token.startsWith('github_pat_') ? 'fine-grained (github_pat_)' : token.startsWith('ghp_') ? 'classic (ghp_)' : 'nepoznat tip';
+  out.tokenHint = token.slice(0, 11) + '…' + token.slice(-4);
+  out.hadWhitespace = raw !== token;
+  const h = { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'foodar-admin' };
+  const u = await fetch(`${API}/user`, { headers: h });
+  out.user = u.ok ? (await u.json()).login : `greška ${u.status}`;
+  out.classicScopes = u.headers.get('x-oauth-scopes');
+  out.tokenExpires = u.headers.get('github-authentication-token-expiration');
+  const r = await fetch(`${API}/repos/${repo}`, { headers: h });
+  if (r.ok) { const j = await r.json(); out.repoFound = true; out.canWrite = Boolean(j.permissions?.push); out.permissions = j.permissions; out.defaultBranch = j.default_branch; }
+  else { out.repoFound = false; out.repoError = r.status; }
+  // Proba upisa: napravi mali blob (ne menja repo dok se ne napravi commit)
+  const b = await fetch(`${API}/repos/${repo}/git/blobs`, { method: 'POST', headers: { ...h, 'Content-Type': 'application/json' }, body: JSON.stringify({ content: 'foodar-test', encoding: 'utf-8' }) });
+  out.writeTest = b.ok ? 'OK' : `greška ${b.status}`;
+  out.acceptedPermissions = b.headers.get('x-accepted-github-permissions');
+  return out;
 }
 
 export async function getDishes() {

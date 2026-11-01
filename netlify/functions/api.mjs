@@ -59,6 +59,9 @@ export default async (req, context) => {
     if (!verifyToken(bearer) && !verifyToken(cookie)) throw new HttpError(401, 'Prijavi se ponovo.');
 
     // ---------- status ----------
+    if (path === '/dijagnostika' && method === 'GET') {
+      return json({ github: await gh.diagnose(), netlifyToken: Boolean(process.env.NETLIFY_TOKEN), siteId: context?.site?.id || null, deployId: process.env.DEPLOY_ID || context?.deploy?.id || null });
+    }
     if (path === '/status' && method === 'GET') {
       return json({ domain: DOMAIN, repo: process.env.GITHUB_REPO || 'makimili2003-cloud/foodatest', github: Boolean(process.env.GITHUB_TOKEN), netlify: netlify.netlifyConfigured() });
     }
