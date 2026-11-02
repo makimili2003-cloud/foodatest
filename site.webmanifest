@@ -1,0 +1,12 @@
+{
+  "name": "FoodAR – 3D i AR meni za restorane",
+  "short_name": "FoodAR",
+  "icons": [
+    { "src": "/favicon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/favicon-512.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "theme_color": "#d9472b",
+  "background_color": "#fbf7f1",
+  "display": "standalone",
+  "start_url": "/"
+}
