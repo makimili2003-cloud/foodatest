@@ -7,9 +7,10 @@ F = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
 FB = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
 
 
-def brackets(size, color, name, width=6):
+def brackets(size, color, name, width=6, center=None):
     im = Image.new('RGBA', (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
-    cx, cy, h, L = W // 2, H // 2 - 40, size // 2, size // 4
+    cx, cy = center or (W // 2, H // 2 - 40)
+    h, L = size // 2, size // 4
     for sx in (-1, 1):
         for sy in (-1, 1):
             x, y = cx + sx * h, cy + sy * h
@@ -19,7 +20,7 @@ def brackets(size, color, name, width=6):
 
 
 brackets(300, (255, 255, 255, 230), 'scan')
-brackets(220, (255, 214, 10, 255), 'lock', 7)
+brackets(170, (255, 214, 10, 255), 'lock', 7, (288, 554))
 
 # Link koji kamera ponudi posle skeniranja (gost ga dodirne)
 im = Image.new('RGBA', (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
