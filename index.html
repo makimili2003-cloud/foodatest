@@ -767,7 +767,7 @@
         <div class="section-head" style="margin-bottom:28px">
           <span class="eyebrow">Iskustvo gosta</span>
           <h2 id="h-za-stolom">Jedan sken. Jelo je na stolu.</h2>
-          <p>Bez aplikacije i bez listanja menija. Gost skenira kod pored jela, jednim dodirom ga postavi na sto i vidi ga pred sobom.</p>
+          <p id="vidLead">Bez aplikacije i bez listanja menija. Gost skenira kod pored jela, jednim dodirom ga postavi na sto i vidi ga pred sobom.</p>
         </div>
         <div class="vid-rest">
           <ol class="vid-steps" id="vidSteps">
@@ -1160,9 +1160,17 @@
   const VIDEOS = {
     ilustracija: { srcs: [['media/ar-iskustvo.webm', 'video/webm'], ['media/ar-iskustvo.mp4', 'video/mp4']], poster: 'media/ar-iskustvo-poster.webp',
       marks: [0, 3, 4.5], note: 'Ilustracija iskustva gosta.',
+      lead: 'Bez aplikacije i bez listanja menija. Gost skenira kod pored jela, jednim dodirom ga postavi na sto i vidi ga pred sobom.',
+      steps: [['Skenira kod pored jela', 'Kamerom telefona, sa Vašeg postojećeg menija.'],
+        ['Dodirne ekran i usmeri kameru ka stolu', 'Otvara se stranica jela; jedan dodir pokreće prikaz na stolu.'],
+        ['Vidi jelo na svom stolu', 'U stvarnoj veličini, sa svih strana. Zna šta dobija i koliko je porcija velika.']],
       label: 'Ilustracija: kamera telefona skenira QR kod pored jela na štampanom meniju, gost dodirne ekran, a pica se pojavi na stolu u stvarnoj veličini. Video nema zvuk.' },
     snimak: { srcs: [['media/foodar-9x16.webm', 'video/webm'], ['media/foodar-9x16.mp4', 'video/mp4']], poster: 'media/foodar-9x16.jpg',
       marks: [0, 2.8, 11], note: 'Snimak gosta u restoranu.',
+      lead: 'Gost u restoranu skenira kod pored jela na meniju i za nekoliko sekundi vidi picu na svom stolu.',
+      steps: [['Skenira QR kod', 'Kamerom telefona, pored jela na štampanom meniju.'],
+        ['Jelo je na stolu', 'Pica se pojavi pored menija, u stvarnoj veličini, sa svih strana.'],
+        ['Zna šta dobija', 'Vidi koliko je porcija velika i poručuje bez iznenađenja.']],
       label: 'Gost u restoranu skenira QR kod na meniju i vidi picu u AR-u na svom stolu. Video nema zvuk.' }
   };
   (function () {
@@ -1176,6 +1184,8 @@
       v.pause(); v.innerHTML = '';
       cfg.srcs.forEach(([src, type]) => { const s = document.createElement('source'); s.src = src; s.type = type; v.appendChild(s); });
       v.poster = cfg.poster; v.setAttribute('aria-label', cfg.label); note.textContent = cfg.note;
+      document.getElementById('vidLead').textContent = cfg.lead;
+      steps.forEach((li, i) => { li.querySelector('b').textContent = cfg.steps[i][0]; li.querySelector('span').textContent = cfg.steps[i][1]; });
       loaded = false; mark(0);
       if (visible && !reduceMotion) start(); else if (key !== 'ilustracija') { loaded = true; v.load(); }
     }
