@@ -375,30 +375,39 @@
     .reveal { transition-delay: var(--d, 0s); }
 
     /* ================= VIDEO SEKCIJA ================= */
+    /* Telefon sa AR iskustvom gosta (#za-stolom) */
     .vid-sec { padding-top: 40px; }
-    .vid-grid { display: grid; grid-template-columns: 1fr minmax(0, 420px); gap: 64px; align-items: center; }
+    .vid-grid { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 72px; align-items: center; }
+    .vid-grid > * { min-width: 0; }
+    .phone-col { display: grid; justify-items: center; gap: 14px; }
+    .phone { position: relative; width: 260px; max-width: 100%; padding: 10px; border-radius: 44px; background: #1f1a17;
+      box-shadow: 0 0 0 1.5px #3a332e inset, 0 40px 80px -36px rgba(60,35,20,.55); }
+    .phone::before { content: ''; position: absolute; top: 18px; left: 50%; width: 74px; height: 20px; margin-left: -37px; border-radius: 12px; background: #1f1a17; z-index: 2; }
+    .phone-screen { position: relative; aspect-ratio: 9 / 19.5; border-radius: 34px; overflow: hidden; background: #2a2420; }
+    .phone-screen video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+    .vid-play { position: absolute; inset: 0; margin: auto; width: 64px; height: 64px; border-radius: 50%; border: 0; background: rgba(255,255,255,.92); color: var(--accent);
+      font-size: 24px; cursor: pointer; z-index: 3; box-shadow: 0 12px 30px -10px rgba(0,0,0,.5); }
+    .vid-note { font-size: 13px; color: var(--ink-2); text-align: center; margin: 0; }
+    .vid-switch { display: inline-flex; padding: 4px; border-radius: 999px; background: var(--bg-2); border: 1px solid var(--line); }
+    .vid-switch button { border: 0; background: none; padding: 7px 14px; border-radius: 999px; font: 600 13.5px Inter, sans-serif; color: var(--ink-2); cursor: pointer; }
+    .vid-switch button[aria-pressed="true"] { background: #fff; color: var(--ink); box-shadow: 0 2px 8px -3px rgba(60,35,20,.3); }
     .vid-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; counter-reset: v; }
     .vid-steps li { position: relative; overflow: hidden; display: grid; grid-template-columns: 44px 1fr; column-gap: 14px; align-items: center;
-      background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 16px 18px; transition: border-color .4s, box-shadow .4s, transform .4s, opacity .6s; }
+      background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 16px 18px; transition: border-color .4s, box-shadow .4s; }
     .vid-steps li::before { counter-increment: v; content: counter(v); grid-row: span 2; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%;
       background: var(--bg-2); color: var(--ink-2); font: 700 17px Inter, sans-serif; transition: background .4s, color .4s; }
     .vid-steps b { font-size: 17px; }
     .vid-steps span { color: var(--ink-2); font-size: 14.5px; }
     .vid-steps i { position: absolute; left: 0; bottom: 0; height: 3px; width: 0; background: var(--accent); }
-    .vid-steps li.on { border-color: #e9c3b6; box-shadow: 0 18px 40px -24px rgba(217,71,43,.45); transform: translateX(6px); }
+    .vid-steps li.on { border-color: #e9c3b6; box-shadow: 0 18px 40px -24px rgba(217,71,43,.45); }
     .vid-steps li.on::before { background: var(--accent); color: #fff; }
-    .vid-frame { position: relative; border-radius: 32px; overflow: hidden; aspect-ratio: 9 / 16; justify-self: center; width: min(100%, calc(min(640px, 78vh) * 9 / 16));
-      background: #1f1a17; border: 1px solid var(--line); box-shadow: 0 40px 80px -36px rgba(60,35,20,.5); }
-    .vid-frame video { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .vid-chip { left: 16px; top: 16px; animation: none; background: rgba(255,255,255,.92); }
-    .vid-chip .rec { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); animation: recblink 1.4s ease-in-out infinite; }
-    @keyframes recblink { 50% { opacity: .25; } }
-    .vid-play { position: absolute; inset: 0; margin: auto; width: 76px; height: 76px; border-radius: 50%; border: 0; background: rgba(255,255,255,.92); color: var(--accent);
-      font-size: 28px; cursor: pointer; box-shadow: 0 12px 30px -10px rgba(0,0,0,.5); }
+    .vid-ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
     @media (max-width: 900px) {
       .vid-grid { grid-template-columns: 1fr; gap: 28px; }
-      .vid-frame { aspect-ratio: 4 / 5; width: 100%; border-radius: 26px; }
-      .vid-steps li.on { transform: none; }
+      .vid-text { display: contents; }
+      .vid-text .section-head { order: 1; margin-bottom: 0 !important; }
+      .phone-col { order: 2; }
+      .vid-rest { order: 3; }
     }
 
     /* ================= CENOVNIK ================= */
@@ -734,27 +743,41 @@
     </div>
   </section>
 
-  <!-- VIDEO: kako izgleda za stolom -->
-  <section id="za-stolom" class="vid-sec">
+  <!-- ISKUSTVO GOSTA: telefon sa animacijom (ilustracija) + pravi snimak iz restorana -->
+  <section id="za-stolom" class="vid-sec" aria-labelledby="h-za-stolom">
     <div class="wrap vid-grid">
-      <div class="vid-text">
-        <div class="section-head reveal" style="margin-bottom:28px">
-          <span class="eyebrow">U restoranu</span>
-          <h2>Ovako to izgleda za stolom</h2>
-          <p>Bez aplikacije i bez čekanja: gost skenira kod pored jela i za par sekundi ga vidi ispred sebe.</p>
+      <div class="phone-col">
+        <div class="phone">
+          <div class="phone-screen">
+            <video id="promoVid" muted loop playsinline preload="none" width="540" height="1170"
+              poster="media/ar-iskustvo-poster.webp"
+              aria-label="Ilustracija: kamera telefona skenira QR kod pored jela na štampanom meniju, gost dodirne ekran, a pica se pojavi na stolu u stvarnoj veličini. Video nema zvuk."></video>
+            <button class="vid-play" id="vidPlay" type="button" aria-label="Pusti video" hidden>▶</button>
+          </div>
         </div>
-        <ol class="vid-steps" id="vidSteps">
-          <li class="reveal"><b>Skenira QR kod</b><span>Kamerom telefona, pored jela na meniju.</span><i></i></li>
-          <li class="reveal"><b>Jelo je na stolu</b><span>U stvarnoj veličini, sa svih strana, tačno onako kako se servira.</span><i></i></li>
-          <li class="reveal"><b>Zna šta dobija</b><span>Poručuje sigurno, bez iznenađenja.</span><i></i></li>
-        </ol>
-        <a class="btn btn-primary magnet" href="#kontakt" style="margin-top:26px">Želim ovo u svom restoranu</a>
+        <p class="vid-note" id="vidNote">Ilustracija iskustva gosta.</p>
+        <div class="vid-switch" role="group" aria-label="Izaberite video">
+          <button type="button" data-v="ilustracija" aria-pressed="true">Ilustracija</button>
+          <button type="button" data-v="snimak" aria-pressed="false">Snimak iz restorana</button>
+        </div>
       </div>
-      <div class="vid-frame reveal">
-        <video id="promoVid" muted loop playsinline preload="none" poster="media/foodar-9x16.jpg"
-          aria-label="Gost u restoranu skenira QR kod na meniju i vidi picu u AR-u na svom stolu"></video>
-        <button class="vid-play" id="vidPlay" type="button" aria-label="Pusti video" hidden>▶</button>
-        <span class="chip vid-chip"><i class="rec"></i>FoodAR u akciji</span>
+      <div class="vid-text">
+        <div class="section-head" style="margin-bottom:28px">
+          <span class="eyebrow">Iskustvo gosta</span>
+          <h2 id="h-za-stolom">Jedan sken. Jelo je na stolu.</h2>
+          <p>Bez aplikacije i bez listanja menija. Gost skenira kod pored jela, jednim dodirom ga postavi na sto i vidi ga pred sobom.</p>
+        </div>
+        <div class="vid-rest">
+          <ol class="vid-steps" id="vidSteps">
+            <li><b>Skenira kod pored jela</b><span>Kamerom telefona, sa Vašeg postojećeg menija.</span><i></i></li>
+            <li><b>Dodirne ekran i usmeri kameru ka stolu</b><span>Otvara se stranica jela; jedan dodir pokreće prikaz na stolu.</span><i></i></li>
+            <li><b>Vidi jelo na svom stolu</b><span>U stvarnoj veličini, sa svih strana. Zna šta dobija i koliko je porcija velika.</span><i></i></li>
+          </ol>
+          <div class="vid-ctas">
+            <a class="btn btn-primary" href="#kontakt">Želim ovo u svom restoranu</a>
+            <a class="btn btn-ghost" href="#demo">Isprobajte demo</a>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -1130,37 +1153,57 @@
     if (DISHES.length) select(start >= 0 ? start : 0);
   }).catch(() => { document.getElementById('demo').hidden = true; });
 
-  // ---------- Video "Ovako to izgleda za stolom" ----------
+  // ---------- Telefon: iskustvo gosta ----------
+  // Video se menja samo zamenom fajla. "marks" = sekunde u kojima počinje korak 1, 2 i 3.
+  const VIDEOS = {
+    ilustracija: { srcs: [['media/ar-iskustvo.webm', 'video/webm'], ['media/ar-iskustvo.mp4', 'video/mp4']], poster: 'media/ar-iskustvo-poster.webp',
+      marks: [0, 3, 4.5], note: 'Ilustracija iskustva gosta.',
+      label: 'Ilustracija: kamera telefona skenira QR kod pored jela na štampanom meniju, gost dodirne ekran, a pica se pojavi na stolu u stvarnoj veličini. Video nema zvuk.' },
+    snimak: { srcs: [['media/foodar-9x16.webm', 'video/webm'], ['media/foodar-9x16.mp4', 'video/mp4']], poster: 'media/foodar-9x16.jpg',
+      marks: [0, 2.8, 11], note: 'Snimak gosta u restoranu.',
+      label: 'Gost u restoranu skenira QR kod na meniju i vidi picu u AR-u na svom stolu. Video nema zvuk.' }
+  };
   (function () {
     const v = document.getElementById('promoVid'); if (!v) return;
-    const narrow = matchMedia('(max-width: 900px)').matches;
-    // telefon: 4:5 verzija (manje visoka); računar: uspravna 9:16 (webm ako browser podržava)
-    const srcs = narrow ? [['media/foodar-4x5.mp4', 'video/mp4']] : [['media/foodar-9x16.webm', 'video/webm'], ['media/foodar-9x16.mp4', 'video/mp4']];
-    v.poster = narrow ? 'media/foodar-4x5.jpg' : 'media/foodar-9x16.jpg';
-    srcs.forEach(([src, type]) => { const s = document.createElement('source'); s.src = src; s.type = type; v.appendChild(s); });
     const steps = [...document.querySelectorAll('#vidSteps li')];
-    const marks = [0, 2.8, 11]; // sekunde: skeniranje, jelo na stolu, zadovoljan gost
     const playBtn = document.getElementById('vidPlay');
-    let shown = false;
-    steps[0].classList.add('on');
-    function sync() {
-      const t = v.currentTime, d = v.duration || 14.6;
-      let k = 0; for (let i = 0; i < marks.length; i++) if (t >= marks[i]) k = i;
+    const note = document.getElementById('vidNote');
+    let cfg = VIDEOS.ilustracija, visible = false, loaded = false;
+    function setSource(key) {
+      cfg = VIDEOS[key];
+      v.pause(); v.innerHTML = '';
+      cfg.srcs.forEach(([src, type]) => { const s = document.createElement('source'); s.src = src; s.type = type; v.appendChild(s); });
+      v.poster = cfg.poster; v.setAttribute('aria-label', cfg.label); note.textContent = cfg.note;
+      loaded = false; mark(0);
+      if (visible && !reduceMotion) start(); else if (key !== 'ilustracija') { loaded = true; v.load(); }
+    }
+    function start() {
+      if (!loaded) { loaded = true; v.preload = 'auto'; v.load(); }
+      v.play().then(() => { playBtn.hidden = true; }).catch(() => { playBtn.hidden = false; });
+    }
+    function mark(t) {
+      const m = cfg.marks, d = v.duration || 10;
+      let k = 0; for (let i = 0; i < m.length; i++) if (t >= m[i]) k = i;
       steps.forEach((li, i) => {
         li.classList.toggle('on', i === k);
-        const end = marks[i + 1] ?? d, bar = li.querySelector('i');
-        bar.style.width = i === k ? Math.min(100, (t - marks[i]) / (end - marks[i]) * 100) + '%' : (i < k ? '0' : '0');
+        const end = m[i + 1] ?? d;
+        li.querySelector('i').style.width = i === k ? Math.min(100, (t - m[i]) / (end - m[i]) * 100) + '%' : '0';
       });
-      if (!v.paused) requestAnimationFrame(sync);
     }
-    v.addEventListener('play', () => { playBtn.hidden = true; requestAnimationFrame(sync); });
-    v.addEventListener('seeked', sync);
-    playBtn.addEventListener('click', () => { v.play(); v.controls = false; });
-    if (reduceMotion) { v.preload = 'metadata'; playBtn.hidden = false; steps[0].classList.add('on'); return; }
-    // pusti samo dok je video na ekranu (štedi internet i bateriju)
+    v.addEventListener('timeupdate', () => mark(v.currentTime));
+    v.addEventListener('play', () => { playBtn.hidden = true; });
+    playBtn.addEventListener('click', () => { if (!loaded) { loaded = true; v.load(); } v.play(); });
+    document.querySelectorAll('.vid-switch button').forEach(b => b.addEventListener('click', () => {
+      document.querySelectorAll('.vid-switch button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+      setSource(b.dataset.v);
+      if (reduceMotion) playBtn.hidden = false;
+    }));
+    setSource('ilustracija');
+    if (reduceMotion) { playBtn.hidden = false; return; }
+    // pušta se samo dok je na ekranu (štedi internet i bateriju)
     new IntersectionObserver(es => es.forEach(e => {
-      if (e.isIntersecting) { if (!shown) { shown = true; v.preload = 'auto'; v.load(); } v.play().catch(() => { playBtn.hidden = false; }); }
-      else v.pause();
+      visible = e.isIntersecting;
+      if (visible) start(); else v.pause();
     }), { threshold: .35 }).observe(v);
   })();
 
@@ -1292,7 +1335,7 @@
   addEventListener('scroll', onScroll, { passive: true }); onScroll();
 
   // stepenasto pojavljivanje elemenata iste grupe
-  document.querySelectorAll('.cards, .steps, .blist, .faq, .vid-steps').forEach(g =>
+  document.querySelectorAll('.cards, .steps, .blist, .faq').forEach(g =>
     [...g.querySelectorAll(':scope > .reveal')].forEach((el, i) => el.style.setProperty('--d', (i * 0.18) + 's')));
   document.querySelectorAll('.included li').forEach((li, i) => li.style.setProperty('--i', i));
   const io = new IntersectionObserver(es => es.forEach(e => {
