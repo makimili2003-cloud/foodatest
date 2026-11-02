@@ -3,3 +3,10 @@
 /netlify/*    /404.html  404!
 /package.json /404.html  404!
 /netlify.toml /404.html  404!
+# Nekadašnji vodiči: sav SEO ide na početnu stranu
+/ar-meni   /  301!
+/ar-meni/* /  301!
+/3d-meni   /  301!
+/3d-meni/* /  301!
+/qr-meni   /  301!
+/qr-meni/* /  301!
