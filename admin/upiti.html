@@ -113,6 +113,14 @@
     .warnbox { background: var(--warn-soft); color: var(--warn); border-radius: 12px; padding: 10px 12px; font-size: 13.5px; }
     .actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; }
     .hidden { display: none !important; }
+    .notif { margin: 0 0 18px; padding: 14px 18px; }
+    .notif summary { cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .notif .pill { font-size: 12.5px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: #f3ece2; color: var(--ink-2); }
+    .notif .pill.ok { background: #e3f4e6; color: #1f7a3a; }
+    .notif-body { display: grid; gap: 12px; margin-top: 14px; font-size: 14.5px; }
+    .notif-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .notif ol { margin: 4px 0 0; padding-left: 20px; color: var(--ink-2); line-height: 1.6; }
+    .notif code { background: #f3ece2; padding: 1px 6px; border-radius: 6px; font-size: 13px; }
     .toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); background: var(--ink); color: #fff; padding: 12px 18px; border-radius: 999px; font-weight: 600; font-size: 14px; opacity: 0; transition: all .3s cubic-bezier(.2,.8,.2,1); z-index: 60; pointer-events: none; }
     .toast.on { opacity: 1; transform: translate(-50%, 0); }
     .fade { animation: fade .35s cubic-bezier(.2,.8,.2,1) both; }
@@ -153,6 +161,32 @@
     </div>
     <div class="stats" id="stats"></div>
   </div>
+
+  <details class="card notif" id="notif">
+    <summary>Obaveštenja na telefon <span class="pill" id="pTg">Telegram …</span><span class="pill" id="pWa">WhatsApp …</span></summary>
+    <div class="notif-body">
+      <div>
+        <b>Telegram</b>
+        <ol>
+          <li>U Telegramu otvori <b>@BotFather</b>, pošalji <code>/newbot</code>, izaberi ime (npr. <i>FoodAR upiti</i>) i kopiraj token.</li>
+          <li>U Netlify-ju dodaj promenljive <code>TELEGRAM_BOT_TOKEN</code> (token) i <code>TELEGRAM_USERNAME</code> (tvoje korisničko ime, bez @), pa <b>Trigger deploy</b>.</li>
+          <li>Otvori svog novog bota u Telegramu i pošalji mu <code>/start</code>, pa ovde klikni <b>Poveži Telegram</b>.</li>
+        </ol>
+      </div>
+      <div>
+        <b>WhatsApp</b> (preko besplatne usluge CallMeBot)
+        <ol>
+          <li>Sa svog WhatsApp-a pošalji poruku <code>I allow callmebot to send me messages</code> na broj koji piše na <a href="https://www.callmebot.com/blog/free-api-whatsapp-messages/" target="_blank" rel="noopener">callmebot.com</a>; stiže ti <b>apikey</b>.</li>
+          <li>U Netlify-ju dodaj <code>WHATSAPP_PHONE</code> (tvoj broj, npr. +3816…) i <code>CALLMEBOT_APIKEY</code>, pa <b>Trigger deploy</b>.</li>
+        </ol>
+      </div>
+      <div class="notif-row">
+        <button class="btn btn-ghost" id="tgLink" type="button">Poveži Telegram</button>
+        <button class="btn btn-primary" id="nTest" type="button">Pošalji test poruku</button>
+        <span class="hint" id="nMsg"></span>
+      </div>
+    </div>
+  </details>
 
   <div class="layout">
     <section class="card">
@@ -206,6 +240,29 @@ const FILTERS = [
   ['arhiva', 'Arhiva', u => u.status === 'arhiva'],
   ['svi', 'Svi', () => true]
 ];
+
+// ---------- obaveštenja na telefon ----------
+async function loadNotif() {
+  try {
+    const n = await api('GET', '/api/obavestenja');
+    const tg = !n.telegram.token ? 'nije podešen' : n.telegram.linked ? 'radi' : 'nije povezan';
+    const wa = n.whatsapp.ready ? 'radi' : 'nije podešen';
+    $('pTg').textContent = 'Telegram: ' + tg; $('pTg').classList.toggle('ok', tg === 'radi');
+    $('pWa').textContent = 'WhatsApp: ' + wa; $('pWa').classList.toggle('ok', wa === 'radi');
+    if (tg !== 'radi' && wa !== 'radi' && !sessionStorage.getItem('notifSeen')) { $('notif').open = true; sessionStorage.setItem('notifSeen', '1'); }
+  } catch (e) { $('pTg').textContent = 'Telegram: ?'; $('pWa').textContent = 'WhatsApp: ?'; }
+}
+$('tgLink').onclick = async () => {
+  $('nMsg').textContent = 'Povezujem…';
+  try { const r = await api('POST', '/api/obavestenja/telegram'); $('nMsg').textContent = 'Povezano' + (r.username ? ' sa @' + r.username : '') + '. Proveri Telegram.'; }
+  catch (e) { $('nMsg').textContent = e.message; }
+  loadNotif();
+};
+$('nTest').onclick = async () => {
+  $('nMsg').textContent = 'Šaljem…';
+  try { const r = await api('POST', '/api/obavestenja/test'); $('nMsg').textContent = `Telegram: ${r.telegram} · WhatsApp: ${r.whatsapp}`; }
+  catch (e) { $('nMsg').textContent = e.message; }
+};
 
 async function load() {
   DATA = await api('GET', '/api/upiti');
@@ -335,7 +392,7 @@ function open(id, keepScroll) {
 }
 
 $('logoutBtn').onclick = e => { e.preventDefault(); logout(); };
-ensureLogin().then(load).catch(e => toast(e.message));
+ensureLogin().then(() => { loadNotif(); return load(); }).catch(e => toast(e.message));
 </script>
 </body>
 </html>

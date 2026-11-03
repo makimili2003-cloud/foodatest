@@ -34,6 +34,11 @@ Posle dodavanja ili izmene promenljive: **Deploys → Trigger deploy → Deploy 
 | `GMAIL_AR_PASS` | za mejlove | App password naloga **ar@foodar.org**: obaveštenja o upitima i odgovori sa ar@ |
 | `GMAIL_MILAN_PASS` | ne | App password naloga **milan@foodar.org**. Bez njega Milan šalje preko ar@ naloga (vidi ispod) |
 | `GMAIL_MATEJA_PASS` | ne | App password naloga **mateja@foodar.org**. Bez njega Mateja šalje preko ar@ naloga |
+| `TELEGRAM_BOT_TOKEN` | ne | Token Telegram bota (od @BotFather): novi upiti stižu na Telegram |
+| `TELEGRAM_USERNAME` | ne | Tvoje Telegram korisničko ime bez @ (samo taj nalog prima upite) |
+| `TELEGRAM_CHAT_ID` | ne | Ne mora: admin panel ga sam nađe dugmetom „Poveži Telegram“ |
+| `WHATSAPP_PHONE` | ne | Broj koji prima upite na WhatsApp, npr. +3816… |
+| `CALLMEBOT_APIKEY` | ne | Ključ od CallMeBot-a (besplatna usluga za WhatsApp poruke) |
 | `WEBHOOK_SECRET` | ne | Za buduće automatsko upisivanje online uplata |
 | `SESSION_MINUTES` | ne | Posle koliko minuta neaktivnosti se panel sam odjavi (podrazumevano 10) |
 | `SESSION_SECRET` | ne | Dodatna tajna za prijavu; kad je promeniš, svi uređaji se odjave |
@@ -65,6 +70,13 @@ Da bi klijent u polju „Od“ video baš milan@foodar.org (a ne ar@), u Gmail-u
 (štikliraj *Treat as an alias*) → Gmail pošalje potvrdu na milan@ → Milan klikne link. Isto za mateja@.
 Dok `GMAIL_AR_PASS` nije podešen, upiti se i dalje čuvaju u panelu, a mejl na ar@foodar.org ide preko FormSubmit-a
 (prvi put stiže mejl „Activate Form“ na ar@, klikni da potvrdiš).
+
+### Upiti na Telegram i WhatsApp
+U panelu: **Upiti → Obaveštenja na telefon** (uputstvo korak po korak, dugmad „Poveži Telegram“ i „Pošalji test poruku“).
+- **Telegram:** @BotFather → `/newbot` → token u `TELEGRAM_BOT_TOKEN`, svoje korisničko ime u `TELEGRAM_USERNAME` → Trigger deploy →
+  pošalji svom botu `/start` → u panelu **Poveži Telegram**.
+- **WhatsApp (CallMeBot):** pošalji poruku `I allow callmebot to send me messages` na broj sa callmebot.com, dobiješ apikey →
+  `WHATSAPP_PHONE` + `CALLMEBOT_APIKEY` → Trigger deploy. CallMeBot je spoljna besplatna usluga: kroz nju prolazi tekst upita.
 
 ### GitHub token
 1. <https://github.com/settings/personal-access-tokens/new>
