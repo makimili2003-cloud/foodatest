@@ -83,6 +83,6 @@
     "desc": "",
     "glb": "modeli/barila.glb",
     "realSize": true,
-    "demo": true
+    "demo": false
   }
 ]
