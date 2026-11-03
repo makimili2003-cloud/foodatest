@@ -75,7 +75,7 @@ export async function sendReply(fromId, u, subject, text, { quote = true } = {})
   const html = `<div style="font-family:system-ui,Segoe UI,Roboto,sans-serif;font-size:15px;line-height:1.6;color:#1f1a17;max-width:600px">
     ${esc(text).replace(/\n/g, '<br>')}
     <p style="margin-top:22px;color:#6a6058">${esc(s.name.replace(' | FoodAR', ''))}<br><b style="color:#d9472b">FoodAR</b> · 3D i AR meni za restorane<br><a href="https://foodar.org" style="color:#d9472b">foodar.org</a> · <a href="mailto:${s.email}" style="color:#d9472b">${s.email}</a></p>
-    <a href="https://foodar.org/"><img src="https://foodar.org/qr-foodar.png" width="96" height="96" alt="QR kod za foodar.org" style="display:block;border:0"></a>
+    <a href="https://foodar.org/"><img src="https://foodar.org/potpis-foodar.png" width="290" height="74" alt="FoodAR, 3D i AR meni za restorane, QR kod za foodar.org" style="display:block;border:0;max-width:100%;height:auto"></a>
     ${quoted ? `<blockquote style="margin:22px 0 0;padding:10px 14px;border-left:3px solid #ebe3d8;color:#6a6058;font-size:13px">Vaš upit:<br>${esc(quoted).replace(/\n/g, '<br>')}</blockquote>` : ''}</div>`;
   return send(fromId, {
     // kopija u glavni inbox kad odgovara Milan/Mateja sa svog naloga (preko ar@ je već u ar@ "Poslato")
