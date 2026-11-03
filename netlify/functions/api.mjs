@@ -8,6 +8,7 @@ import * as subs from '../lib/subs.mjs';
 import * as upiti from '../lib/upiti.mjs';
 import * as mail from '../lib/mail.mjs';
 import * as notify from '../lib/notify.mjs';
+import * as agent from '../lib/agent.mjs';
 
 const DOMAIN = process.env.DOMAIN || 'foodar.org';
 const RESERVED = new Set(['www', 'admin', 'api', 'mail', 'smtp', 'ftp', 'app', 'demo', 'test']);
@@ -60,6 +61,7 @@ async function handle(req, context) {
       const [mailRes] = await Promise.allSettled([mail.notifyNewInquiry(entry, adminUrl), notify.notifyNewInquiry(entry, adminUrl)]);
       if (mailRes.status === 'rejected') console.error('obaveštenje o upitu:', mailRes.reason?.message);
       const emailed = mailRes.status === 'fulfilled' && mailRes.value === true;
+      if (agent.enabled()) await agent.enqueue({ kind: 'upit', id: entry.id }, entry.id).catch(e => console.error('agent red:', e.message));
       return json({ ok: true, id: entry.id, emailed });
     }
 

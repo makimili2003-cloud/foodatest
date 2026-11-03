@@ -69,18 +69,18 @@ export async function notifyNewInquiry(u, adminUrl) {
 }
 
 /** Odgovor klijentu iz admin panela. */
-export async function sendReply(fromId, u, subject, text) {
+export async function sendReply(fromId, u, subject, text, { quote = true } = {}) {
   const s = SENDERS[fromId];
-  const quoted = Object.keys(LABELS).filter(k => u[k] && k !== 'email').map(k => `${LABELS[k]}: ${u[k]}`).join('\n');
+  const quoted = !quote ? '' : Object.keys(LABELS).filter(k => u[k] && k !== 'email').map(k => `${LABELS[k]}: ${u[k]}`).join('\n');
   const html = `<div style="font-family:system-ui,Segoe UI,Roboto,sans-serif;font-size:15px;line-height:1.6;color:#1f1a17;max-width:600px">
     ${esc(text).replace(/\n/g, '<br>')}
     <p style="margin-top:22px;color:#6a6058">${esc(s.name.replace(' | FoodAR', ''))}<br><b style="color:#d9472b">FoodAR</b> · 3D i AR meni za restorane<br><a href="https://foodar.org" style="color:#d9472b">foodar.org</a> · <a href="mailto:${s.email}" style="color:#d9472b">${s.email}</a></p>
-    <blockquote style="margin:22px 0 0;padding:10px 14px;border-left:3px solid #ebe3d8;color:#6a6058;font-size:13px">Vaš upit:<br>${esc(quoted).replace(/\n/g, '<br>')}</blockquote></div>`;
+    ${quoted ? `<blockquote style="margin:22px 0 0;padding:10px 14px;border-left:3px solid #ebe3d8;color:#6a6058;font-size:13px">Vaš upit:<br>${esc(quoted).replace(/\n/g, '<br>')}</blockquote>` : ''}</div>`;
   return send(fromId, {
     // kopija u glavni inbox kad odgovara Milan/Mateja sa svog naloga (preko ar@ je već u ar@ "Poslato")
     to: u.email, cc: fromId === 'ar' || via(fromId) === 'ar' ? undefined : INBOX,
     replyTo: s.email, subject,
-    text: `${text}\n\n${s.name.replace(' | FoodAR', '')}\nFoodAR · foodar.org · ${s.email}\n\n--- Vaš upit ---\n${quoted}`,
+    text: `${text}\n\n${s.name.replace(' | FoodAR', '')}\nFoodAR · foodar.org · ${s.email}${quoted ? `\n\n--- Vaš upit ---\n${quoted}` : ''}`,
     html
   });
 }
