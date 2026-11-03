@@ -7,6 +7,7 @@ import * as netlify from '../lib/netlify-api.mjs';
 import * as subs from '../lib/subs.mjs';
 import * as upiti from '../lib/upiti.mjs';
 import * as mail from '../lib/mail.mjs';
+import * as notify from '../lib/notify.mjs';
 
 const DOMAIN = process.env.DOMAIN || 'foodar.org';
 const RESERVED = new Set(['www', 'admin', 'api', 'mail', 'smtp', 'ftp', 'app', 'demo', 'test']);
@@ -54,9 +55,11 @@ async function handle(req, context) {
       let entry;
       try { entry = await upiti.submit(b, context?.ip || req.headers.get('x-nf-client-connection-ip')); }
       catch (e) { throw new HttpError(e.status || 400, e.message); }
-      let emailed = false;
-      try { emailed = await mail.notifyNewInquiry(entry, `${url.origin}/admin/upiti.html#${entry.id}`); }
-      catch (e) { console.error('obaveštenje o upitu:', e.message); }
+      const adminUrl = `${url.origin}/admin/upiti.html#${entry.id}`;
+      // mejl i obaveštenja na telefon (Telegram, WhatsApp) idu istovremeno; greška jednog ne smeta ostalima
+      const [mailRes] = await Promise.allSettled([mail.notifyNewInquiry(entry, adminUrl), notify.notifyNewInquiry(entry, adminUrl)]);
+      if (mailRes.status === 'rejected') console.error('obaveštenje o upitu:', mailRes.reason?.message);
+      const emailed = mailRes.status === 'fulfilled' && mailRes.value === true;
       return json({ ok: true, id: entry.id, emailed });
     }
 
@@ -100,6 +103,14 @@ async function handle(req, context) {
       const noviUpiti = (await upiti.list()).filter(u => u.status === 'novo').length;
       return json({ noviUpiti, sessionMinutes: SESSION_MS / 60e3, domain: DOMAIN, repo: process.env.GITHUB_REPO || 'makimili2003-cloud/foodatest', github: Boolean(process.env.GITHUB_TOKEN), netlify: netlify.netlifyConfigured() });
     }
+
+    // ---------- obaveštenja na telefon (Telegram, WhatsApp) ----------
+    if (path === '/obavestenja' && method === 'GET') return json(await notify.status());
+    if (path === '/obavestenja/telegram' && method === 'POST') {
+      try { return json({ ok: true, ...(await notify.linkTelegram()) }); }
+      catch (e) { throw new HttpError(400, e.message); }
+    }
+    if (path === '/obavestenja/test' && method === 'POST') return json(await notify.sendTest(`${url.origin}/admin/upiti.html`));
 
     // ---------- jela ----------
     if (path === '/dishes' && method === 'GET') {
