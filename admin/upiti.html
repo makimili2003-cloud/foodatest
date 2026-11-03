@@ -169,8 +169,8 @@
         <b>Telegram</b>
         <ol>
           <li>U Telegramu otvori <b>@BotFather</b>, pošalji <code>/newbot</code>, izaberi ime (npr. <i>FoodAR upiti</i>) i kopiraj token.</li>
-          <li>U Netlify-ju dodaj promenljive <code>TELEGRAM_BOT_TOKEN</code> (token) i <code>TELEGRAM_USERNAME</code> (tvoje korisničko ime, bez @), pa <b>Trigger deploy</b>.</li>
-          <li>Otvori svog novog bota u Telegramu i pošalji mu <code>/start</code>, pa ovde klikni <b>Poveži Telegram</b>.</li>
+          <li>U Netlify-ju dodaj promenljive <code>TELEGRAM_BOT_TOKEN</code> (token) i <code>TELEGRAM_USERNAME</code> (korisnička imena bez @, više njih odvoji zarezom), pa <b>Trigger deploy</b>.</li>
+          <li>Svako ko prima upite otvori bota u Telegramu i pošalje mu <code>/start</code>, pa ovde klikni <b>Poveži Telegram</b>.</li>
         </ol>
       </div>
       <div>
@@ -249,12 +249,14 @@ async function loadNotif() {
     const wa = n.whatsapp.ready ? 'radi' : 'nije podešen';
     $('pTg').textContent = 'Telegram: ' + tg; $('pTg').classList.toggle('ok', tg === 'radi');
     $('pWa').textContent = 'WhatsApp: ' + wa; $('pWa').classList.toggle('ok', wa === 'radi');
+    if (n.telegram.linked && n.telegram.recipients.length > 1) $('pTg').textContent += ' (' + n.telegram.recipients.length + ' naloga)';
+    if (n.telegram.pending?.length && !$('nMsg').textContent) $('nMsg').textContent = 'Još nije povezano: ' + n.telegram.pending.map(u => '@' + u).join(', ') + '. Neka pošalje /start botu, pa klikni Poveži Telegram.';
     if (tg !== 'radi' && wa !== 'radi' && !sessionStorage.getItem('notifSeen')) { $('notif').open = true; sessionStorage.setItem('notifSeen', '1'); }
   } catch (e) { $('pTg').textContent = 'Telegram: ?'; $('pWa').textContent = 'WhatsApp: ?'; }
 }
 $('tgLink').onclick = async () => {
   $('nMsg').textContent = 'Povezujem…';
-  try { const r = await api('POST', '/api/obavestenja/telegram'); $('nMsg').textContent = 'Povezano' + (r.username ? ' sa @' + r.username : '') + '. Proveri Telegram.'; }
+  try { const r = await api('POST', '/api/obavestenja/telegram'); $('nMsg').textContent = 'Povezano: ' + r.linked.join(', ') + '.' + (r.missing.length ? ' Nema poruke od: ' + r.missing.map(u => '@' + u).join(', ') + ' (neka pošalje /start botu, pa klikni ponovo).' : ' Proveri Telegram.'); }
   catch (e) { $('nMsg').textContent = e.message; }
   loadNotif();
 };

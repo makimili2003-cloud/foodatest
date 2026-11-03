@@ -35,7 +35,7 @@ Posle dodavanja ili izmene promenljive: **Deploys → Trigger deploy → Deploy 
 | `GMAIL_MILAN_PASS` | ne | App password naloga **milan@foodar.org**. Bez njega Milan šalje preko ar@ naloga (vidi ispod) |
 | `GMAIL_MATEJA_PASS` | ne | App password naloga **mateja@foodar.org**. Bez njega Mateja šalje preko ar@ naloga |
 | `TELEGRAM_BOT_TOKEN` | ne | Token Telegram bota (od @BotFather): novi upiti stižu na Telegram |
-| `TELEGRAM_USERNAME` | ne | Tvoje Telegram korisničko ime bez @ (samo taj nalog prima upite) |
+| `TELEGRAM_USERNAME` | ne | Telegram korisnička imena bez @, odvojena zarezom (samo ti nalozi primaju upite) |
 | `TELEGRAM_CHAT_ID` | ne | Ne mora: admin panel ga sam nađe dugmetom „Poveži Telegram“ |
 | `WHATSAPP_PHONE` | ne | Broj koji prima upite na WhatsApp, npr. +3816… |
 | `CALLMEBOT_APIKEY` | ne | Ključ od CallMeBot-a (besplatna usluga za WhatsApp poruke) |
@@ -73,8 +73,8 @@ Dok `GMAIL_AR_PASS` nije podešen, upiti se i dalje čuvaju u panelu, a mejl na 
 
 ### Upiti na Telegram i WhatsApp
 U panelu: **Upiti → Obaveštenja na telefon** (uputstvo korak po korak, dugmad „Poveži Telegram“ i „Pošalji test poruku“).
-- **Telegram:** @BotFather → `/newbot` → token u `TELEGRAM_BOT_TOKEN`, svoje korisničko ime u `TELEGRAM_USERNAME` → Trigger deploy →
-  pošalji svom botu `/start` → u panelu **Poveži Telegram**.
+- **Telegram:** @BotFather → `/newbot` → token u `TELEGRAM_BOT_TOKEN`, korisnička imena u `TELEGRAM_USERNAME` (više njih odvoji zarezom) → Trigger deploy →
+  svako od njih pošalje botu `/start` → u panelu **Poveži Telegram**.
 - **WhatsApp (CallMeBot):** pošalji poruku `I allow callmebot to send me messages` na broj sa callmebot.com, dobiješ apikey →
   `WHATSAPP_PHONE` + `CALLMEBOT_APIKEY` → Trigger deploy. CallMeBot je spoljna besplatna usluga: kroz nju prolazi tekst upita.
 

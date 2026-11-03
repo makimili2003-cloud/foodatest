@@ -3,8 +3,8 @@
 //
 // Netlify promenljive:
 //   TELEGRAM_BOT_TOKEN  token bota od @BotFather
-//   TELEGRAM_USERNAME   Telegram korisničko ime koje prima poruke (bez @), npr. moradoselselmos
-//   TELEGRAM_CHAT_ID    (opciono) ako ga ne upišeš, admin panel ga sam pronađe dugmetom „Poveži Telegram“
+//   TELEGRAM_USERNAME   Telegram korisnička imena koja primaju poruke (bez @, odvojena zarezom), npr. moradoselselmos,baki3377
+//   TELEGRAM_CHAT_ID    (opciono, može više odvojenih zarezom) ako ga ne upišeš, admin panel ga sam pronađe dugmetom „Poveži Telegram“
 //   WHATSAPP_PHONE      broj za WhatsApp, npr. +381621484566
 //   CALLMEBOT_APIKEY    ključ koji CallMeBot pošalje na WhatsApp posle aktivacije
 import { adminStore } from './store.mjs';
@@ -14,11 +14,22 @@ const TG_KEY = 'obavestenja/telegram';
 const LABELS = { restoran: 'Restoran', ime: 'Ime', telefon: 'Telefon', email: 'Email', grad: 'Grad', broj_jela: 'Broj jela', paket: 'Paket', poruka: 'Poruka' };
 const TIMEOUT = 6000;
 
-const tgUser = () => env('TELEGRAM_USERNAME').replace(/^@/, '').toLowerCase();
-async function tgChatId() {
-  if (env('TELEGRAM_CHAT_ID')) return env('TELEGRAM_CHAT_ID');
+const tgUsers = () => [...new Set(env('TELEGRAM_USERNAME').split(/[,;\s]+/).map(u => u.replace(/^@/, '').toLowerCase()).filter(Boolean))];
+const sameUser = (c, u) => String(c.username || '').toLowerCase() === u;
+const label = c => c.username ? '@' + c.username : String(c.chatId);
+
+/** Sačuvani primaoci; stari zapis je imao jedan chat ({ chatId, username }). */
+async function savedChats() {
   const saved = await adminStore().get(TG_KEY, { type: 'json' }).catch(() => null);
-  return saved?.chatId || '';
+  if (Array.isArray(saved?.chats)) return saved.chats;
+  return saved?.chatId ? [{ chatId: String(saved.chatId), username: saved.username || '' }] : [];
+}
+/** Ko sada prima poruke. Nalog izbačen iz TELEGRAM_USERNAME odmah prestaje da ih dobija. */
+async function tgChats() {
+  if (env('TELEGRAM_CHAT_ID')) return env('TELEGRAM_CHAT_ID').split(/[,;\s]+/).filter(Boolean).map(chatId => ({ chatId, username: '' }));
+  const want = tgUsers();
+  const chats = await savedChats();
+  return want.length ? chats.filter(c => want.some(u => sameUser(c, u))) : chats;
 }
 async function tgApi(method, params) {
   const r = await fetch(`https://api.telegram.org/bot${env('TELEGRAM_BOT_TOKEN')}/${method}`, {
@@ -30,28 +41,38 @@ async function tgApi(method, params) {
 }
 
 export async function status() {
-  const chatId = env('TELEGRAM_BOT_TOKEN') ? await tgChatId() : '';
+  const chats = env('TELEGRAM_BOT_TOKEN') ? await tgChats() : [];
+  const pending = env('TELEGRAM_CHAT_ID') ? [] : tgUsers().filter(u => !chats.some(c => sameUser(c, u)));
   return {
-    telegram: { token: Boolean(env('TELEGRAM_BOT_TOKEN')), username: tgUser(), linked: Boolean(chatId) },
+    telegram: { token: Boolean(env('TELEGRAM_BOT_TOKEN')), usernames: tgUsers(), linked: chats.length > 0, recipients: chats.map(label), pending },
     whatsapp: { phone: Boolean(env('WHATSAPP_PHONE')), apikey: Boolean(env('CALLMEBOT_APIKEY')), ready: Boolean(env('WHATSAPP_PHONE') && env('CALLMEBOT_APIKEY')) }
   };
 }
 
-/** Pronađi chat sa vlasnikom: on prvo pošalje /start botu, pa se ovde iz poslednjih poruka uzme njegov chat. */
+/** Pronađi chatove primalaca: svako prvo pošalje /start botu, pa se ovde iz poslednjih poruka uzme njegov chat. */
 export async function linkTelegram() {
   if (!env('TELEGRAM_BOT_TOKEN')) throw new Error('U Netlify-ju nije podešen TELEGRAM_BOT_TOKEN.');
-  const want = tgUser();
+  const want = tgUsers();
   const updates = await tgApi('getUpdates', { limit: 100, allowed_updates: ['message'] });
-  const chats = updates.map(u => u.message?.chat).filter(c => c && c.type === 'private');
-  const chat = [...chats].reverse().find(c => !want || String(c.username || '').toLowerCase() === want);
-  if (!chat) {
-    throw new Error(want
-      ? `Nema poruke od @${want}. Otvori bota u Telegramu, pošalji mu /start pa pokušaj ponovo.`
+  const seen = updates.map(u => u.message?.chat).filter(c => c && c.type === 'private').reverse();
+  const found = want.length
+    ? want.map(u => seen.find(c => sameUser(c, u))).filter(Boolean)
+    : seen.slice(0, 1);
+  const saved = await savedChats();
+  const isSaved = c => saved.some(s => s.chatId === String(c.id));
+  const fresh = found.filter(c => !isSaved(c));
+  const chats = [...saved.filter(s => !found.some(c => String(c.id) === s.chatId)),
+    ...found.map(c => ({ chatId: String(c.id), username: c.username || '' }))];
+  const active = want.length ? chats.filter(c => want.some(u => sameUser(c, u))) : chats;
+  const missing = want.filter(u => !active.some(c => sameUser(c, u)));
+  if (!active.length) {
+    throw new Error(want.length
+      ? `Nema poruke od ${want.map(u => '@' + u).join(', ')}. Otvori bota u Telegramu, pošalji mu /start pa pokušaj ponovo.`
       : 'Nema poruka botu. Otvori bota u Telegramu, pošalji mu /start pa pokušaj ponovo.');
   }
-  await adminStore().setJSON(TG_KEY, { chatId: String(chat.id), username: chat.username || '', linkedAt: new Date().toISOString() });
-  await tgApi('sendMessage', { chat_id: chat.id, text: '✅ FoodAR: Telegram je povezan. Ovde će stizati novi upiti sa sajta.' });
-  return { username: chat.username || '', name: [chat.first_name, chat.last_name].filter(Boolean).join(' ') };
+  await adminStore().setJSON(TG_KEY, { chats, linkedAt: new Date().toISOString() });
+  await Promise.allSettled(fresh.map(c => tgApi('sendMessage', { chat_id: c.id, text: '✅ FoodAR: Telegram je povezan. Ovde će stizati novi upiti sa sajta.' })));
+  return { linked: active.map(label), missing };
 }
 
 function messageText(u, adminUrl) {
@@ -61,10 +82,12 @@ function messageText(u, adminUrl) {
 
 async function sendTelegram(text) {
   if (!env('TELEGRAM_BOT_TOKEN')) return 'nije podešeno';
-  const chatId = await tgChatId();
-  if (!chatId) return 'nije povezano';
-  await tgApi('sendMessage', { chat_id: chatId, text: text.slice(0, 4000), disable_web_page_preview: true });
-  return 'poslato';
+  const chats = await tgChats();
+  if (!chats.length) return 'nije povezano';
+  const sent = await Promise.allSettled(chats.map(c => tgApi('sendMessage', { chat_id: c.chatId, text: text.slice(0, 4000), disable_web_page_preview: true })));
+  const failed = sent.flatMap((r, i) => r.status === 'rejected' ? [`${label(chats[i])}: ${r.reason.message}`] : []);
+  if (failed.length) throw new Error(`poslato ${chats.length - failed.length}/${chats.length}; ${failed.join('; ')}`);
+  return chats.length > 1 ? `poslato (${chats.length})` : 'poslato';
 }
 
 async function sendWhatsApp(text) {
