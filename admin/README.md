@@ -37,6 +37,11 @@ Posle dodavanja ili izmene promenljive: **Deploys → Trigger deploy → Deploy 
 | `TELEGRAM_BOT_TOKEN` | ne | Token Telegram bota (od @BotFather): novi upiti stižu na Telegram |
 | `TELEGRAM_USERNAME` | ne | Telegram korisnička imena bez @, odvojena zarezom (samo ti nalozi primaju upite) |
 | `TELEGRAM_CHAT_ID` | ne | Ne mora: admin panel ga sam nađe dugmetom „Poveži Telegram“ |
+| `AGENT_ENABLED` | ne | `true` uključuje FoodAR agenta; bez toga agent ne radi ništa |
+| `ANTHROPIC_API_KEY` | za agenta | Claude API ključ |
+| `INSTAGRAM_ACCESS_TOKEN` | za Instagram | Dugotrajni token Instagram naloga; agent ga sam obnavlja |
+| `INSTAGRAM_APP_SECRET` | za Instagram | App Secret Meta aplikacije |
+| `INSTAGRAM_VERIFY_TOKEN` | za Instagram | Tajna koju sam smisliš i upišeš i u Meta webhook |
 | `WHATSAPP_PHONE` | ne | Broj koji prima upite na WhatsApp, npr. +3816… |
 | `CALLMEBOT_APIKEY` | ne | Ključ od CallMeBot-a (besplatna usluga za WhatsApp poruke) |
 | `WEBHOOK_SECRET` | ne | Za buduće automatsko upisivanje online uplata |
@@ -70,6 +75,13 @@ Da bi klijent u polju „Od“ video baš milan@foodar.org (a ne ar@), u Gmail-u
 (štikliraj *Treat as an alias*) → Gmail pošalje potvrdu na milan@ → Milan klikne link. Isto za mateja@.
 Dok `GMAIL_AR_PASS` nije podešen, upiti se i dalje čuvaju u panelu, a mejl na ar@foodar.org ide preko FormSubmit-a
 (prvi put stiže mejl „Activate Form“ na ar@, klikni da potvrdiš).
+
+### FoodAR agent
+Odgovara na jednostavna pitanja iz novih upita sa sajta i Instagram poruka. Cene, ponude, termine, žalbe i sve nejasno prosleđuje timu preko Telegrama i admin panela.
+- Webhook za Meta aplikaciju: `https://foodar.org/integracije/instagram`, polje `messages`.
+- Čim neko iz tima odgovori u Instagramu, agent se povlači iz tog razgovora na 24 sata.
+- Dnevni limit menja `AGENT_DAILY_LIMIT` (podrazumevano 50). Isključivanje: obriši `AGENT_ENABLED` i pokreni deploy.
+- Odgovori klijenata na mejl stižu timu na ar@foodar.org; agent ih ne čita.
 
 ### Upiti na Telegram i WhatsApp
 U panelu: **Upiti → Obaveštenja na telefon** (uputstvo korak po korak, dugmad „Poveži Telegram“ i „Pošalji test poruku“).
