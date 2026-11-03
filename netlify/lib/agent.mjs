@@ -21,7 +21,7 @@ export const enabled = () => env('AGENT_ENABLED') === 'true';
 const QUEUE = 'agent/red/';
 const DAY = 24 * 60 * 60e3;
 const LLM_TIMEOUT = 12000;
-const MAX_PER_RUN = 3;
+const MAX_PER_RUN = 2;
 const IG_API = 'https://graph.instagram.com/v26.0';
 const IG_MAX_BYTES = 1000;
 const DISCLOSURE_IG = 'Automatski odgovor FoodAR asistenta.';
@@ -54,22 +54,19 @@ Pravila:
 - Piši na jeziku klijenta ako je to srpski ili engleski, inače "prosledi". Na srpskom piši latinicom i persiraj sa velikim V (Vi, Vaš).
 - Kratko i ljudski: najviše 500 znakova, bez naslova i bez pominjanja da si AI, jer se ta napomena dodaje automatski.
 - "obavesti_tim" je true kada restoran pokazuje interesovanje za saradnju.
-- Kada proslediš, u "odgovor" napiši predlog odgovora za tim, a u "razlog" kratko objasni zašto.`;
+- Kada proslediš, u "odgovor" napiši predlog odgovora za tim, a u "razlog" kratko objasni zašto.
 
-const TOOL = {
-  name: 'odluka',
-  description: 'Odluka o poruci klijenta.',
-  input_schema: {
-    type: 'object',
-    properties: {
-      radnja: { type: 'string', enum: ['odgovori', 'prosledi'] },
-      odgovor: { type: 'string' },
-      razlog: { type: 'string' },
-      obavesti_tim: { type: 'boolean' }
-    },
-    required: ['radnja', 'odgovor', 'razlog', 'obavesti_tim']
-  }
-};
+Vrati samo jedan JSON objekat, bez ikakvog teksta pre ili posle njega:
+{"radnja":"odgovori" ili "prosledi","odgovor":"tekst","razlog":"tekst","obavesti_tim":true ili false}`;
+
+/** Odluka je JSON objekat; sve što se ne može pročitati ide u grešku, pa timu. */
+export function parseDecision(text) {
+  const start = text.indexOf('{'), end = text.lastIndexOf('}');
+  let out = null;
+  if (start >= 0 && end > start) { try { out = JSON.parse(text.slice(start, end + 1)); } catch { /* obrađeno ispod */ } }
+  if (!out || !['odgovori', 'prosledi'].includes(out.radnja)) throw new Error('Claude API nije vratio ispravnu odluku.');
+  return out;
+}
 
 /** Poziv modela. Tekst klijenta ide u oznake, da se ne pomeša sa pravilima. */
 async function askModel(channel, history) {
@@ -83,18 +80,14 @@ async function askModel(channel, history) {
     signal: AbortSignal.timeout(LLM_TIMEOUT),
     body: JSON.stringify({
       model: env('AGENT_MODEL') || 'claude-sonnet-5-5',
-      max_tokens: 1000,
+      max_tokens: 2000,
       system: SYSTEM,
-      tools: [TOOL],
-      tool_choice: { type: 'tool', name: TOOL.name },
       messages: [{ role: 'user', content: `Kanal: ${channel}\n<razgovor>\n${text}\n</razgovor>` }]
     })
   });
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(`Claude API ${r.status}: ${j.error?.message || ''}`.trim());
-  const out = j.content?.find(b => b.type === 'tool_use')?.input;
-  if (!out) throw new Error('Claude API nije vratio odluku.');
-  return out;
+  return parseDecision((j.content || []).filter(b => b.type === 'text').map(b => b.text).join(''));
 }
 
 /** Poslednja brana: ono što ne prođe proveru ide timu, čak i ako je model hteo da odgovori. */
