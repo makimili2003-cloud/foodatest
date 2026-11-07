@@ -83,6 +83,19 @@
     .dishes li i.off { background: #c4bdb6; }
     .dishes li small { margin-left: auto; color: var(--ink-2); }
 
+    /* animacije Pregleda */
+    .spark-line { stroke-dasharray: 400; stroke-dashoffset: 400; animation: drawLine 1.4s cubic-bezier(.4, 0, .2, 1) .45s forwards; }
+    .spark-fill { opacity: 0; animation: fadeFill .8s ease 1.3s forwards; }
+    @keyframes drawLine { to { stroke-dashoffset: 0; } }
+    @keyframes fadeFill { to { opacity: .12; } }
+    .bar { transform-box: fill-box; transform-origin: 50% 100%; animation: growBar .9s cubic-bezier(.2, .9, .3, 1.15) both; animation-delay: calc(.5s + var(--b, 0) * 120ms); }
+    @keyframes growBar { from { transform: scaleY(0); } }
+    .chip { transition: transform .2s; } tr:hover .chip { transform: scale(1.06); }
+    .av { transition: transform .25s cubic-bezier(.3, 1.6, .5, 1); } tr:hover .av, .tasks a:hover .av { transform: scale(1.12); }
+    .hello .wave { display: inline-block; transform-origin: 70% 70%; animation: wave 2.2s ease-in-out .8s 2; }
+    @keyframes wave { 0%, 60%, 100% { transform: rotate(0); } 10%, 30% { transform: rotate(16deg); } 20%, 40% { transform: rotate(-10deg); } }
+    @media (prefers-reduced-motion: reduce) { .spark-line, .spark-fill, .bar, .hello .wave { animation: none !important; stroke-dasharray: none; stroke-dashoffset: 0; opacity: 1; } .spark-fill { opacity: .12; } }
+
     @media (max-width: 1180px) { .grid { grid-template-columns: 1fr; } .side { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); } }
     @media (max-width: 900px) { .row.kpis, .row.two { grid-template-columns: 1fr; } main { padding: 4px 14px 40px; } }
   </style>
@@ -166,19 +179,30 @@ function spark(svg, vals, color) {
   const max = Math.max(1, ...vals), w = 120, h = 46, n = vals.length;
   const pts = vals.map((v, i) => [(i / Math.max(1, n - 1)) * (w - 4) + 2, h - 4 - (v / max) * (h - 10)]);
   const d = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
-  svg.innerHTML = `<path d="${d} L${w - 2} ${h} L2 ${h} Z" fill="${color}" opacity=".10"/><path d="${d}" fill="none" stroke="${color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>`;
+  svg.innerHTML = `<path class="spark-fill" d="${d} L${w - 2} ${h} L2 ${h} Z" fill="${color}"/><path class="spark-line" d="${d}" fill="none" stroke="${color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>`;
 }
+
+const REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches;
+// broj „odbrojava“ do vrednosti
+function countUp(el, to, fmt = n => Math.round(n).toLocaleString('sr-RS')) {
+  if (REDUCE || !to) { el.textContent = fmt(to); return; }
+  const t0 = performance.now(), dur = 1100;
+  const step = t => { const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(to * e); if (k < 1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+// redovi ulaze jedan po jedan
+const rows = (el, sel) => el.querySelectorAll(sel).forEach((r, i) => { r.classList.add('sh-row'); r.style.setProperty('--r', i); });
 
 // ---------- upiti ----------
 function renderUpiti(U) {
   const now = Date.now(), novi = U.filter(u => u.status === 'novo').length;
   updateBadge(novi);
   const h = new Date().getHours();
-  $('hi').textContent = (h < 12 ? 'Dobro jutro' : h < 18 ? 'Dobar dan' : 'Dobro veče') + ' 👋';
+  $('hi').innerHTML = (h < 12 ? 'Dobro jutro' : h < 18 ? 'Dobar dan' : 'Dobro veče') + ' <span class="wave">👋</span>';
   $('hiSub').textContent = novi ? `${novi} ${novi === 1 ? 'novi upit čeka' : novi < 5 ? 'nova upita čekaju' : 'novih upita čeka'} odgovor` : 'Nema novih upita.';
   const in30 = U.filter(u => now - new Date(u.createdAt) < 30 * DAY).length;
   const prev30 = U.filter(u => { const a = now - new Date(u.createdAt); return a >= 30 * DAY && a < 60 * DAY; }).length;
-  $('kUp').textContent = in30; trend($('tUp'), in30, prev30);
+  countUp($('kUp'), in30); trend($('tUp'), in30, prev30);
   const daily = Array.from({ length: 30 }, (_, i) => U.filter(u => Math.floor((now - new Date(u.createdAt)) / DAY) === 29 - i).length);
   spark($('spUp'), daily, '#1f9d55');
 
@@ -190,18 +214,21 @@ function renderUpiti(U) {
     <td><span class="chip c-${u.status}">${STATUS[u.status]}</span></td>
     <td>${esc(u.paket || '–')}</td>
     <td>${u.dodeljeno && TEAM[u.dodeljeno] ? `<span class="av av-${u.dodeljeno}" title="${TEAM[u.dodeljeno][1]}">${TEAM[u.dodeljeno][0]}</span>` : '<span style="color:var(--ink-3)">–</span>'}</td></tr>`).join('');
+  rows($('tUpiti'), 'tr');
   $('tUpiti').onclick = e => { const tr = e.target.closest('tr'); if (tr) location.href = '/admin/upiti.html#' + tr.dataset.id; };
 
   const recent = U.filter(u => now - new Date(u.createdAt) < 7 * DAY).slice(0, 6);
   $('msgs').innerHTML = recent.length ? recent.map(u => `<a class="msg" href="/admin/upiti.html#${esc(u.id)}"><b>${esc(u.ime || u.restoran)}${u.restoran && u.ime ? ' · ' + esc(u.restoran) : ''}</b>
     <p>${esc(u.poruka || [u.telefon, u.email, u.grad].filter(Boolean).join(' · ') || 'Bez poruke')}</p><span>pre ${ago(u.createdAt)}${u.status === 'novo' ? '<i class="dot"></i>' : ''}</span></a>`).join('')
     : '<p class="empty">Nema novih poruka u poslednjih 7 dana.</p>';
+  rows($('msgs'), '.msg');
 
   $('team').innerHTML = Object.entries(TEAM).map(([k, [ini, name]]) => {
     const n = open.filter(u => u.dodeljeno === k).length;
     const sb = document.querySelector(`.sb-badge[data-team="${k}"]`); if (sb) { sb.textContent = n; sb.hidden = !n; }
     return `<li><a href="/admin/upiti.html?ko=${k}"><span class="av av-${k}">${ini}</span>${name}<b>${n} ${n === 1 ? 'upit' : 'upita'}</b></a></li>`;
   }).join('') + `<li><a href="/admin/upiti.html?ko=-"><span class="av" style="background:#c4bdb6">?</span>Nedodeljeni<b>${open.filter(u => !u.dodeljeno).length}</b></a></li>`;
+  rows($('team'), 'li');
 }
 
 // ---------- pretplate ----------
@@ -223,19 +250,20 @@ function renderSubs(DB) {
     const [k] = st(s); (groups[k] ||= { n: 0, amt: 0 }); groups[k].n++; groups[k].amt += s.amount;
     if (live(k)) { mrr += monthly(s); plans[s.plan] = (plans[s.plan] || 0) + 1; }
   }
-  $('kMrr').textContent = din(mrr);
+  countUp($('kMrr'), mrr, din);
   const ym = d => d.slice(0, 7), months = Array.from({ length: 6 }, (_, i) => { const t = new Date(); t.setDate(1); t.setMonth(t.getMonth() - 5 + i); return t.toISOString().slice(0, 7); });
   const paidBy = months.map(m => DB.payments.filter(p => ym(p.date) === m).reduce((a, p) => a + p.amount, 0));
   spark($('spPay'), paidBy, '#ec6a2c');
   $('tPay').textContent = '';
-  $('kMrrSub').innerHTML = `${Object.values(plans).reduce((a, b) => a + b, 0)} aktivnih · naplaćeno ovog meseca <b class="up">${din(paidBy[5])}</b>`;
+  $('kMrrSub').innerHTML = `${Object.values(plans).reduce((a, b) => a + b, 0)} aktivnih · naplaćeno ovog meseca <strong class="up">${din(paidBy[5])}</strong>`;
 
   const names = Object.keys(DB.plans || PLAN_COLORS), max = Math.max(1, ...names.map(n => plans[n] || 0));
   const bw = 22, gap = (160 - names.length * bw) / (names.length + 1);
   $('barPlans').innerHTML = [25, 50, 75, 100].map(p => `<line x1="0" x2="160" y1="${120 - p}" y2="${120 - p}" stroke="rgba(150,100,60,.12)"/>`).join('') +
     names.map((n, i) => { const v = plans[n] || 0, hgt = Math.max(3, v / max * 100), x = gap + i * (bw + gap);
-      return `<rect x="${x}" y="${120 - hgt}" width="${bw}" height="${hgt}" rx="6" fill="${PLAN_COLORS[n] || '#9aa'}"/><text x="${x + bw / 2}" y="136" text-anchor="middle" font-size="10" fill="#6f6259">${esc(n)}</text>`; }).join('');
+      return `<rect class="bar" style="--b:${i}" x="${x}" y="${120 - hgt}" width="${bw}" height="${hgt}" rx="6" fill="${PLAN_COLORS[n] || '#9aa'}"/><text x="${x + bw / 2}" y="136" text-anchor="middle" font-size="10" fill="#6f6259">${esc(n)}</text>`; }).join('');
   $('lgPlans').innerHTML = names.map(n => `<li><i style="background:${PLAN_COLORS[n] || '#9aa'}"></i>${esc(n)}<b>${plans[n] || 0}</b></li>`).join('');
+  rows($('lgPlans'), 'li');
 
   const ROWS = [['aktivna', 'Aktivne', 'up'], ['istice', 'Ističu za 7 dana', ''], ['kasni', 'Kasne sa uplatom', 'down'], ['ceka', 'Čekaju prvu uplatu', ''], ['otkazuje', 'Otkazuju se', '']];
   $('tSubs').innerHTML = ROWS.map(([k, l, c]) => `<tr onclick="location.href='/admin/pretplate.html'"><td>${l}</td><td><b class="${groups[k]?.n ? c : 'flat'}">${groups[k]?.n || 0}</b></td><td class="money">${din(groups[k]?.amt || 0)}</td></tr>`).join('');
@@ -254,6 +282,7 @@ function renderSubs(DB) {
       return `<a class="cal-it" href="/admin/pretplate.html"><i style="background:${c}"></i><span><b>${esc(x.s.restoran)}</b><small>${esc(x.s.plan)} · ${when}</small></span><span class="money">${din(x.s.amount)}</span></a>`;
     }).join('')}</div>`;
   }).join('') : '<p class="empty">Nema uplata u narednih 30 dana.</p>';
+  rows($('tSubs'), 'tr'); rows($('cal'), '.cal-it');
 }
 
 // ---------- jela ----------
@@ -261,6 +290,7 @@ function renderDishes(list) {
   const vis = list.filter(d => !d.hidden);
   $('dishes').innerHTML = `<li><b>${vis.length}</b>&nbsp;aktivnih · ${list.length - vis.length} sklonjenih</li>` +
     list.slice(-6).reverse().map(d => `<li><i class="${d.hidden ? 'off' : ''}"></i>${esc(d.name || d.sub)}<small>${esc(d.sub)}</small></li>`).join('');
+  rows($('dishes'), 'li');
 }
 
 ensureLogin().then(async () => {

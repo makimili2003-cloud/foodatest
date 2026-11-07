@@ -49,6 +49,12 @@
   var ko = new URLSearchParams(location.search).get('ko'), who = document.getElementById('who');
   if (ko && who) who.value = ko;
 
+  // redosled ulaska kartica (animacija u shell.css); kartice koje stignu kasnije dobiju sledeći broj
+  var ci = 0;
+  var stagger = function () { document.querySelectorAll('main .card:not([data-sh])').forEach(function (c) { c.dataset.sh = 1; c.style.setProperty('--i', Math.min(ci++, 12)); }); };
+  stagger(); document.addEventListener('DOMContentLoaded', stagger);
+  new MutationObserver(function () { stagger(); }).observe(document.body, { subtree: true, childList: true });
+
   // Broj novih upita (common.js ga postavlja preko updateBadge) prikaži i na zvoncu
   new MutationObserver(function () {
     var b = sb.querySelector('a[href="/admin/upiti.html"] .nbadge');
