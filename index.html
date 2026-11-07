@@ -13,8 +13,8 @@
       }
     })();
   </script>
-  <title>FoodAR – AR meni, interaktivni 3D meni i QR meni za restorane</title>
-  <meta name="keywords" content="AR meni, 3D meni, interaktivni 3D meni, interaktivni meni, QR meni, digitalni meni, meni za restorane, AR meni Srbija, 3D meni Beograd, proširena stvarnost restoran" />
+  <title>FoodAR – AR meni i interaktivni 3D prikaz jela za restorane</title>
+  <meta name="keywords" content="AR meni, AR meni za restorane, 3D meni, interaktivni 3D meni, 3D prikaz jela, 3D model jela, proširena stvarnost restoran, AR meni Srbija, AR meni Beograd" />
   <meta name="description" content="FoodAR je interaktivni 3D i AR meni za restorane: gost skenira QR kod na meniju i vidi jelo u stvarnoj veličini na svom stolu, pre nego što ga poruči. Bez aplikacije, za restorane u Srbiji." />
   <link rel="canonical" href="https://foodar.org/" />
   <meta name="robots" content="index, follow, max-image-preview:large" />
@@ -64,10 +64,10 @@
     },
     {
       "@type": "Question",
-      "name": "Po čemu se FoodAR razlikuje od običnog QR menija?",
+      "name": "Da li FoodAR pravi digitalni meni?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Običan QR meni otvara listu jela i cena na telefonu. FoodAR QR kod stoji pored određenog jela na Vašem postojećem meniju i otvara baš to jelo u 3D i AR prikazu, pa gost vidi kako jelo izgleda i koliko je porcija velika."
+        "text": "Ne. FoodAR ne pravi digitalni meni ni listu jela na telefonu. Vi birate jela koja želite da istaknete; za njih pravimo 3D prikaz, a QR kod stoji pored tih jela na Vašem postojećem štampanom meniju. Gost skenira kod i vidi baš to jelo u 3D i na svom stolu."
       }
     },
     {
@@ -138,7 +138,7 @@
         "@type": "WebSite",
         "@id": "https://foodar.org/#website",
         "name": "FoodAR",
-        "alternateName": "FoodAR – AR meni, interaktivni 3D meni i QR meni za restorane",
+        "alternateName": "FoodAR – AR meni i interaktivni 3D prikaz jela za restorane",
         "url": "https://foodar.org/",
         "inLanguage": "sr",
         "publisher": { "@id": "https://foodar.org/#org" }
@@ -148,7 +148,7 @@
         "@id": "https://foodar.org/#service",
         "name": "AR meni i interaktivni 3D meni za restorane",
         "serviceType": "AR meni za restorane",
-        "description": "3D skeniranje jela, poseban link i QR kod za svako jelo i prikaz jela u stvarnoj veličini na stolu gosta, bez aplikacije.",
+        "description": "3D snimanje jela koja restoran izabere, QR kod pored svakog izabranog jela na postojećem meniju i prikaz jela u stvarnoj veličini na stolu gosta (AR), bez aplikacije.",
         "provider": { "@id": "https://foodar.org/#org" },
         "areaServed": { "@type": "Country", "name": "Srbija" },
         "url": "https://foodar.org/"
@@ -523,10 +523,13 @@
       padding-bottom: .14em; margin-bottom: -.14em; /* prostor za č, ž, g, p da se ne odsecaju */
       animation: wordIn 1.4s cubic-bezier(.16, 1, .3, 1) forwards; animation-delay: calc(var(--i) * 160ms + .2s); }
     @keyframes wordIn { to { opacity: 1; transform: none; } }
-    /* kurziv "pre" se naginje van svog okvira; preliv (background-clip) bi ga odsekao -> proširi okvir */
-    .hero h1 em.w { padding: .02em .16em .14em .06em; margin: 0 -.16em -.14em -.06em; }
-    .hero h1 em.w { background: linear-gradient(90deg, var(--accent), #f08a3c, var(--accent)); background-size: 200% 100%;
-      -webkit-background-clip: text; background-clip: text; color: transparent; animation: wordIn 1.4s cubic-bezier(.16,1,.3,1) forwards, shimmer 6s linear infinite 2.5s; }
+    /* „pre“: em se pomera (ista animacija i isto kašnjenje kao ostale reči), a preliv boje je na unutrašnjem
+       spanu. Safari na iPhone-u loše crta background-clip:text na elementu koji se animira, zato su razdvojeni. */
+    .hero h1 em.w { font-style: italic; }
+    .hero h1 em .grad { display: inline-block; padding: .02em .16em .14em .06em; margin: 0 -.16em -.14em -.06em;
+      background: linear-gradient(90deg, var(--accent), #f08a3c, var(--accent)); background-size: 200% 100%;
+      -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent;
+      animation: shimmer 6s linear infinite 3s; }
     @keyframes shimmer { to { background-position: -200% 0; } }
     .fade-up { opacity: 0; transform: translateY(24px); animation: fadeUp 1.3s cubic-bezier(.16, 1, .3, 1) forwards; animation-delay: var(--d, 0s); }
     @keyframes fadeUp { to { opacity: 1; transform: none; } }
@@ -625,6 +628,9 @@
     .form-msg.ok { animation: fadeUp .5s ease; }
 
     /* Logo se blago okreće */
+    .foot-links { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+    .foot-links a { text-decoration: none; }
+    .foot-links a:hover { text-decoration: underline; }
     .logo i { transition: transform .6s cubic-bezier(.3,1.5,.5,1); }
     .logo:hover i { transform: rotate(360deg); }
 
@@ -662,7 +668,7 @@
   <section class="hero">
     <div class="wrap hero-grid">
       <div>
-        <span class="eyebrow fade-up" style="--d:.1s">AR meni · interaktivni 3D meni · QR meni</span>
+        <span class="eyebrow fade-up" style="--d:.1s">AR meni · interaktivni 3D prikaz jela</span>
         <h1 class="split">Gosti vide jelo <em>pre</em> nego što ga poruče.</h1>
         <p class="lead fade-up" style="--d:1.5s">FoodAR je AR meni i interaktivni 3D meni za restorane u Srbiji. Jela koja izaberete snimamo u 3D. Gost skenira QR kod pored artikla i vidi jelo na svom stolu, u stvarnoj veličini i sa pravim izgledom. Tačno ono što će dobiti.</p>
         <div class="hero-ctas fade-up" style="--d:1.8s">
@@ -768,7 +774,7 @@
         </div>
         <div class="step reveal">
           <h3>QR kod na meniju</h3>
-          <p>Svako jelo dobija svoj QR kod i link. Kodove stavljamo pored artikala na Vašem postojećem meniju, pa ne morate da štampate novi.</p>
+          <p>Svako jelo koje izaberete dobija svoj QR kod i link. Kod stoji pored tog jela na Vašem postojećem meniju, pa ne morate da štampate novi.</p>
         </div>
         <div class="step reveal">
           <h3>Gost skenira i vidi</h3>
@@ -895,7 +901,7 @@
         <ul>
           <li>3D skeniranje jela u Vašem restoranu</li>
           <li>Obrada modela za realan prikaz jela i brzo učitavanje</li>
-          <li>Hosting i poseban link za svako jelo</li>
+          <li>Hosting i poseban link za svako izabrano jelo</li>
           <li>QR kodovi spremni za štampu ili nalepnice</li>
           <li>Radi na iPhone (Safari) i Android (Chrome) telefonima</li>
           <li>Dodavanje novih jela kada promenite meni</li>
@@ -936,7 +942,7 @@
       <div class="faq">
         <details class="reveal"><summary>Šta je AR meni?</summary><p>AR meni (meni sa proširenom stvarnošću) gostu kroz kameru telefona prikazuje 3D jelo na njegovom stolu, u stvarnoj veličini. FoodAR AR meni radi u browseru: gost skenira QR kod pored jela na Vašem meniju, bez instaliranja aplikacije.</p></details>
         <details class="reveal"><summary>Šta je interaktivni 3D meni?</summary><p>Interaktivni 3D meni prikazuje pravo jelo iz Vašeg restorana kao 3D model koji gost okreće, zumira i gleda sa svih strana, umesto obične fotografije. Isti model se jednim dodirom postavlja na sto u AR prikazu.</p></details>
-        <details class="reveal"><summary>Po čemu se FoodAR razlikuje od običnog QR menija?</summary><p>Običan QR meni otvara listu jela i cena na telefonu. FoodAR QR kod stoji pored određenog jela na Vašem postojećem meniju i otvara baš to jelo u 3D i AR prikazu, pa gost vidi kako jelo izgleda i koliko je porcija velika.</p></details>
+        <details class="reveal"><summary>Da li FoodAR pravi digitalni meni?</summary><p>Ne. FoodAR ne pravi digitalni meni ni listu jela na telefonu. Vi birate jela koja želite da istaknete; za njih pravimo 3D prikaz, a QR kod stoji pored tih jela na Vašem postojećem štampanom meniju. Gost skenira kod i vidi baš to jelo u 3D i na svom stolu.</p></details>
         <details class="reveal"><summary>Da li gost mora da instalira aplikaciju?</summary><p>Ne. Gost skenira QR kod običnom kamerom telefona i jelo se otvara u browseru. Nema aplikacije, naloga ni registracije.</p></details>
         <details class="reveal"><summary>Na kojim telefonima radi?</summary><p>3D prikaz radi na svakom modernom telefonu. Postavljanje jela na sto (AR) radi na iPhone uređajima u Safariju i na Android telefonima koji podržavaju Google Play Services for AR, a to je većina telefona iz poslednjih nekoliko godina.</p></details>
         <details class="reveal"><summary>Da li je jelo zaista u stvarnoj veličini?</summary><p>Da. Jela skeniramo sa stvarnim dimenzijama, pa se u AR-u prikazuju u razmeri 1:1, tačno onoliko velika koliko stižu na sto.</p></details>
@@ -1009,7 +1015,8 @@
 <footer>
   <div class="wrap">
     <a class="logo" href="#top"><i>AR</i>FoodAR</a>
-    <span>3D i AR meni za restorane · foodar.org</span>
+    <span>AR meni i 3D prikaz jela za restorane · foodar.org</span>
+    <nav class="foot-links" aria-label="Stranice"><a href="/ar-meni/">AR meni</a><a href="/3d-prikaz-jela/">3D prikaz jela</a><a href="/kako-radi/">Kako radi</a><a href="/cene/">Cene</a><a href="/pitanja/">Pitanja</a></nav>
     <a class="ig-link" href="https://www.instagram.com/foodar.rs/" target="_blank" rel="noopener" aria-label="Instagram @foodar.rs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".6" fill="currentColor"/></svg>@foodar.rs</a>
     <span>© <span id="year"></span> FoodAR</span>
   </div>
@@ -1042,6 +1049,8 @@
         n.replaceWith(frag);
       } else if (n.nodeType === 1) {
         n.classList.add('w'); n.style.setProperty('--i', i++);
+        // preliv boje ide na unutrašnji span (vidi CSS za .grad)
+        const g = document.createElement('span'); g.className = 'grad'; g.append(...n.childNodes); n.appendChild(g);
       }
     });
     walk(el);
@@ -1322,16 +1331,16 @@
     }
   });
 
-  // ---------- Cenovnik (cene u dinarima; ovde ih menjaš) ----------
+  // ---------- Cenovnik (cene u dinarima; ovde ih menjaš; iste cene i u scripts/strane.py → /cene/) ----------
   // monthly = mesečno plaćanje; yearly = mesečni ekvivalent kod godišnjeg plaćanja (15% popusta, zaokruženo na ...90);
   // yearlyTotal = ukupno godišnje (monthly × 12 × 0,85); setup = jednokratno implementiranje
   const PLANS = [
     { name: 'Starter', for: 'Za manje restorane i kafiće', monthly: 4490, yearly: 3810, yearlyTotal: 45798, setup: 11990,
-      features: ['-Prioritetna podrška', 'Do 30 jela na meniju', 'Digitalni meni sa QR kodom', 'Do 5 novih 3D jela mesečno'] },
+      features: ['-Prioritetna podrška', 'Do 30 jela u AR', '3D jelo ispred gosta, pre porudžbine', 'Do 5 novih 3D jela mesečno'] },
     { name: 'Pro', for: 'Najbolji izbor za većinu restorana', monthly: 10790, yearly: 9170, yearlyTotal: 110058, setup: 28990, popular: true,
-      features: ['Prioritetna podrška', 'Do 100 jela na meniju', 'Digitalni meni sa QR kodom', 'Do 20 novih 3D jela mesečno'] },
+      features: ['Prioritetna podrška', 'Do 100 jela u AR', '3D jelo ispred gosta, pre porudžbine', 'Do 20 novih 3D jela mesečno'] },
     { name: 'Elite', for: 'Za lance i veće restorane', monthly: 21590, yearly: 18350, yearlyTotal: 220218, setup: 57990,
-      features: ['Prioritetna podrška', 'Neograničen broj jela', 'Vaš logo i boje (brendiranje)', 'Digitalni meni sa QR kodom', 'Do 40 novih 3D jela mesečno'] }
+      features: ['Prioritetna podrška', 'Neograničen broj jela u AR', 'Vaš logo i boje (brendiranje)', '3D jelo ispred gosta, pre porudžbine', 'Do 40 novih 3D jela mesečno'] }
   ];
   const din = n => n.toLocaleString('sr-RS');
   const plansEl = document.getElementById('plans');
