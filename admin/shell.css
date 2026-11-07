@@ -1,0 +1,83 @@
+/* FoodAR admin: zajednički izgled (bočni meni, gornja traka, polu-providne kartice na toplom prelivu).
+   Učitava se POSLE stilova svake stranice i preko njih postavlja temu. */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg: transparent !important; --bg-2: rgba(255, 255, 255, .55) !important;
+  --card: rgba(255, 255, 255, .62) !important;
+  --line: rgba(150, 100, 60, .16) !important; --line-2: rgba(150, 100, 60, .09) !important;
+  --ink: #2a211b !important; --ink-2: #6f6259 !important; --ink-3: #a3958a !important;
+  --accent: #ec6a2c !important; --accent-soft: #fde3d3 !important;
+  --shadow: 0 1px 2px rgba(120, 60, 20, .04), 0 18px 40px -24px rgba(120, 60, 20, .25) !important;
+  --sb-w: 236px;
+}
+html { min-height: 100%; background: #fbe6d6; }
+body.shell {
+  min-height: 100vh; font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif !important;
+  background:
+    radial-gradient(60% 50% at 0% 0%, rgba(255, 196, 150, .75) 0%, transparent 70%),
+    radial-gradient(50% 45% at 100% 8%, rgba(255, 170, 140, .55) 0%, transparent 70%),
+    radial-gradient(70% 60% at 60% 100%, rgba(255, 214, 170, .8) 0%, transparent 70%),
+    linear-gradient(135deg, #fdeee2 0%, #fbe1cf 45%, #fdebdc 100%) fixed !important;
+  padding-left: var(--sb-w);
+}
+body.shell > header { display: none !important; }
+/* jedan font svuda (stranice su ranije koristile Georgia za naslove i brojeve); kod ostaje monospace */
+body.shell *:not(code):not(kbd):not(pre):not(svg *) { font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif !important; }
+body.shell main { max-width: 1320px !important; padding-top: 18px !important; }
+body.shell .top h1, body.shell h1 { font-family: Inter, system-ui, sans-serif !important; font-weight: 700; letter-spacing: -.02em; }
+body.shell .card {
+  background: var(--card) !important; border: 1px solid rgba(255, 255, 255, .85) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.2); backdrop-filter: blur(18px) saturate(1.2);
+  box-shadow: var(--shadow) !important; border-radius: 18px !important;
+}
+body.shell .stat { background: rgba(255, 255, 255, .62) !important; border: 1px solid rgba(255, 255, 255, .85) !important; }
+body.shell .stat b, body.shell .kpi b { font-family: Inter, system-ui, sans-serif !important; }
+body.shell input, body.shell select, body.shell textarea { background-color: rgba(255, 255, 255, .8); }
+
+/* ---------- bočni meni ---------- */
+.sb { position: fixed; inset: 0 auto 0 0; width: var(--sb-w); z-index: 40; display: flex; flex-direction: column; gap: 4px;
+  padding: 22px 14px 18px; background: rgba(255, 255, 255, .42); border-right: 1px solid rgba(255, 255, 255, .8);
+  -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); }
+.sb-logo { display: flex; align-items: center; gap: 10px; padding: 4px 10px 22px; text-decoration: none; color: var(--ink); font: 700 19px Inter, sans-serif; letter-spacing: -.02em; }
+.sb-logo i { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 11px; background: linear-gradient(135deg, #f08a3c, #d9472b); color: #fff; font: 800 12px Inter, sans-serif; font-style: normal; box-shadow: 0 8px 18px -8px rgba(217, 71, 43, .7); }
+.sb-sec { font-size: 11px; font-weight: 600; letter-spacing: .1em; color: var(--ink-3); padding: 14px 12px 6px; text-transform: uppercase; }
+.sb a.sb-i { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; text-decoration: none; color: var(--ink-2); font-weight: 500; font-size: 14.5px; }
+.sb a.sb-i svg { width: 19px; height: 19px; flex: none; }
+.sb a.sb-i:hover { background: rgba(255, 255, 255, .55); color: var(--ink); }
+.sb a.sb-i.on { background: rgba(255, 255, 255, .85); color: var(--ink); font-weight: 600; box-shadow: 0 6px 16px -10px rgba(120, 60, 20, .35); }
+.sb a.sb-i .nbadge, .sb-badge { margin-left: auto; background: #ef4a3a; color: #fff; border-radius: 7px; font-size: 11.5px; font-weight: 700; padding: 1px 7px; min-width: 22px; text-align: center; }
+.sb-team { display: grid; gap: 2px; }
+.sb-team a { display: flex; align-items: center; gap: 10px; padding: 7px 12px; border-radius: 12px; text-decoration: none; color: var(--ink-2); font-size: 14px; }
+.sb-team a:hover { background: rgba(255, 255, 255, .55); }
+.av { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; color: #fff; font: 700 11px Inter, sans-serif; flex: none; }
+.av-ar { background: linear-gradient(135deg, #f08a3c, #d9472b); } .av-milan { background: linear-gradient(135deg, #6d8cf5, #3b5bdb); } .av-mateja { background: linear-gradient(135deg, #c27cf2, #8a3fd1); }
+.sb-foot { margin-top: auto; }
+
+/* ---------- gornja traka ---------- */
+.tb { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: 14px; padding: 14px 20px; max-width: 1320px; margin: 0 auto; }
+.tb-search { flex: 1; max-width: 560px; display: flex; align-items: center; gap: 10px; background: rgba(255, 255, 255, .62); border: 1px solid rgba(255, 255, 255, .9);
+  border-radius: 14px; padding: 0 14px; height: 44px; -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); box-shadow: var(--shadow); }
+.tb-search svg { width: 18px; height: 18px; color: var(--ink-3); flex: none; }
+.tb-search input { flex: 1; border: 0; background: transparent !important; outline: none; font: 15px Inter, sans-serif; color: var(--ink); min-width: 0; }
+.tb-right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+.tb-bell { position: relative; display: grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; color: var(--ink-2); text-decoration: none; }
+.tb-bell:hover { background: rgba(255, 255, 255, .6); }
+.tb-bell svg { width: 21px; height: 21px; }
+.tb-bell.dot::after { content: ''; position: absolute; top: 10px; right: 11px; width: 8px; height: 8px; border-radius: 50%; background: #ef4a3a; box-shadow: 0 0 0 2px #fde9da; }
+.tb-user { display: flex; align-items: center; gap: 10px; line-height: 1.2; }
+.tb-user small { display: block; font-size: 10.5px; letter-spacing: .1em; color: var(--ink-3); text-transform: uppercase; font-weight: 600; }
+.tb-user b { font-size: 14.5px; }
+.tb-user .av { width: 38px; height: 38px; font-size: 13px; }
+.tb-menu { display: none; }
+
+@media (max-width: 960px) {
+  body.shell { padding-left: 0; }
+  .sb { transform: translateX(-100%); transition: transform .25s ease; box-shadow: 20px 0 40px -20px rgba(0, 0, 0, .25); background: rgba(255, 246, 238, .96); }
+  body.sb-open .sb { transform: none; }
+  .tb-menu { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; border: 0; background: rgba(255, 255, 255, .7); cursor: pointer; }
+  .tb-menu svg { width: 20px; height: 20px; }
+  .tb { padding: 12px 14px; gap: 10px; }
+  .tb-user > div { display: none; }
+}
+@media (max-width: 560px) { .tb-search { height: 40px; } .tb-bell, .tb-user { display: none; } }

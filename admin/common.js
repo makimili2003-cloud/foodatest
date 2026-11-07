@@ -82,9 +82,11 @@ export async function ensureLogin() {
 
 /** Broj novih upita pored "Upiti" u meniju. */
 export function updateBadge(n) {
-  const a = document.querySelector('.hnav a[href="/admin/upiti.html"]'); if (!a) return;
-  a.querySelector('.nbadge')?.remove();
-  if (n > 0) a.insertAdjacentHTML('beforeend', `<span class="nbadge">${n}</span>`);
+  // stari gornji meni i novi bočni meni (admin/shell.js)
+  document.querySelectorAll('.hnav a[href="/admin/upiti.html"], .sb a[href="/admin/upiti.html"]').forEach(a => {
+    a.querySelector('.nbadge')?.remove();
+    if (n > 0) a.insertAdjacentHTML('beforeend', `<span class="nbadge">${n}</span>`);
+  });
 }
 
 export async function logout(reason) {
