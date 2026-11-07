@@ -4,7 +4,7 @@ import json, os, sys, html
 
 ROOT = sys.argv[1]
 SITE = 'https://foodar.org'
-TODAY = '2026-11-07'
+TODAY = '2026-11-08'
 
 PAGES = [  # (putanja, kratak naziv za meni i breadcrumb)
     ('/ar-meni/', 'AR meni'),
@@ -12,6 +12,7 @@ PAGES = [  # (putanja, kratak naziv za meni i breadcrumb)
     ('/kako-radi/', 'Kako radi'),
     ('/cene/', 'Cene'),
     ('/pitanja/', 'Pitanja'),
+    ('/vodic/', 'Vodič'),
 ]
 DESC_LINK = {
     '/ar-meni/': 'Šta je AR meni i kako gost vidi jelo na svom stolu.',
@@ -19,7 +20,18 @@ DESC_LINK = {
     '/kako-radi/': 'Od izbora jela do QR koda pored jela na Vašem meniju.',
     '/cene/': 'Paketi, jednokratno implementiranje i godišnje plaćanje.',
     '/pitanja/': 'Odgovori na pitanja koja restorani najčešće postavljaju.',
+    '/vodic/': 'Tekstovi o AR meniju, 3D meniju i interaktivnom meniju za restorane.',
 }
+
+# Tekstovi u vodiču: (putanja, naslov u listi, kratak opis, datum objave)
+ARTICLES = [
+    ('/vodic/interaktivni-meni-za-restorane/', 'Interaktivni meni za restorane: vrste i šta izabrati',
+     'Digitalni QR meni, 3D meni i AR meni: po čemu se razlikuju i šta kome odgovara.', '2026-11-08'),
+    ('/vodic/kako-ar-meni-pomaze-prodaji/', 'Kako AR meni pomaže restoranu da proda više',
+     'Zašto gost koji vidi jelo lakše poručuje specijalitete i veće porcije.', '2026-11-08'),
+    ('/vodic/3d-meni-sa-qr-kodom/', '3D meni sa QR kodom: jelo na stolu bez aplikacije',
+     'Kako gost jednim skeniranjem vidi 3D jelo i šta restoranu treba da to radi.', '2026-11-08'),
+]
 
 # Isti cenovnik kao na početnoj strani (index.html, const PLANS)
 PLANS = [
@@ -71,21 +83,23 @@ def plans_html():
 
 LOGO = '<a class="logo" href="/"><i>AR</i>FoodAR</a>'
 
-def page(path, short, title, desc, h1, eyebrow, lead, body, faq_keys=None, shot=None, extra_ld=None):
+def page(path, short, title, desc, h1, eyebrow, lead, body, faq_keys=None, shot=None, extra_ld=None, parent=None, more_items=None, nav_path=None):
+    nav_path = nav_path or path
     url = SITE + path
     cur = ' aria-current="page"'
-    nav = ''.join(f'<a href="{p}"{cur if p == path else ""}>{n}</a>' for p, n in PAGES)
+    nav = ''.join(f'<a href="{p}"{cur if p == nav_path else ""}>{n}</a>' for p, n in PAGES)
+    trail = [('FoodAR', SITE + '/')] + ([(parent[1], SITE + parent[0])] if parent else []) + [(short, url)]
     graph = [
         {'@type': 'WebPage', '@id': url + '#page', 'url': url, 'name': title, 'description': desc, 'inLanguage': 'sr',
          'isPartOf': {'@id': SITE + '/#website'}, 'about': {'@id': SITE + '/#service'}, 'dateModified': TODAY},
         {'@type': 'BreadcrumbList', 'itemListElement': [
-            {'@type': 'ListItem', 'position': 1, 'name': 'FoodAR', 'item': SITE + '/'},
-            {'@type': 'ListItem', 'position': 2, 'name': short, 'item': url}]},
+            {'@type': 'ListItem', 'position': i + 1, 'name': n, 'item': u} for i, (n, u) in enumerate(trail)]},
     ]
     if faq_keys: graph.append(faq_ld(faq_keys))
     if extra_ld: graph.append(extra_ld)
     ld = json.dumps({'@context': 'https://schema.org', '@graph': graph}, ensure_ascii=False)
-    more = ''.join(f'<li><a href="{p}"><b>{n}</b><span>{DESC_LINK[p]}</span></a></li>' for p, n in PAGES if p != path)
+    items = more_items or [(p, n, DESC_LINK[p]) for p, n in PAGES if p != path]
+    more = ''.join(f'<li><a href="{p}"><b>{n}</b><span>{d}</span></a></li>' for p, n, d in items)
     shot_html = f'<figure class="shot"><img src="{shot[0]}" alt="{shot[1]}" width="{shot[2]}" height="{shot[3]}" loading="eager" decoding="async" /></figure>' if shot else ''
     doc = f'''<!DOCTYPE html>
 <html lang="sr">
@@ -113,12 +127,13 @@ def page(path, short, title, desc, h1, eyebrow, lead, body, faq_keys=None, shot=
   <link rel="icon" href="/favicon.ico" sizes="48x48" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96" />
+  <link rel="icon" href="/favicon-192.png" type="image/png" sizes="192x192" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <link rel="manifest" href="/site.webmanifest" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/strane.css?v=1" />
+  <link rel="stylesheet" href="/strane.css?v=2" />
   <script type="application/ld+json">{ld}</script>
 </head>
 <body>
@@ -127,7 +142,7 @@ def page(path, short, title, desc, h1, eyebrow, lead, body, faq_keys=None, shot=
   <nav class="nav-links" aria-label="Glavni meni">{nav}<a class="btn" href="/#kontakt">Kontakt</a></nav>
 </div></header>
 <main class="wrap">
-  <nav class="crumbs" aria-label="Putanja"><a href="/">FoodAR</a><span>/</span>{short}</nav>
+  <nav class="crumbs" aria-label="Putanja"><a href="/">FoodAR</a><span>/</span>{(f'<a href="{parent[0]}">{parent[1]}</a><span>/</span>') if parent else ''}{short}</nav>
   <div class="intro{'' if shot else ' solo'}">
     <div>
       <span class="eyebrow">{eyebrow}</span>
@@ -295,5 +310,136 @@ page('/pitanja/', 'Pitanja',
      'Česta pitanja', 'Pitanja i odgovori',
      'Sve što restorani najčešće pitaju o AR meniju, 3D prikazu jela, QR kodovima i cenama.',
      '', faq_keys=ALLQ)
+
+# ================================================================ VODIČ
+def article_ld(path, headline, date):
+    return {'@type': 'Article', '@id': SITE + path + '#article', 'headline': headline, 'inLanguage': 'sr',
+            'datePublished': date, 'dateModified': TODAY, 'image': SITE + '/og-image.jpg',
+            'author': {'@id': SITE + '/#org'}, 'publisher': {'@id': SITE + '/#org'},
+            'mainEntityOfPage': {'@id': SITE + path + '#page'}}
+
+def more_for(path):
+    return [(a[0], a[1], a[2]) for a in ARTICLES if a[0] != path] + [('/ar-meni/', 'AR meni', DESC_LINK['/ar-meni/']), ('/cene/', 'Cene', DESC_LINK['/cene/'])]
+
+VODIC = ('/vodic/', 'Vodič')
+
+page('/vodic/', 'Vodič',
+     'Vodič: AR meni, 3D meni i interaktivni meni za restorane | FoodAR',
+     'Tekstovi FoodAR-a (Food AR) o AR meniju, interaktivnom 3D meniju i QR kodovima za restorane: kako rade, šta donose i kako izabrati pravo rešenje za Vaš restoran.',
+     'Vodič za restorane', 'AR meni · 3D meni · interaktivni meni',
+     'Sve o AR meniju, 3D prikazu jela i interaktivnim menijima, jednostavnim jezikom i bez tehničkog žargona.',
+     '<ul class="cards">' + ''.join(f'<li><a href="{a[0]}"><b>{a[1]}</b><span>{a[2]}</span></a></li>' for a in ARTICLES) + '</ul>'
+     + '<p>FoodAR (piše se i Food AR) je usluga iz Srbije koja jela iz Vašeg restorana snima u 3D i prikazuje ih gostu na stolu, u stvarnoj veličini. Više o usluzi pročitajte na stranicama <a href="/ar-meni/">AR meni</a> i <a href="/3d-prikaz-jela/">3D prikaz jela</a>.</p>',
+     more_items=[('/ar-meni/', 'AR meni', DESC_LINK['/ar-meni/']), ('/3d-prikaz-jela/', '3D prikaz jela', DESC_LINK['/3d-prikaz-jela/']), ('/kako-radi/', 'Kako radi', DESC_LINK['/kako-radi/']), ('/cene/', 'Cene', DESC_LINK['/cene/'])],
+     extra_ld={'@type': 'ItemList', 'itemListElement': [{'@type': 'ListItem', 'position': i + 1, 'url': SITE + a[0], 'name': a[1]} for i, a in enumerate(ARTICLES)]})
+
+# ---------------------------------------------------------------- 1. Interaktivni meni
+P, T, D, DT = ARTICLES[0]
+page(P, 'Interaktivni meni', 'Interaktivni meni za restorane: vrste, razlike i šta izabrati | FoodAR',
+     'Interaktivni meni za restorane može biti digitalni QR meni, 3D meni ili AR meni. Objašnjavamo razlike, prednosti i kako da izaberete pravo rešenje za Vaš restoran ili kafić.',
+     'Interaktivni meni za restorane: vrste i šta izabrati', 'Vodič',
+     'Pod „interaktivnim menijem“ restorani misle na različite stvari. Evo po čemu se razlikuju digitalni QR meni, 3D meni i AR meni, i šta kome odgovara.',
+     """<h2>Šta je interaktivni meni?</h2>
+<p>Interaktivni meni je svaki meni sa kojim gost može nešto da uradi, a ne samo da ga pročita: da otvori jelo, pogleda detalje, promeni jezik ili vidi jelo iz više uglova. Najčešće se otvara na telefonu gosta, preko QR koda na stolu ili na štampanom meniju.</p>
+<p>U praksi se pod tim nazivom kriju tri različita rešenja. Razlikuju se po tome šta gost vidi i koliko mu pomažu da odluči šta će poručiti.</p>
+<h2>1. Digitalni QR meni</h2>
+<p>Gost skenira QR kod na stolu i na telefonu dobija listu jela sa cenama, opisima i ponekad fotografijama. To je u suštini štampani meni prebačen na ekran.</p>
+<ul>
+<li><b>Dobro je za:</b> brzu promenu cena i ponude bez nove štampe, menije na više jezika.</li>
+<li><b>Ograničenje:</b> gost i dalje vidi samo tekst i fotografiju, pa ne zna koliko je porcija velika niti kako jelo izgleda iz drugog ugla.</li>
+</ul>
+<h2>2. 3D meni</h2>
+<p>Umesto fotografije, gost vidi 3D model jela koji okreće prstom i zumira. Jelo vidi sa svih strana, kao da je ispred njega. Dobar 3D meni koristi pravi 3D snimak jela iz Vašeg restorana, a ne nacrtan model.</p>
+<ul>
+<li><b>Dobro je za:</b> specijalitete, jela koja gosti ne poznaju i jela koja je teško opisati rečima.</li>
+<li><b>Ograničenje:</b> na ekranu telefona i dalje je teško proceniti stvarnu veličinu porcije.</li>
+</ul>
+<h2>3. AR meni</h2>
+<p>AR meni (meni sa proširenom stvarnošću) ide korak dalje: isti 3D model se kroz kameru telefona postavlja na sto ispred gosta, u stvarnoj veličini. Gost vidi tanjir pored svoje čaše i pribora i odmah zna koliko je jelo veliko. Više o tome na stranici <a href="/ar-meni/">AR meni za restorane</a>.</p>
+<ul>
+<li><b>Dobro je za:</b> porcije za više osoba, skuplja jela, nova jela i sve gde gost pita „koliko je to veliko?“.</li>
+<li><b>Ograničenje:</b> svako jelo mora da se snimi u 3D, pa ima smisla za izabrana jela, a ne obavezno za ceo meni.</li>
+</ul>
+<h2>Uporedni pregled</h2>
+<div class="tbl"><table>
+<thead><tr><th></th><th>Digitalni QR meni</th><th>3D meni</th><th>AR meni</th></tr></thead>
+<tbody>
+<tr><th scope="row">Šta gost vidi</th><td>Listu jela i fotografije</td><td>3D model jela</td><td>3D jelo na svom stolu</td></tr>
+<tr><th scope="row">Veličina porcije</th><td>Ne vidi se</td><td>Delimično</td><td>Stvarna, 1:1</td></tr>
+<tr><th scope="row">Pogled sa svih strana</th><td>Ne</td><td>Da</td><td>Da</td></tr>
+<tr><th scope="row">Aplikacija</th><td>Nije potrebna</td><td>Nije potrebna</td><td>Nije potrebna</td></tr>
+<tr><th scope="row">Najbolje za</th><td>Ceo meni i cene</td><td>Izabrana jela</td><td>Izabrana jela</td></tr>
+</tbody></table></div>
+<h2>Šta izabrati za Vaš restoran</h2>
+<p>Ova rešenja se ne isključuju. Mnogi restorani zadrže štampani ili digitalni meni za kompletnu ponudu, a 3D i AR prikaz dodaju samo za jela koja žele da istaknu.</p>
+<ul>
+<li>Ako Vam je glavni problem promena cena, dovoljan je digitalni QR meni.</li>
+<li>Ako gosti stalno pitaju kako jelo izgleda i koliko je veliko, pravi izbor je AR meni sa 3D prikazom.</li>
+<li>Ako želite da prodate više specijaliteta i skupljih jela, gostu je potrebno da ta jela vidi pre porudžbine.</li>
+</ul>
+<div class="note"><b>Kako to radi FoodAR:</b> ne pravimo digitalni meni. Jela koja izaberete snimamo u 3D, a QR kod stoji pored njih na Vašem postojećem meniju. Gost skenira kod i vidi jelo u 3D i na svom stolu.</div>""",
+     faq_keys=['meni', 'app', 'koja', 'cena'], parent=VODIC, nav_path='/vodic/', more_items=more_for(P), extra_ld=article_ld(P, T, DT))
+
+# ---------------------------------------------------------------- 2. Prodaja
+P, T, D, DT = ARTICLES[1]
+page(P, 'AR meni i prodaja', 'Kako AR meni pomaže restoranu da proda više | FoodAR',
+     'Kako AR meni i 3D prikaz jela pomažu restoranu: gost lakše poručuje specijalitete, nova i skuplja jela, konobari štede vreme, a ima manje reklamacija. Praktični saveti za restorane u Srbiji.',
+     'Kako AR meni pomaže restoranu da proda više', 'Vodič',
+     'Gost poručuje ono što razume. Kada jelo vidi na svom stolu pre porudžbine, lakše se odluči i za ono što ne poznaje.',
+     """<h2>Zašto gosti biraju uvek ista jela</h2>
+<p>Većina gostiju bira ono što već zna: pljeskavicu, pastu, piletinu. Nije razlog to što ih ostala jela ne zanimaju, već to što ne znaju šta će dobiti. Naziv i spisak sastojaka ne govore koliko je porcija velika, kako jelo izgleda niti da li je dovoljno za dve osobe.</p>
+<p>Svaka takva nesigurnost je razlog da gost izabere nešto poznato i jeftinije. AR meni tu nesigurnost uklanja pre nego što gost odluči.</p>
+<h2>1. Lakše prodajete specijalitete i nova jela</h2>
+<p>Specijalitet kuće je obično jelo na kojem restoran najviše zarađuje i po kojem želi da ga pamte. Kada gost vidi to jelo na svom stolu, sa svih strana i u pravoj veličini, rizik da mu se ne dopadne je manji, pa se lakše odluči da ga proba. Isto važi za nova jela na meniju koja još niko ne poznaje.</p>
+<h2>2. Veće porcije i jela za više osoba</h2>
+<p>Plate za dvoje, roštilj za društvo i velike pice gosti često ne poručuju jer ne znaju da li će biti dovoljno ili previše. U AR prikazu vide tačnu veličinu, pa mogu da procene da li jedna porcija pokriva celo društvo.</p>
+<h2>3. Konobari štede vreme</h2>
+<p>„Koliko je velika porcija?“ i „Šta je tačno u tome?“ su pitanja koja konobar čuje desetine puta dnevno. Kada gost to sam pogleda dok čeka, konobar ima više vremena za ostale stolove, posebno u špicu.</p>
+<h2>4. Manje razočaranja i reklamacija</h2>
+<p>Najčešći razlog nezadovoljstva je razlika između očekivanja i onoga što stigne na sto. Kada je gost jelo već video u stvarnoj veličini, dobija tačno ono što je očekivao. To znači manje vraćenih jela i bolje recenzije.</p>
+<h2>5. Besplatna reklama</h2>
+<p>Jelo koje se pojavi na stolu kroz kameru telefona je nešto što gosti snimaju i šalju prijateljima ili objavljuju na Instagramu. Za restoran je to reklama koja ne košta ništa.</p>
+<h2>Kako da izvučete najviše iz AR menija</h2>
+<ol class="steps">
+<li><b>Krenite od jela koja želite da prodate</b>Specijaliteti, nova jela i porcije za više osoba donose najviše. Ne morate da prikažete ceo meni.</li>
+<li><b>Neka QR kod bude vidljiv</b>Kod treba da stoji tik uz jelo, sa kratkim pozivom tipa „Pogledaj jelo na svom stolu“.</li>
+<li><b>Recite konobarima</b>Kada gost pita za veličinu porcije, konobar ga uputi na QR kod. Tako gost isproba prikaz i sledeći put to radi sam.</li>
+<li><b>Pokažite to na mrežama</b>Kratak snimak jela na stolu je odličan sadržaj za Instagram i privlači nove goste.</li>
+</ol>
+<div class="note">FoodAR snima jela koja izaberete i isporučuje gotove QR kodove za Vaš postojeći meni. Pogledajte <a href="/cene/">cene paketa</a> ili isprobajte <a href="/#demo">demo</a>.</div>""",
+     faq_keys=['koja', 'kasa', 'demo', 'cena'], parent=VODIC, nav_path='/vodic/', more_items=more_for(P), extra_ld=article_ld(P, T, DT))
+
+# ---------------------------------------------------------------- 3. 3D meni + QR
+P, T, D, DT = ARTICLES[2]
+page(P, '3D meni sa QR kodom', '3D meni sa QR kodom – jelo na stolu bez aplikacije | FoodAR',
+     '3D meni sa QR kodom: gost skenira kod kamerom telefona i vidi 3D jelo, pa ga postavlja na sto u stvarnoj veličini. Bez aplikacije, na iPhone i Android telefonima. Šta restoranu treba da to radi.',
+     '3D meni sa QR kodom: jelo na stolu bez aplikacije', 'Vodič',
+     'Jedan QR kod pored jela na Vašem meniju dovoljan je da gost vidi to jelo u 3D i na svom stolu. Evo kako to radi i šta Vam je za to potrebno.',
+     """<h2>Kako gost koristi 3D meni sa QR kodom</h2>
+<ol class="steps">
+<li><b>Skenira QR kod</b>Običnom kamerom telefona, sa koda koji stoji pored jela na meniju.</li>
+<li><b>Vidi 3D jelo</b>Otvara se stranica jela u browseru. Gost može da ga okreće prstom i zumira.</li>
+<li><b>Postavi ga na sto</b>Jednim dodirom pokreće AR prikaz i jelo se pojavi na stolu u stvarnoj veličini.</li>
+</ol>
+<p>Nema instaliranja aplikacije, pravljenja naloga ni čekanja. Ceo postupak traje nekoliko sekundi.</p>
+<h2>Zašto bez aplikacije</h2>
+<p>Gost u restoranu neće da preuzima aplikaciju da bi pogledao jedno jelo. Zato 3D meni mora da radi direktno u browseru: u Safariju na iPhone-u i u Chrome-u na Android telefonima. Tako ga koristi svaki gost, a ne samo onaj koji je spreman da instalira nešto novo.</p>
+<h2>Na kojim telefonima radi</h2>
+<ul>
+<li><b>3D prikaz</b> (okretanje i zumiranje) radi na svakom modernom telefonu.</li>
+<li><b>Prikaz na stolu (AR)</b> radi na iPhone uređajima u Safariju i na Android telefonima sa Google Play Services for AR, što je većina telefona iz poslednjih nekoliko godina.</li>
+<li>Ako gost otvori link iz Instagrama ili Facebooka, dobije uputstvo kako da ga otvori u pravom browseru, gde prikaz na stolu radi.</li>
+</ul>
+<h2>Šta je restoranu potrebno</h2>
+<ul>
+<li><b>Izbor jela.</b> Birate jela koja želite da prikažete u 3D, ne mora ceo meni.</li>
+<li><b>3D snimak svakog jela.</b> Jelo se snima onako kako ga Vaša kuhinja servira, sa stvarnim dimenzijama, i obrađuje da se brzo učitava na telefonu.</li>
+<li><b>QR kod po jelu.</b> Svako jelo ima svoj stalni link i QR kod, kao nalepnicu ili u sledećem izdanju menija.</li>
+</ul>
+<p>Nije potreban novi meni, nova kasa ni tablet na stolu. Više o tome kako nastaje model pročitajte na stranici <a href="/3d-prikaz-jela/">3D prikaz jela</a>.</p>
+<h2>QR kod koji ne zastareva</h2>
+<p>Kada promenite izgled jela, ono se ponovo snimi i model se zameni, a link i QR kod ostaju isti. Ne morate ništa da štampate ponovo.</p>
+<div class="note">FoodAR radi celu pripremu: snimanje, obradu, hosting i QR kodove spremne za štampu. Pogledajte <a href="/kako-radi/">kako radi</a> ili isprobajte <a href="/#demo">demo jela</a>.</div>""",
+     faq_keys=['app', 'telefoni', 'qr_trajan', 'instagram'], parent=VODIC, nav_path='/vodic/', more_items=more_for(P), extra_ld=article_ld(P, T, DT))
 
 print('ok')
