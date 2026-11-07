@@ -25,8 +25,8 @@ DESC_LINK = {
 
 # Tekstovi u vodiču: (putanja, naslov u listi, kratak opis, datum objave)
 ARTICLES = [
-    ('/vodic/interaktivni-meni-za-restorane/', 'Interaktivni meni za restorane: vrste i šta izabrati',
-     'Digitalni QR meni, 3D meni i AR meni: po čemu se razlikuju i šta kome odgovara.', '2026-11-08'),
+    ('/vodic/interaktivni-meni-za-restorane/', 'Interaktivni 3D meni za restorane: šta je i kako radi',
+     'Gost okreće pravo jelo u 3D i postavlja ga na svoj sto u stvarnoj veličini.', '2026-11-08'),
     ('/vodic/kako-ar-meni-pomaze-prodaji/', 'Kako AR meni pomaže restoranu da proda više',
      'Zašto gost koji vidi jelo lakše poručuje specijalitete i veće porcije.', '2026-11-08'),
     ('/vodic/3d-meni-sa-qr-kodom/', '3D meni sa QR kodom: jelo na stolu bez aplikacije',
@@ -335,49 +335,37 @@ page('/vodic/', 'Vodič',
 
 # ---------------------------------------------------------------- 1. Interaktivni meni
 P, T, D, DT = ARTICLES[0]
-page(P, 'Interaktivni meni', 'Interaktivni meni za restorane: vrste, razlike i šta izabrati | FoodAR',
-     'Interaktivni meni za restorane može biti digitalni QR meni, 3D meni ili AR meni. Objašnjavamo razlike, prednosti i kako da izaberete pravo rešenje za Vaš restoran ili kafić.',
-     'Interaktivni meni za restorane: vrste i šta izabrati', 'Vodič',
-     'Pod „interaktivnim menijem“ restorani misle na različite stvari. Evo po čemu se razlikuju digitalni QR meni, 3D meni i AR meni, i šta kome odgovara.',
+page(P, 'Interaktivni meni', 'Interaktivni meni za restorane – jelo u 3D i na stolu gosta | FoodAR',
+     'Interaktivni meni za restorane: gost okreće i zumira pravo jelo u 3D i postavlja ga na svoj sto u stvarnoj veličini, pre porudžbine. Bez aplikacije, uz Vaš postojeći meni.',
+     'Interaktivni 3D meni za restorane', 'Vodič',
+     'Interaktivni meni nije lista jela na ekranu. To je pravo jelo iz Vašeg restorana koje gost okreće, zumira i vidi na svom stolu pre nego što ga poruči.',
      """<h2>Šta je interaktivni meni?</h2>
-<p>Interaktivni meni je svaki meni sa kojim gost može nešto da uradi, a ne samo da ga pročita: da otvori jelo, pogleda detalje, promeni jezik ili vidi jelo iz više uglova. Najčešće se otvara na telefonu gosta, preko QR koda na stolu ili na štampanom meniju.</p>
-<p>U praksi se pod tim nazivom kriju tri različita rešenja. Razlikuju se po tome šta gost vidi i koliko mu pomažu da odluči šta će poručiti.</p>
-<h2>1. Digitalni QR meni</h2>
-<p>Gost skenira QR kod na stolu i na telefonu dobija listu jela sa cenama, opisima i ponekad fotografijama. To je u suštini štampani meni prebačen na ekran.</p>
+<p>Običan meni gost samo čita: naziv jela, sastojci, cena. Interaktivni meni gostu dozvoljava da jelo istraži sam. Kod FoodAR-a to znači da gost vidi 3D snimak pravog jela iz Vaše kuhinje, okreće ga prstom, zumira detalje i jednim dodirom ga postavi na sto ispred sebe, u stvarnoj veličini.</p>
+<div class="note"><b>Interaktivni meni nije novi meni.</b> FoodAR ne pravi digitalni meni ni listu jela na telefonu. Vaš štampani meni ostaje isti, a pored jela koja izaberete stoji mali kod koji otvara baš to jelo u 3D.</div>
+<h2>Šta gost može da uradi</h2>
 <ul>
-<li><b>Dobro je za:</b> brzu promenu cena i ponude bez nove štampe, menije na više jezika.</li>
-<li><b>Ograničenje:</b> gost i dalje vidi samo tekst i fotografiju, pa ne zna koliko je porcija velika niti kako jelo izgleda iz drugog ugla.</li>
+<li><b>Da okrene jelo.</b> Vidi ga sa svih strana, kao da je tanjir ispred njega.</li>
+<li><b>Da zumira.</b> Vidi detalje: priloge, sos, koru, preliv.</li>
+<li><b>Da ga postavi na sto.</b> Kroz kameru telefona jelo se pojavi na stolu u razmeri 1:1, pored čaše i pribora. To je <a href="/ar-meni/">AR meni</a>.</li>
+<li><b>Da proceni porciju.</b> Odmah zna da li je jelo za jednu ili dve osobe.</li>
 </ul>
-<h2>2. 3D meni</h2>
-<p>Umesto fotografije, gost vidi 3D model jela koji okreće prstom i zumira. Jelo vidi sa svih strana, kao da je ispred njega. Dobar 3D meni koristi pravi 3D snimak jela iz Vašeg restorana, a ne nacrtan model.</p>
+<h2>Zašto je bolji od fotografije</h2>
+<p>Fotografija pokazuje jelo iz jednog ugla i ne govori ništa o veličini. Na papiru zauzima mesto, a kada promenite jelo, često znači i novu štampu. 3D prikaz pokazuje jelo iz svih uglova i u pravoj veličini, a na meniju zauzima samo mali kod pored naziva jela. Više o tome na stranici <a href="/3d-prikaz-jela/">3D prikaz jela</a>.</p>
+<h2>Za koja jela ima najviše smisla</h2>
 <ul>
-<li><b>Dobro je za:</b> specijalitete, jela koja gosti ne poznaju i jela koja je teško opisati rečima.</li>
-<li><b>Ograničenje:</b> na ekranu telefona i dalje je teško proceniti stvarnu veličinu porcije.</li>
+<li>Specijaliteti po kojima želite da Vas pamte.</li>
+<li>Nova jela koja gosti još ne poznaju.</li>
+<li>Porcije za dve ili više osoba, plate i roštilj.</li>
+<li>Jela za koja konobari najčešće čuju „koliko je to veliko?“.</li>
 </ul>
-<h2>3. AR meni</h2>
-<p>AR meni (meni sa proširenom stvarnošću) ide korak dalje: isti 3D model se kroz kameru telefona postavlja na sto ispred gosta, u stvarnoj veličini. Gost vidi tanjir pored svoje čaše i pribora i odmah zna koliko je jelo veliko. Više o tome na stranici <a href="/ar-meni/">AR meni za restorane</a>.</p>
-<ul>
-<li><b>Dobro je za:</b> porcije za više osoba, skuplja jela, nova jela i sve gde gost pita „koliko je to veliko?“.</li>
-<li><b>Ograničenje:</b> svako jelo mora da se snimi u 3D, pa ima smisla za izabrana jela, a ne obavezno za ceo meni.</li>
-</ul>
-<h2>Uporedni pregled</h2>
-<div class="tbl"><table>
-<thead><tr><th></th><th>Digitalni QR meni</th><th>3D meni</th><th>AR meni</th></tr></thead>
-<tbody>
-<tr><th scope="row">Šta gost vidi</th><td>Listu jela i fotografije</td><td>3D model jela</td><td>3D jelo na svom stolu</td></tr>
-<tr><th scope="row">Veličina porcije</th><td>Ne vidi se</td><td>Delimično</td><td>Stvarna, 1:1</td></tr>
-<tr><th scope="row">Pogled sa svih strana</th><td>Ne</td><td>Da</td><td>Da</td></tr>
-<tr><th scope="row">Aplikacija</th><td>Nije potrebna</td><td>Nije potrebna</td><td>Nije potrebna</td></tr>
-<tr><th scope="row">Najbolje za</th><td>Ceo meni i cene</td><td>Izabrana jela</td><td>Izabrana jela</td></tr>
-</tbody></table></div>
-<h2>Šta izabrati za Vaš restoran</h2>
-<p>Ova rešenja se ne isključuju. Mnogi restorani zadrže štampani ili digitalni meni za kompletnu ponudu, a 3D i AR prikaz dodaju samo za jela koja žele da istaknu.</p>
-<ul>
-<li>Ako Vam je glavni problem promena cena, dovoljan je digitalni QR meni.</li>
-<li>Ako gosti stalno pitaju kako jelo izgleda i koliko je veliko, pravi izbor je AR meni sa 3D prikazom.</li>
-<li>Ako želite da prodate više specijaliteta i skupljih jela, gostu je potrebno da ta jela vidi pre porudžbine.</li>
-</ul>
-<div class="note"><b>Kako to radi FoodAR:</b> ne pravimo digitalni meni. Jela koja izaberete snimamo u 3D, a QR kod stoji pored njih na Vašem postojećem meniju. Gost skenira kod i vidi jelo u 3D i na svom stolu.</div>""",
+<p>Ne morate da prikažete ceo meni. Birate onoliko jela koliko Vam treba.</p>
+<h2>Kako dobijate interaktivni meni</h2>
+<ol class="steps">
+<li><b>Birate jela</b>Kažete nam koja jela želite da gosti vide u 3D.</li>
+<li><b>Snimamo ih u Vašem restoranu</b>Jela snimamo onako kako ih Vaša kuhinja servira, sa stvarnim dimenzijama.</li>
+<li><b>Kod pored jela</b>Svako jelo dobija svoj kod, kao nalepnicu ili u sledećem izdanju menija.</li>
+<li><b>Gost istražuje jelo</b>Skenira kod kamerom telefona, bez aplikacije, i jelo je na njegovom stolu.</li>
+</ol>""",
      faq_keys=['meni', 'app', 'koja', 'cena'], parent=VODIC, nav_path='/vodic/', more_items=more_for(P), extra_ld=article_ld(P, T, DT))
 
 # ---------------------------------------------------------------- 2. Prodaja
