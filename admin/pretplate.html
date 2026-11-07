@@ -250,13 +250,14 @@
     }
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
   </style>
+  <link rel="stylesheet" href="/admin/shell.css?v=1" />
 </head>
 <body>
 <header>
   <div class="hbar">
     <a class="brand" href="/admin/"><i>AR</i>FoodAR</a>
     <nav class="hnav">
-      <a href="/admin/">Jela</a>
+      <a href="/admin/jela.html">Jela</a>
       <a href="/admin/pretplate.html" class="on">Pretplate</a>
       <a href="/admin/upiti.html">Upiti</a>
       <a href="#" id="logoutBtn">Odjava</a>
@@ -800,5 +801,6 @@ ensureLogin().then(load).then(() => {
   }
 }).catch(e => toast(e.message));
 </script>
+<script src="/admin/shell.js?v=1"></script>
 </body>
 </html>

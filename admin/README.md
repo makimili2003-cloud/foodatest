@@ -104,7 +104,8 @@ Bez njega, poddomen novog jela dodaješ ručno: **Domain management → Add doma
 
 ## Kako je napravljeno (za programera)
 
-- `admin/`: stranice panela (`index.html` + `jela.js` za jela, `pretplate.html`) i `common.js` (prijava, pozivi ka API-ju).
+- `admin/`: stranice panela: `index.html` (Pregled: upiti, prihod, kalendar uplata, tim, jela), `jela.html` + `jela.js`, `pretplate.html`, `upiti.html`;
+  `shell.css` + `shell.js` (bočni meni, gornja traka sa pretragom, izgled svih stranica) i `common.js` (prijava, pozivi ka API-ju).
 - `admin/vendor/optimize.js`: obrada modela u browseru, spakovana iz `admin-src/optimize.js`
   (`npm install && npm run build:optimizer`).
 - `netlify/edge-functions/admin-gate.js`: čuva sve pod `/admin` (traži važeći kolačić prijave).
