@@ -102,9 +102,10 @@
   function launchAR(mv, opts) {
     opts = opts || {};
     var glb = opts.arGlb || mv.getAttribute('src') || mv.src;
-    // Početna strana prikazuje lakšu (Draco) verziju modela, a za AR šalje original (opts.arGlb):
-    // na Androidu ga otvaramo direktno u Scene Viewer-u. QR stranice (ar.html) ne šalju arGlb i rade kao ranije.
-    if (opts.arGlb && ANDROID && !IN_APP) { location.href = sceneViewerHref({ glb: glb, title: opts.title, fixedScale: opts.fixedScale }); return; }
+    // Android (Chrome i ostali browseri): AR uvek kroz Google Scene Viewer, ne kroz WebXR u Chrome-u.
+    // WebXR na pojedinim telefonima (npr. Honor) daje crn ekran umesto kamere; Scene Viewer je Google-ova
+    // aplikacija i radi na svim telefonima sa ARCore-om. Početna strana šalje original modela u opts.arGlb.
+    if (ANDROID && !IN_APP && glb) { location.href = sceneViewerHref({ glb: glb, title: opts.title, fixedScale: opts.fixedScale }); return; }
     if (!IN_APP && mv.canActivateAR) { mv.activateAR(); return; }
     if (IN_APP && ANDROID && glb) { browserHelp(sceneViewerHref({ glb: glb, title: opts.title, fixedScale: opts.fixedScale })); return; }
     if (IN_APP) { browserHelp(null); return; }
@@ -126,5 +127,5 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', inAppBanner); else inAppBanner();
 
-  window.FoodAR = { launchAR: launchAR, inApp: IN_APP, android: ANDROID, ios: IOS, canLaunch: function (mv) { return !!(mv && (mv.canActivateAR || ((ANDROID || IOS) && IN_APP))); } };
+  window.FoodAR = { launchAR: launchAR, inApp: IN_APP, android: ANDROID, ios: IOS, canLaunch: function (mv) { return !!(mv && (ANDROID || mv.canActivateAR || (IOS && IN_APP))); } };
 })();
