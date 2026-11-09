@@ -6,7 +6,8 @@
     "glb": "pizza.glb",
     "usdz": "pizza.usdz",
     "realSize": true,
-    "demo": true
+    "demo": true,
+    "webGlb": "modeli/web/pizza.glb"
   },
   {
     "sub": "dorucak",
@@ -59,7 +60,8 @@
     "desc": "",
     "glb": "modeli/daska.glb",
     "realSize": true,
-    "demo": true
+    "demo": true,
+    "webGlb": "modeli/web/daska.glb"
   },
   {
     "sub": "strips",
@@ -67,7 +69,8 @@
     "desc": "Strips combo",
     "glb": "modeli/strips.glb",
     "realSize": true,
-    "demo": true
+    "demo": true,
+    "webGlb": "modeli/web/strips.glb"
   },
   {
     "sub": "sushi",

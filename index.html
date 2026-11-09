@@ -1023,7 +1023,7 @@
   </div>
 </footer>
 
-<script src="/ar-launch.js?v=4"></script>
+<script src="/ar-launch.js?v=5"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <script>
   // ---------- Jela za demo (glb/usdz fajlovi su u ovom folderu) ----------
@@ -1120,7 +1120,7 @@
     heroMv.arScale = d.realSize ? 'fixed' : 'auto';
     if (first) { // prvo jelo: bez animacije smene, samo postavi model kad dođe vreme (poster je već na ekranu)
       heroLater(() => {
-        heroMv.src = d.glb;
+        heroMv.src = d.webGlb || d.glb; // lakša verzija samo za prikaz na sajtu; AR koristi original (d.glb)
         if (d.usdz) heroMv.iosSrc = d.usdz; else heroMv.removeAttribute('ios-src');
         heroMv.alt = '3D model: ' + d.name;
       });
@@ -1130,7 +1130,7 @@
     clearTimeout(heroTimer);
     heroMv.classList.add('switching'); heroLoader.classList.add('on');
     setTimeout(() => {
-      heroMv.src = d.glb;
+      heroMv.src = d.webGlb || d.glb;
       if (d.usdz) heroMv.iosSrc = d.usdz; else heroMv.removeAttribute('ios-src');
       heroMv.alt = '3D model: ' + d.name;
       heroMv.cameraOrbit = '-40deg 75deg 140%'; heroMv.jumpCameraToGoal?.();
@@ -1179,7 +1179,7 @@
       await customElements.whenDefined('model-viewer');
       await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
     }
-    if (FoodAR.canLaunch(heroMv)) FoodAR.launchAR(heroMv, { title: d.name, fixedScale: d.realSize !== false });
+    if (FoodAR.canLaunch(heroMv)) FoodAR.launchAR(heroMv, { title: d.name, fixedScale: d.realSize !== false, arGlb: d.glb });
     else document.getElementById('demo').scrollIntoView();
   });
 
@@ -1212,7 +1212,7 @@
     demoMv.classList.add('switching');
     loader.classList.add('on');
     setTimeout(() => {
-      demoMv.src = d.glb; if (d.usdz) demoMv.iosSrc = d.usdz; else demoMv.removeAttribute('ios-src'); demoMv.alt = '3D model: ' + d.name;
+      demoMv.src = d.webGlb || d.glb; if (d.usdz) demoMv.iosSrc = d.usdz; else demoMv.removeAttribute('ios-src'); demoMv.alt = '3D model: ' + d.name;
       demoMv.cameraOrbit = '-40deg 75deg 140%'; demoMv.jumpCameraToGoal?.();
     }, reduceMotion ? 0 : 300);
     if (window.qrcode) {
@@ -1229,7 +1229,7 @@
   document.fonts && document.fonts.ready.then(movePill);
   document.getElementById('demoAr').addEventListener('click', () => {
     const d = DISHES[current] || {};
-    FoodAR.launchAR(demoMv, { title: d.name, fixedScale: d.realSize !== false });
+    FoodAR.launchAR(demoMv, { title: d.name, fixedScale: d.realSize !== false, arGlb: d.glb });
   });
   fetch('dishes.json', { cache: 'no-cache' }).then(r => r.json()).then(list => {
     DISHES = list.filter(d => d.demo && !d.hidden);

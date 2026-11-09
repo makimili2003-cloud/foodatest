@@ -97,11 +97,14 @@
 
   /**
    * @param {HTMLElement} mv  model-viewer element
-   * @param {{ title?: string, fixedScale?: boolean }} opts
+   * @param {{ title?: string, fixedScale?: boolean, arGlb?: string }} opts  arGlb = originalni model za AR
    */
   function launchAR(mv, opts) {
     opts = opts || {};
-    var glb = mv.getAttribute('src') || mv.src;
+    var glb = opts.arGlb || mv.getAttribute('src') || mv.src;
+    // Početna strana prikazuje lakšu (Draco) verziju modela, a za AR šalje original (opts.arGlb):
+    // na Androidu ga otvaramo direktno u Scene Viewer-u. QR stranice (ar.html) ne šalju arGlb i rade kao ranije.
+    if (opts.arGlb && ANDROID && !IN_APP) { location.href = sceneViewerHref({ glb: glb, title: opts.title, fixedScale: opts.fixedScale }); return; }
     if (!IN_APP && mv.canActivateAR) { mv.activateAR(); return; }
     if (IN_APP && ANDROID && glb) { browserHelp(sceneViewerHref({ glb: glb, title: opts.title, fixedScale: opts.fixedScale })); return; }
     if (IN_APP) { browserHelp(null); return; }
