@@ -88,7 +88,9 @@ function addSmoothNormals(doc) {
     const out = new Float32Array(n * 3);
     for (let i = 0; i < n; i++) {
       const g = group[i] * 3;
-      const len = Math.hypot(acc[g], acc[g + 1], acc[g + 2]) || 1;
+      const len = Math.hypot(acc[g], acc[g + 1], acc[g + 2]);
+      // teme samo u trouglovima bez površine: normala bi bila (0,0,0), što Google Scene Viewer odbija -> stavi nagore
+      if (!(len > 1e-12)) { out[3 * i + 1] = 1; continue; }
       out[3 * i] = acc[g] / len; out[3 * i + 1] = acc[g + 1] / len; out[3 * i + 2] = acc[g + 2] / len;
     }
     prim.setAttribute('NORMAL', doc.createAccessor().setType('VEC3').setArray(out).setBuffer(buffer));
