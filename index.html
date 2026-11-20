@@ -1023,7 +1023,7 @@
   </div>
 </footer>
 
-<script src="/ar-launch.js?v=6"></script>
+<script src="/ar-launch.js?v=7"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <script>
   // ---------- Jela za demo (glb/usdz fajlovi su u ovom folderu) ----------
@@ -1174,6 +1174,9 @@
   document.addEventListener('visibilitychange', heroVisibility);
   document.getElementById('heroAr').addEventListener('click', async () => {
     const d = HERO[heroIdx] || {};
+    // Android: Google AR (Scene Viewer) ne treba 3D biblioteku -> otvori odmah, dok Chrome još vidi gostov dodir.
+    // (Ranije se ovde čekalo na model-viewer, pa je Chrome blokirao otvaranje i ništa se nije dešavalo.)
+    if (FoodAR.android) { startHero3D(); FoodAR.launchAR(heroMv, { title: d.name || 'Pica Margarita', fixedScale: d.realSize !== false, arGlb: d.glb || 'pizza.glb' }); return; }
     if (!customElements.get('model-viewer')) { // dodir pre nego što se 3D učitao: učitaj ga pa pokušaj
       startHero3D();
       await customElements.whenDefined('model-viewer');
