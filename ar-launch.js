@@ -95,6 +95,23 @@
     w.onclick = function (e) { if (e.target === w || e.target.tagName === 'BUTTON') w.remove(); };
   }
 
+  // Scene Viewer se otvara klikom na link (kao u model-viewer-u), odmah u okviru gostovog dodira.
+  // Ako se posle 1,5 s ne otvori (strana je i dalje na ekranu), AR se pokreće kao ranije, preko model-viewer-a (WebXR).
+  function openSceneViewer(mv, href) {
+    var left = false;
+    var mark = function () { if (document.hidden) left = true; };
+    document.addEventListener('visibilitychange', mark);
+    window.addEventListener('pagehide', function () { left = true; }, { once: true });
+    window.addEventListener('blur', function () { left = true; }, { once: true });
+    var a = document.createElement('a'); a.href = href; a.style.display = 'none';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () {
+      document.removeEventListener('visibilitychange', mark);
+      if (left || document.hidden) return;
+      if (mv && mv.canActivateAR) mv.activateAR();
+    }, 1500);
+  }
+
   /**
    * @param {HTMLElement} mv  model-viewer element
    * @param {{ title?: string, fixedScale?: boolean, arGlb?: string }} opts  arGlb = originalni model za AR
@@ -105,11 +122,10 @@
     // Android (Chrome i ostali browseri): AR uvek kroz Google Scene Viewer, ne kroz WebXR u Chrome-u.
     // WebXR na pojedinim telefonima (npr. Honor) daje crn ekran umesto kamere; Scene Viewer je Google-ova
     // aplikacija i radi na svim telefonima sa ARCore-om. Početna strana šalje original modela u opts.arGlb.
-    if (ANDROID && !IN_APP && glb) { location.href = sceneViewerHref({ glb: glb, title: opts.title, fixedScale: opts.fixedScale }); return; }
+    if (ANDROID && !IN_APP && glb) { openSceneViewer(mv, sceneViewerHref({ glb: glb, title: opts.title, fixedScale: opts.fixedScale })); return; }
     if (!IN_APP && mv.canActivateAR) { mv.activateAR(); return; }
     if (IN_APP && ANDROID && glb) { browserHelp(sceneViewerHref({ glb: glb, title: opts.title, fixedScale: opts.fixedScale })); return; }
     if (IN_APP) { browserHelp(null); return; }
-    if (ANDROID && glb) { location.href = sceneViewerHref({ glb: glb, title: opts.title, fixedScale: opts.fixedScale }); return; }
     if (mv.canActivateAR) { mv.activateAR(); return; }
     noAR();
   }
