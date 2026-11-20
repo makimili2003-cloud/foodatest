@@ -1023,7 +1023,7 @@
   </div>
 </footer>
 
-<script src="/ar-launch.js?v=7"></script>
+<script src="/ar-launch.js?v=8"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <script>
   // ---------- Jela za demo (glb/usdz fajlovi su u ovom folderu) ----------
@@ -1078,11 +1078,11 @@
     document.head.appendChild(s);
     heroQueue.splice(0).forEach(fn => fn());
   }
-  // Kreće na prvu aktivnost posetioca (pomeranje miša, skrol, dodir, taster), a najkasnije 6 s posle učitavanja strane.
-  const idle = cb => (window.requestIdleCallback ? requestIdleCallback(cb, { timeout: 2500 }) : setTimeout(cb, 300));
-  for (const ev of ['pointermove', 'pointerdown', 'touchstart', 'wheel', 'scroll', 'keydown']) addEventListener(ev, startHero3D, { once: true, passive: true });
-  const afterLoad = () => setTimeout(() => idle(startHero3D), 6000);
-  if (document.readyState === 'complete') afterLoad(); else addEventListener('load', afterLoad, { once: true });
+  // Kreće odmah posle učitavanja strane (load + requestIdleCallback), da AR dugme radi na prvi dodir
+  // (iPhone i Android traže da se AR pokrene direktno iz dodira, bez čekanja na učitavanje biblioteke).
+  const idle = cb => (window.requestIdleCallback ? requestIdleCallback(cb, { timeout: 1500 }) : setTimeout(cb, 200));
+  for (const ev of ['pointerdown', 'touchstart', 'keydown']) addEventListener(ev, startHero3D, { once: true, passive: true });
+  if (document.readyState === 'complete') idle(startHero3D); else addEventListener('load', () => idle(startHero3D), { once: true });
   heroMv.addEventListener('load', () => {
     heroLoader.classList.remove('on');
     heroMv.classList.remove('switching');
@@ -1174,9 +1174,6 @@
   document.addEventListener('visibilitychange', heroVisibility);
   document.getElementById('heroAr').addEventListener('click', async () => {
     const d = HERO[heroIdx] || {};
-    // Android: Google AR (Scene Viewer) ne treba 3D biblioteku -> otvori odmah, dok Chrome još vidi gostov dodir.
-    // (Ranije se ovde čekalo na model-viewer, pa je Chrome blokirao otvaranje i ništa se nije dešavalo.)
-    if (FoodAR.android) { startHero3D(); FoodAR.launchAR(heroMv, { title: d.name || 'Pica Margarita', fixedScale: d.realSize !== false, arGlb: d.glb || 'pizza.glb' }); return; }
     if (!customElements.get('model-viewer')) { // dodir pre nego što se 3D učitao: učitaj ga pa pokušaj
       startHero3D();
       await customElements.whenDefined('model-viewer');
